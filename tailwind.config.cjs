@@ -1,0 +1,103 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: 'class',
+  content: ['./index.html', './src/**/*.{js,ts,vue}'],
+  theme: {
+    colors: {
+      transparent: 'transparent',
+      white: {
+        DEFAULT: '#ffffff',
+        smoke: '#f6f7f9',
+      },
+      black: {
+        DEFAULT: '#000000',
+        100: '#222222',
+        200: '#626669',
+        300: '#263238',
+        dark: '#191919',
+      },
+      blue: {
+        DEFAULT: '#0960CD',
+        100: '#0960CD;',
+        200: '#3287DD',
+        300: '#0A84FF',
+        400: '#447FFC',
+        900: '#637A87',
+        lighter: '#F0F2F2',
+        light: '#66A0EE',
+      },
+      grey: {
+        DEFAULT: '#F0F2F2',
+        100: '#F6F7F9',
+        200: '#EEEEEE',
+        300: '#777777',
+        dark: '#2C2C2C',
+      },
+      green: {
+        DEFAULT: '#46A754',
+        100: '#56CA00',
+        light: '#57BD66',
+      },
+      red: {
+        DEFAULT: '#FF293E',
+        100: '#FF4C51',
+        light: '#F0F2F2',
+      },
+      orange: {
+        DEFAULT: '#FFB400',
+      },
+      // current: 'currentColor',
+    },
+    extend: {
+      spacing: {
+        10.5: '42px',
+        '5.5/10': '55%',
+        '4.5/10': '45%',
+        18: '72px',
+        '8-2': '30px',
+        '8+3': '35px',
+        '9+2': '38px',
+        '9+3': '39px',
+        '3.5+1': '15px',
+        '4+2': '18px',
+        '4+1': '17px',
+        '3+1': '13px',
+        '3-1': '11px',
+        '64+4': '16.25rem',
+        '0.5-1': '1px',
+        '2+1': '9px',
+        '5-1': '19px',
+        '7-1': '27px',
+        '2.5+1': '11px',
+        '6+1': '25px',
+        '16+2': '66px',
+        '4-1': '15px',
+      },
+      fontSize: {
+        '2xl+4': '1.75rem',
+        xxs: '8px',
+        '3xl+2': '32px',
+      },
+    },
+  },
+  plugins: [require('daisyui')],
+  daisyui: {
+    styled: true,
+    base: false,
+    utils: true,
+    logs: true,
+    rtl: false,
+    prefix: '',
+    darkTheme: 'light',
+    themes: [
+      {
+        mainTheme: {
+          primary: '#2F80ED',
+          'primary-content': '#ffffff',
+          secondary: '#0960CD',
+          'secondary-content': '#ffffff',
+        },
+      },
+    ],
+  },
+};

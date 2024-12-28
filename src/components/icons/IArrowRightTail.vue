@@ -1,0 +1,7 @@
+<template>
+    <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3.125 10.5H16.875" stroke="#003b3d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M11.25 4.875L16.875 10.5L11.25 16.125" stroke="#003b3d" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+    </svg>
+</template>
