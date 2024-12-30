@@ -1,166 +1,58 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from "vue";
-import useVuelidate from "@vuelidate/core";
-import {
-  email,
-  helpers,
-  minLength,
-  sameAs,
-  required,
-} from "@vuelidate/validators";
-import ButtonBlue from "../../components/buttons/ButtonBlue.vue";
-import { IEyeOpened } from "../../core/icons";
-import SuccessAlert from "../../components/alerts/SuccessAlert.vue";
-import { request } from "../../composables/request.composable";
-import handleError from "../../composables/handle_error.composable";
-import handleSuccess from "../../composables/handle_success.composable";
-import spinner from "../../components/timer/Spinner.vue";
+import { ref } from "vue";
+import settingsService from "../../service/settings/settings.service";
 import { useAuthStore, useUserStore } from "../../store/index";
-import { stringValidate, numberValidate } from "../../validations/validate";
-import { storeItem, getItem } from "../../core/utils/storage.helper";
-// store initializaion
-// initialize store
+import ButtonBlue from "../../components/buttons/ButtonBlue.vue";
+
 const authStore = useAuthStore();
 const userStore = useUserStore();
 
-// variables
-const loading = ref(false);
-let data = ref<{
-  firstname: string | null;
-  lastname: string | null;
-  telephone: string | null;
-  email: string | null;
-  password: string | null;
-  confirmPassword: string | null;
-  photo: string | null;
-}>({
-  firstname: null,
-  lastname: null,
-  telephone: null,
-  email: null,
-  password: null,
-  confirmPassword: null,
-  photo: null,
-});
-const showSuccess = ref(false);
+const payrollFee = ref<number | null>(null);
 const disabled = ref(true);
-const valid = ref(false);
-const is_open = ref(false);
-const responseData = ref<any>({ message: "Action successful" });
-// methods
+const errorMessage = ref("");
+const loading = ref(false);
+const showSuccess = ref(false);
+const responseData = ref<any>(null);
+const isEditing = ref(false);
 
-const onInput = (phone: number, phoneObject: any, input: any) => {
-  if (phoneObject?.formatted) {
-    data.value.telephone = phoneObject.number;
-    valid.value = phoneObject.valid;
-  }
+const toggleEdit = () => {
+  isEditing.value = !isEditing.value;
+  disabled.value = !isEditing.value;
 };
 
-const validatePhone = () => {
-  return valid.value;
-};
-const updateProfile = async () => {
-  // check if form is formattted correctly
-  const isFormCorrect = await v$.value.$validate();
-
-  if (isFormCorrect == true) {
-    const dataObj = {
-      email: v$.value.email.$model as string,
-      password: v$.value.password.$model as string,
-      firstname: v$.value.firstname.$model as string,
-      lastname: v$.value.lastname.$model as string,
-      telephone: v$.value.telephone.$model as string,
-      confirmPassword: v$.value.confirmPassword.$model as string,
-      // photo: data.photo as any,
-    };
-
+const updatePayrollFee = async () => {
+  if (payrollFee.value !== null) {
     loading.value = true;
-    const response = await request(authStore.updateProfile(dataObj), loading);
-
-    handleError(response, userStore);
-    const successResponse = handleSuccess(response, showSuccess);
-
-    if (successResponse && typeof successResponse !== "undefined") {
-      // remove previously stored item and add a new one
-      sessionStorage.removeItem(import.meta.env.VITE_USERDETAILS);
-
-      const data = JSON.stringify({
-        customerInfo: {
-          firstName: successResponse.data.data.firstname,
-          lastName: successResponse.data.data.lastname,
-          email: successResponse.data.data.email,
-          phone: successResponse.data.data.phone,
-        },
-      });
-
-      storeItem(import.meta.env.VITE_USERDETAILS, data);
-
-      responseData.value = successResponse;
+    errorMessage.value = "";
+    showSuccess.value = false;
+    try {
+      const response = await settingsService.update(payrollFee.value);
+      if (response && response.succeeded) {
+        // Handle success
+        showSuccess.value = true;
+        responseData.value = response;
+        console.log("Payroll fee updated successfully");
+        isEditing.value = false;
+        disabled.value = true;
+      } else {
+        // Handle error
+        errorMessage.value =
+          response?.message || "Failed to update payroll fee";
+      }
+    } catch (error) {
+      console.error("Error in updatePayrollFee:", error);
+      errorMessage.value =
+        (error as any).message ||
+        "An error occurred while updating payroll fee";
+    } finally {
+      loading.value = false;
     }
   }
 };
-
-const getProfile = async () => {
-  const response = await request(authStore.getProfile());
-
-  // handleError(response, userStore);
-  const successResponse = handleSuccess(response);
-
-  if (successResponse && typeof successResponse !== "undefined") {
-    // console.log(successResponse.data);
-    data.value = successResponse.data.data;
-    // console.log(data, 'red');
-  }
-};
-
-// getProfile();
-// validations rule
-const rules = computed(() => {
-  return {
-    email: {
-      email: helpers.withMessage("Must be a valid email", email),
-    },
-
-    confirmPassword: {
-      sameAsPassword: sameAs(data.value.password, "password"),
-    },
-    password: {
-      min: helpers.withMessage(
-        "Password cannot be less than 8 characters",
-        minLength(8)
-      ),
-    },
-    firstname: {
-      stringValidate: helpers.withMessage(
-        "First name can only include alphabets",
-        () => stringValidate(data.value.firstname as string) as any
-      ),
-    },
-    lastname: {
-      stringValidate: helpers.withMessage(
-        "Last name can only include alphabets",
-        () => stringValidate(data.value.lastname as string) as any
-      ),
-    },
-    telephone: {
-      required: helpers.withMessage("Telephone is required", required),
-      validatePhone: helpers.withMessage("Invalid Phone Number", validatePhone),
-    },
-  };
-});
-
-const v$ = useVuelidate(rules as any, data);
 </script>
+
 <template>
   <div class="px-6 py-9 space-y-6 cursor-pointer">
-    <successAlert
-      :showSuccess="showSuccess"
-      @closeSuccess="showSuccess = false"
-      v-if="showSuccess == true"
-    >
-      <template #otherMessage>CLOSE</template>
-      {{ responseData.message }}</successAlert
-    >
     <h3 class="text-black-rgba font-medium text-2xl">Settings</h3>
 
     <div class="bg-white min-h-screen rounded-t-lg p-6 space-y-9 h-auto">
@@ -173,13 +65,16 @@ const v$ = useVuelidate(rules as any, data);
             Company Settings
           </h3>
           <span class="text-sm text-[#626669A3]"
-            >This company payroll fee will updated and saved.</span
+            >This company payroll fee will be updated and saved.</span
           >
         </div>
 
-        <ButtonBlue @click="updateProfile" :disabled="disabled">
+        <ButtonBlue @click="isEditing ? updatePayrollFee() : toggleEdit()">
           <template #placeholder>
-            <spinner v-if="loading == true" /> <span v-else>Save Changes</span>
+            <spinner v-if="loading == true" />
+            <span v-else>{{
+              isEditing ? "Save Changes" : "Edit Settings"
+            }}</span>
           </template>
         </ButtonBlue>
       </div>
@@ -187,24 +82,41 @@ const v$ = useVuelidate(rules as any, data);
       <div class="relative w-[30%] text-[#626669]">
         <label for="Payroll fee" class="mb-4"> Payroll fee</label>
         <input
-          @click="disabled = false"
-          type="payroll"
+          :disabled="disabled"
+          type="number"
           id="Payroll"
+          v-model="payrollFee"
           maxlength="54"
           class="input-float text-black peer pr-10.5"
           placeholder=""
         />
 
-        <div v-if="v$.email.$error" class="text-red-600 text-xs">
-          {{ "* " + v$.email.$errors[0].$message }}
+        <div v-if="errorMessage" class="text-red-600 text-xs">
+          {{ errorMessage }}
         </div>
+        <successAlert
+          :showSuccess="showSuccess"
+          @closeSuccess="showSuccess = false"
+          v-if="showSuccess == true"
+        >
+          <template #otherMessage>CLOSE</template>
+          {{ responseData.message }}
+        </successAlert>
       </div>
     </div>
   </div>
 </template>
+
 <style scoped>
-.telinput {
-  border: 1px solid black;
-  border-radius: 7px;
+/* Hide number input arrows */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
 }
 </style>
