@@ -32,10 +32,6 @@ const userStore = defineStore("user", {
       try {
         const response = await userService.show(userId);
         if (response && response.data && response.data.data) {
-          console.log(
-            "_____\\\\\\\\_____",
-            response.data.data.organisation.user.email
-          );
           const data = JSON.stringify({
             customerInfo: {
               firstName: response.data.data.organisation.user.firstname,
@@ -125,6 +121,7 @@ const userStore = defineStore("user", {
         throw error;
       }
     },
+
     async fetchRoles(): Promise<any> {
       try {
         const response = await userService.fetchRoles();
@@ -154,6 +151,7 @@ const userStore = defineStore("user", {
         return await Promise.reject(error);
       }
     },
+
     async updateRole(userId: number, roleId: number): Promise<any> {
       try {
         const response = await userService.updateRole(userId, roleId);
@@ -168,6 +166,7 @@ const userStore = defineStore("user", {
         return await Promise.reject(error);
       }
     },
+
     async deleteUser(userId: string): Promise<any> {
       try {
         const response = await userService.deleteUser(userId);
@@ -180,6 +179,7 @@ const userStore = defineStore("user", {
         return await Promise.reject(error);
       }
     },
+
     async create(data: Create): Promise<any> {
       try {
         const response = await userService.create(data);
@@ -194,6 +194,7 @@ const userStore = defineStore("user", {
         return await Promise.reject(error);
       }
     },
+
     async update(data: Update, id: string): Promise<any> {
       try {
         const response = await userService.update(data, id);
