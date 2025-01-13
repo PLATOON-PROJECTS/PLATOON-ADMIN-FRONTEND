@@ -400,22 +400,22 @@ const router = useRouter();
 
       <!-- Card 2 -->
       <div class="bg-[#F0F2F2] shadow-lg rounded-lg p-6">
-        <p class="text-black text-base font-medium">Total Funds Received</p>
-        <p class="text-[#000000AD] text-sm">Total Funds Received</p>
+        <p class="text-black text-base font-medium">Funds Disbursed</p>
+        <p class="text-[#000000AD] text-sm">Total funds disbursed</p>
         <h2 class="text-black text-xl font-bold pt-4">N7,030,000</h2>
       </div>
 
       <!-- Card 3 -->
       <div class="bg-[#F0F2F2] shadow-lg rounded-lg p-6">
-        <p class="text-black text-base font-medium">Total Funds Received</p>
-        <p class="text-[#000000AD] text-sm">Total Funds Received</p>
+        <p class="text-black text-base font-medium">Pending Disbursment</p>
+        <p class="text-[#000000AD] text-sm">Total Pending Disbursment</p>
         <h2 class="text-black text-xl font-bold pt-4">N7,030,000</h2>
       </div>
 
       <!-- Card 4 -->
       <div class="bg-[#F0F2F2] shadow-lg rounded-lg p-6">
-        <p class="text-black text-base font-medium">Total Funds Received</p>
-        <p class="text-[#000000AD] text-sm">Total Funds Received</p>
+        <p class="text-black text-base font-medium">Revenue Recieved</p>
+        <p class="text-[#000000AD] text-sm">Total Revenue Recieved</p>
         <h2 class="text-black text-xl font-bold pt-4">N7,030,000</h2>
       </div>
     </div>
