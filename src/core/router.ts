@@ -648,17 +648,17 @@ const routes = [
         ],
       },
       {
-        path: "company-settings",
+        path: "company-settings/:id",
         name: "dashboard.company.settings",
         component: CompanySettingsLayout,
-        redirect: "/dashboard/company-settings/company-information",
+        redirect: "/dashboard/company-settings/:id/company-information",
         children: [
           {
             path: "company-information",
             name: "dashboard.company.settings.information",
             component: CompanyInformationPage,
             meta: {
-              title: "Company -Settings - Contact - Dashboard",
+              title: "Company - Settings - Contact - Dashboard",
             },
           },
           {
@@ -666,7 +666,7 @@ const routes = [
             name: "dashboard.company.settings.contact",
             component: ContactInformationPage,
             meta: {
-              title: "Company -Settings - Contact - Dashboard",
+              title: "Company - Settings - Contact - Dashboard",
             },
           },
           {
@@ -674,7 +674,7 @@ const routes = [
             name: "dashboard.company.settings.payroll-history",
             component: PayrollHistory,
             meta: {
-              title: "Company - Settings - Admin - Logs - Dashboard",
+              title: "Company - Settings - Payroll History - Dashboard",
             },
           },
           {
@@ -682,7 +682,7 @@ const routes = [
             name: "dashboard.company.settings.employees-logs",
             component: EmployeesLogsPage,
             meta: {
-              title: "Company -Settings - Employees -Logs - Dashboard",
+              title: "Company - Settings - Employees Logs - Dashboard",
             },
           },
           {
@@ -690,7 +690,7 @@ const routes = [
             name: "dashboard.company.settings.delete-company",
             component: DeleteCompanyPage,
             meta: {
-              title: "Company -Settings - Delete - Dashboard",
+              title: "Company - Settings - Delete - Dashboard",
             },
           },
         ],

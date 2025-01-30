@@ -254,7 +254,7 @@ fetchDraftPayrollCount();
       <div>
         <h3 class="font-medium text-2xl">Payroll</h3>
       </div>
-      <div class="relative w-64">
+      <!-- <div class="relative w-64">
         <button
           @click="toggleDropdown"
           class="w-full bg-gray-200 text-left px-4 py-2 rounded-lg border border-[#626669A3] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -305,7 +305,7 @@ fetchDraftPayrollCount();
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
     <router-view />
   </div>

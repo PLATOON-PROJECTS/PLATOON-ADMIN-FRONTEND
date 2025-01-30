@@ -131,12 +131,12 @@ const handlePayroll = (id: any) => {
   }
 };
 const addAllPayrollsForDelete = () => {
-  if (deletePayrollsId.value[0]) {
-    deletePayrollsId.value.length = 0;
+  if (deletePayrollsId.value.length === responseData.value.data.length) {
+    deletePayrollsId.value = []; // Clear selection
   } else {
-    responseData.value.forEach((value: any) => {
-      deletePayrollsId.value.push(value.id);
-    });
+    deletePayrollsId.value = responseData.value.data.map(
+      (pay: { payrollId: any }) => pay.payrollId
+    ); // Select all
   }
 };
 
@@ -344,11 +344,13 @@ const fetchAllPayrolls = async () => {
           <div class="flex space-x-6">
             <div class="relative cursor-pointer">
               <div class="flex space-x-2 text-blue">
-                <span
+                <button
                   @click="sortByMonth()"
                   class="text-sm pt-1 font-semimedium whitespace-nowrap"
-                  >Filter by Date</span
                 >
+                  Filter by Date
+                </button>
+
                 <span class="pt-2">
                   <IIncDecBlue />
                 </span>
@@ -402,11 +404,8 @@ const fetchAllPayrolls = async () => {
               <span class="pt-2">
                 <FCheckBoxComp
                   :value="
-                    responseData &&
-                    responseData.data &&
-                    deletePayrollsId.length === responseData.length
-                      ? true
-                      : false
+                    deletePayrollsId.length === responseData.data.length &&
+                    responseData.data.length > 0
                   "
                   name="payrolls"
                   @click="addAllPayrollsForDelete()"
@@ -416,6 +415,7 @@ const fetchAllPayrolls = async () => {
                 >Select All</span
               >
             </div>
+
             <div class="align-middle inline-block min-w-full">
               <div class="overflow-hidden sm:rounded-lg">
                 <table class="min-w-full table-fixed">

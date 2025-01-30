@@ -1,15 +1,30 @@
 import { http } from "../../core/utils/http";
 import authHeader from "../../core/utils/auth.header.js";
-import { Axios } from "axios";
+import axios, { Axios } from "axios";
 import { Create, Update } from "./interface/company.interface";
+import authhHeader from "../../core/utils/authh.header";
 
 class Company {
+  [x: string]: any;
   constructor(private readonly request: Axios) {}
 
-  async index(): Promise<any> {
-    return await this.request
-      .get("/companies", {
+  private createAxiosInstance() {
+    return axios.create({
+      baseURL: "https://platoon-backend.onrender.com/api", // Set your custom base URL here
+      headers: authhHeader(), // Include any headers you need
+    });
+  }
+
+  async fetchCompany(pageSize: number, pageNumber: number): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .get("/Organisation/fetch-all-organisation", {
         headers: authHeader(),
+        params: {
+          pageSize: pageSize,
+          pageNumber: pageNumber,
+        },
       })
       .then((res) => {
         return res;
@@ -18,6 +33,7 @@ class Company {
         return err;
       });
   }
+
   async switch(id: string): Promise<any> {
     return await this.request
       .get(`/companies/${id}/switch`, {
@@ -30,10 +46,15 @@ class Company {
         return err;
       });
   }
-  async show(id: string): Promise<any> {
-    return await this.request
-      .get(`/companies/${id}`, {
+  async companyById(organisationId: number): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .get(`/Organisation/fetch-organisation-by-id`, {
         headers: authHeader(),
+        params: {
+          OrganisationId: organisationId,
+        },
       })
       .then((res) => {
         return res;
@@ -75,8 +96,10 @@ class Company {
       });
   }
   async delete(id: string): Promise<any> {
-    return await this.request
-      .delete(`/companies/${id}`, {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .delete(`Organisation/delete/${id}`, {
         headers: authHeader(),
       })
       .then((res) => {

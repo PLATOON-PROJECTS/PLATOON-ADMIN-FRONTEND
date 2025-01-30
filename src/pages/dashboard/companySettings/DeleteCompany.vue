@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, inject } from "vue";
+import { useRoute } from "vue-router";
 import SuccessAlert from "../../../components/alerts/SuccessAlert.vue";
 import spinner from "../../../components/timer/Spinner.vue";
 import { IArrowDown } from "../../../core/icons";
@@ -24,8 +25,12 @@ const showSuccess = ref(false);
 const loading = ref(false);
 const disabled = ref(true);
 const profile = ref<any>();
-const defaultCompanyId = ref("");
+// const defaultCompanyId = ref("");
 const responseData = ref({ data: null, message: "" });
+const route = useRoute();
+let defaultCompanyId = Array.isArray(route.params.id)
+  ? route.params.id[0]
+  : route.params.id;
 
 // providers and injectors
 const render = inject<any>("render");
@@ -43,7 +48,7 @@ const getProfile = async () => {
     successResponse.data.data.companies.forEach((company: any) => {
       if (company.is_default == true) {
         // console.log(true, company);
-        defaultCompanyId.value = company.id;
+        defaultCompanyId;
         disabled.value = false;
       }
     });
@@ -55,9 +60,9 @@ const deleteCompany = async () => {
   loading.value = true;
 
   // if there is no default company
-  if (defaultCompanyId.value !== "" && disabled.value == false) {
+  if (defaultCompanyId !== "" && disabled.value == false) {
     const response = await request(
-      companyStore.delete(defaultCompanyId.value),
+      companyStore.delete(defaultCompanyId),
       loading
     );
 
@@ -68,7 +73,7 @@ const deleteCompany = async () => {
     if (successResponse && typeof successResponse !== "undefined") {
       // console.log(successResponse);
 
-      responseData.value.message = `Default company with id ${defaultCompanyId.value}  deleted successfully`;
+      responseData.value.message = `Default company with id ${defaultCompanyId}  deleted successfully`;
 
       setTimeout(() => {
         render.value = true;

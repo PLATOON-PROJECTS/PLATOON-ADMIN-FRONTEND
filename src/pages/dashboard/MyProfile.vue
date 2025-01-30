@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, inject } from "vue";
 import useVuelidate from "@vuelidate/core";
 import {
   email,
@@ -33,6 +33,11 @@ let data = ref<{
   password: string | null;
   confirmPassword: string | null;
   photo: string | null;
+  organisationName?: string;
+  country?: string;
+  city?: string;
+  state?: string;
+  street?: string;
 }>({
   firstname: null,
   lastname: null,
@@ -41,12 +46,19 @@ let data = ref<{
   password: null,
   confirmPassword: null,
   photo: null,
+  organisationName: undefined,
+  country: undefined,
+  city: undefined,
+  state: undefined,
+  street: undefined,
 });
 const showSuccess = ref(false);
 const disabled = ref(true);
 const valid = ref(false);
 const is_open = ref(false);
 const responseData = ref<any>({ message: "Action successful" });
+const render = inject<any>("render");
+
 // methods
 
 const onInput = (phone: number, phoneObject: any, input: any) => {
@@ -56,10 +68,19 @@ const onInput = (phone: number, phoneObject: any, input: any) => {
   }
 };
 
-const validatePhone = () => {
-  return valid.value;
+// const validatePhone = () => {
+//   return valid.value;
+// };
+
+const capitalizeFirstLetter = (name: string | null) => {
+  if (!name) return "";
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 };
-const updateProfile = async () => {
+
+const isNewPasswordVisible = ref(false); // For New Password visibility
+const isConfirmPasswordVisible = ref(false); // For Confirm Password visibility
+
+const uppdateProfile = async () => {
   // check if form is formattted correctly
   const isFormCorrect = await v$.value.$validate();
 
@@ -86,8 +107,8 @@ const updateProfile = async () => {
 
       const data = JSON.stringify({
         customerInfo: {
-          firstName: successResponse.data.data.firstname,
-          lastName: successResponse.data.data.lastname,
+          firstName: successResponse.data.data.firstName,
+          lastName: successResponse.data.data.lastName,
           email: successResponse.data.data.email,
           phone: successResponse.data.data.phone,
         },
@@ -99,6 +120,92 @@ const updateProfile = async () => {
     }
   }
 };
+
+const updateProfile = async () => {
+  const isFormCorrect = await v$.value.$validate();
+
+  if (isFormCorrect) {
+    const phoneNumber = v$.value.telephone.$model as string;
+
+    // Extract country code and actual phone number
+    const countryCode = phoneNumber.match(/^\+\d{1,3}/)?.[0] || "";
+    const actualNumber = phoneNumber.replace(countryCode, "").trim();
+    const formattedNumber = actualNumber.startsWith("0")
+      ? actualNumber
+      : "0" + actualNumber;
+
+    const dataObj = {
+      organisationName: data.value.organisationName,
+      firstName: v$.value.firstname.$model as string,
+      lastName: v$.value.lastname.$model as string,
+      email: v$.value.email.$model as string,
+      countryCode: countryCode,
+      phoneNumber: formattedNumber,
+      country: data.value.country,
+      city: data.value.city,
+      state: data.value.state,
+      street: data.value.street,
+    };
+    console.log("===========", dataObj);
+    loading.value = true;
+    const response = await request(authStore.updateProfile(dataObj), loading);
+
+    handleError(response, userStore);
+    const successResponse = handleSuccess(response, showSuccess);
+
+    if (
+      successResponse &&
+      successResponse.data &&
+      successResponse.data.succeeded
+    ) {
+      // Handle success response
+      responseData.value = {
+        message: successResponse.data.message,
+      };
+      showSuccess.value = true;
+      render.value = true;
+      await fetchUserDetails();
+    }
+  }
+};
+
+const fetchUserDetails = async () => {
+  const userId = Number(localStorage.getItem("userId"));
+  console.log("User ID:", userId);
+
+  if (userId) {
+    const response = await request(userStore.show(userId));
+    console.log("API Response:", response);
+
+    const successResponse = handleSuccess(response);
+
+    if (successResponse && successResponse.data && successResponse.data.data) {
+      const userData = successResponse.data.data.organisation.user;
+      const organisationData = successResponse.data.data.organisation;
+
+      data.value = {
+        firstname: capitalizeFirstLetter(userData.firstname || ""),
+        lastname: capitalizeFirstLetter(userData.lastname || ""),
+        email: userData.email || "",
+        telephone: userData.phoneNumber || "",
+        password: null,
+        confirmPassword: null,
+        photo: userData.imageUrl || null,
+        organisationName: organisationData.organisationName || "",
+        street: organisationData.address.street || "",
+        city: organisationData.address.city || "",
+        state: organisationData.address.state || "",
+        country: organisationData.address.country || "",
+      };
+
+      console.log("Updated Data:", data.value);
+    } else {
+      console.error("Invalid response data:", successResponse);
+    }
+  }
+};
+
+fetchUserDetails();
 
 const getProfile = async () => {
   const response = await request(authStore.getProfile());
@@ -115,6 +222,12 @@ const getProfile = async () => {
 
 // getProfile();
 // validations rule
+const validatePhone = (phone: string) => {
+  if (!phone) return true;
+  const phoneRegex = /^\+\d{1,3}\d{9,14}$/;
+  return phoneRegex.test(phone);
+};
+
 const rules = computed(() => {
   return {
     email: {
@@ -143,7 +256,7 @@ const rules = computed(() => {
       ),
     },
     telephone: {
-      required: helpers.withMessage("Telephone is required", required),
+      // required: helpers.withMessage("Telephone is required", required),
       validatePhone: helpers.withMessage("Invalid Phone Number", validatePhone),
     },
   };
@@ -168,9 +281,7 @@ const v$ = useVuelidate(rules as any, data);
         class="flex items-center justify-between overflow-auto scrollbar-hide lg:space-x-0 space-x-3"
       >
         <div>
-          <h3 class="text-black-rgba font-medium text-base">
-            Personal Information
-          </h3>
+          <h3 class="text-black-rgba font-medium text-base">Update profile</h3>
           <span class="text-sm text-gray-rgba-3"
             >Edit your profile information</span
           >
@@ -249,26 +360,34 @@ const v$ = useVuelidate(rules as any, data);
                   {{ "* " + v$.email.$errors[0].$message }}
                 </div>
               </div>
+              <span class="text-sm font-semimedium text-gray-rgba-3">
+                To change email, contact your administrator to create a new
+                profile for you
+              </span>
             </div>
             <div>
               <div class="relative">
+                <!-- <vue-tel-input
+                  :value="data.telephone"
+                  @input="onInput"
+                  class="text-black text-sm border py-2 telinput"
+                ></vue-tel-input> -->
                 <input
-                  @click="disabled = false"
                   type="tel"
                   id="Telephone"
                   v-model="data.telephone"
-                  maxlength="54"
+                  maxlength="14"
                   class="input-float text-black peer pr-10.5"
-                  placeholder=""
+                  placeholder="+2348145951347"
                 />
                 <label
                   for="Telephone"
                   class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
                 >
-                  Phone Number</label
+                  Telephone (with country code)</label
                 >
-                <div v-if="v$.email.$error" class="text-red-600 text-xs">
-                  {{ "* " + v$.email.$errors[0].$message }}
+                <div v-if="v$.telephone.$error" class="text-red-600 text-xs">
+                  {{ "* " + v$.telephone.$errors[0].$message }}
                 </div>
               </div>
             </div>
@@ -278,7 +397,7 @@ const v$ = useVuelidate(rules as any, data);
         <div class="space-y-4-1">
           <h4 class="text-base text-black-200 font-medium">Security</h4>
           <div class="grid sm:grid-cols-2 gap-4">
-            <div class="relative">
+            <!-- <div class="relative">
               <input
                 @click="disabled = false"
                 type="password"
@@ -298,23 +417,23 @@ const v$ = useVuelidate(rules as any, data);
                 <IEyeOpened />
               </span>
             </div>
-            <!-- <div></div> -->
+            <div></div> -->
             <div class="relative">
               <input
-                @click="disabled = false"
+                :disabled="disabled"
                 :type="is_open ? 'text' : 'password'"
                 id="newpassword"
                 v-model="data.password"
                 maxlength="54"
                 class="input-float peer text-black pr-10.5"
-                placeholder=""
+                placeholder="New Password"
               />
-              <label
+              <!-- <label
                 for="Password"
                 class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
               >
                 New Password</label
-              >
+              > -->
               <button
                 type="button"
                 class="absolute right-4 top-4+2"
@@ -328,24 +447,24 @@ const v$ = useVuelidate(rules as any, data);
             </div>
             <div class="relative">
               <input
-                @click="disabled = false"
-                :type="is_open ? 'text' : 'password'"
+                :disabled="disabled"
+                :type="isConfirmPasswordVisible ? 'text' : 'password'"
                 id="confirmpassword"
                 v-model="data.confirmPassword"
                 maxlength="54"
                 class="input-float peer text-black pr-10.5"
-                placeholder=""
+                placeholder="Confirm Password"
               />
-              <label
-                for="Password"
+              <!-- <label
+                for="confirmpassword"
                 class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
               >
                 Confirm Password</label
-              >
+              > -->
               <button
                 type="button"
                 class="absolute right-4 top-4+2"
-                @click="is_open = !is_open"
+                @click="isConfirmPasswordVisible = !isConfirmPasswordVisible"
               >
                 <IEyeOpened />
               </button>

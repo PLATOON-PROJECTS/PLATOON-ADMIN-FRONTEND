@@ -5,15 +5,21 @@ import {
   Update,
 } from "../../service/company/interface/company.interface";
 
-interface State {}
+interface State {
+  // Define any state properties if needed
+}
+
 const companyStore = defineStore("company", {
-  state: (): State => ({}),
+  state: (): State => ({}), // Initialize your state here
   actions: {
-    async index(): Promise<any> {
+    async fetchCompany(pageSize: number, pageNumber: number): Promise<any> {
       try {
-        const response = await companyService.index();
+        const response = await companyService.fetchCompany(
+          pageSize,
+          pageNumber
+        );
         if (response.data) {
-          return await Promise.resolve(response);
+          return await Promise.resolve(response.data.data);
         } else if (response.response) {
           return await Promise.reject(response.response);
         } else {
@@ -28,43 +34,44 @@ const companyStore = defineStore("company", {
       try {
         const response = await companyService.switch(id);
         if (response.data) {
-          return await Promise.resolve(response);
+          return response;
         } else if (response.response) {
-          return await Promise.reject(response.response);
+          return Promise.reject(response.response);
         } else {
-          return await Promise.reject(response.message);
+          return Promise.reject(response.message);
         }
       } catch (error: any) {
-        return await Promise.reject(error);
+        return Promise.reject(error);
       }
     },
 
-    async show(id: string): Promise<any> {
+    async companyById(organisationId: number): Promise<any> {
       try {
-        const response = await companyService.show(id);
+        const response = await companyService.companyById(organisationId);
         if (response.data) {
-          return await Promise.resolve(response);
+          return response;
         } else if (response.response) {
-          return await Promise.reject(response.response);
+          return Promise.reject(response.response);
         } else {
-          return await Promise.reject(response.message);
+          return Promise.reject(response.message);
         }
       } catch (error: any) {
-        return await Promise.reject(error);
+        return Promise.reject(error);
       }
     },
+
     async create(data: Create): Promise<any> {
       try {
         const response = await companyService.create(data);
         if (response.data) {
-          return await Promise.resolve(response);
+          return response;
         } else if (response.response) {
-          return await Promise.reject(response.response);
+          return Promise.reject(response.response);
         } else {
-          return await Promise.reject(response.message);
+          return Promise.reject(response.message);
         }
       } catch (error: any) {
-        return await Promise.reject(error);
+        return Promise.reject(error);
       }
     },
 
@@ -72,28 +79,29 @@ const companyStore = defineStore("company", {
       try {
         const response = await companyService.update(data, id);
         if (response.data) {
-          return await Promise.resolve(response);
+          return response;
         } else if (response.response) {
-          return await Promise.reject(response.response);
+          return Promise.reject(response.response);
         } else {
-          return await Promise.reject(response.message);
+          return Promise.reject(response.message);
         }
       } catch (error: any) {
-        return await Promise.reject(error);
+        return Promise.reject(error);
       }
     },
+
     async delete(id: string): Promise<any> {
       try {
         const response = await companyService.delete(id);
         if (response.data) {
-          return await Promise.resolve(response);
+          return response;
         } else if (response.response) {
-          return await Promise.reject(response.response);
+          return Promise.reject(response.response);
         } else {
-          return await Promise.reject(response.message);
+          return Promise.reject(response.message);
         }
       } catch (error: any) {
-        return await Promise.reject(error);
+        return Promise.reject(error);
       }
     },
   },
