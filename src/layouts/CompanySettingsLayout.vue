@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref, computed, inject } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import spinner from "../components/timer/Spinner.vue";
 import { IArrowLeftTail } from "../core/icons";
 import ButtonBlue from "../components/buttons/ButtonBlue.vue";
-import { useCompanyStore } from "../store/index";
+import { useAuthStore, useCompanyStore, useUserStore } from "../store/index";
 import { request } from "../composables/request.composable";
 import handleError from "../composables/handle_error.composable";
+import handleSuccess from "../composables/handle_success.composable";
+import confirmAlert from "../components/alerts/ConfirmAlert.vue";
+import SuccessAlert from "../components/alerts/SuccessAlert.vue";
 
 const childComponent = ref<any>();
 const route = useRoute();
@@ -14,15 +17,57 @@ const router = useRouter();
 const companyData = ref<any[]>([]); // This will store the fetched company data
 const companyStore = useCompanyStore();
 const loading = ref(false);
-const responseData = ref<any>({ data: [], message: "" });
 const successMessage = ref("Action successful");
 const confirmMessage = ref({ message: "", id: "" });
 const showConfirm = ref(false);
+const showConfirmSuspend = ref(false);
+
+const authStore = useAuthStore();
+const userStore = useUserStore();
+
+// variables
+let data = ref<{
+  firstname: string | null;
+  lastname: string | null;
+  telephone: string | null;
+  email: string | null;
+  password: string | null;
+  confirmPassword: string | null;
+  photo: string | null;
+  organisationName?: string;
+  country?: string;
+  city?: string;
+  state?: string;
+  street?: string;
+}>({
+  firstname: null,
+  lastname: null,
+  telephone: null,
+  email: null,
+  password: null,
+  confirmPassword: null,
+  photo: null,
+  organisationName: undefined,
+  country: undefined,
+  city: undefined,
+  state: undefined,
+  street: undefined,
+});
 const showSuccess = ref(false);
+const disabled = ref(true);
+const valid = ref(false);
+const is_open = ref(false);
+const responseData = ref<any>({ message: "Action successful" });
+const render = inject<any>("render");
 
 const organisationId = Array.isArray(route.params.id)
   ? route.params.id[0]
   : route.params.id;
+
+const capitalizeFirstLetter = (name: string | null) => {
+  if (!name) return "";
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+};
 
 const fetchCompaniesById = async () => {
   loading.value = true;
@@ -31,10 +76,9 @@ const fetchCompaniesById = async () => {
     const response = await request(
       companyStore.companyById(Number(organisationId))
     );
-    loading.value = true;
 
     if (response && response.data) {
-      companyData.value = [response.data.data]; // Wrap the data in an array for consistency
+      companyData.value = [response.data.data]; // Ensure consistent array structure
     } else {
       console.error("No data found in response:", response);
     }
@@ -45,75 +89,117 @@ const fetchCompaniesById = async () => {
   }
 };
 
+// Computed property to determine if the company is suspended
+const isSuspended = computed(() => {
+  if (companyData.value.length > 0) {
+    return !companyData.value[0].isActive; // If isActive is false, it's suspended
+  }
+  return false;
+});
+
 onMounted(() => {
   fetchCompaniesById();
 });
 
-const removeUser = async (organisationId: string) => {
+const DeleteCompany = async (organisationId: string) => {
   loading.value = true;
 
   try {
-    const response = await companyStore.delete(organisationId);
-    if (response) {
-      responseData.value = responseData.value.filter(
-        (data: any) => data.organisationId !== organisationId
+    // Call the API to delete the company
+    const response = await request(
+      companyStore.delete(organisationId) // Ensure this method exists in your store
+    );
+
+    if (response && response.data) {
+      // Remove the deleted company from the list
+      companyData.value = companyData.value.filter(
+        (company) => company.organisationId !== organisationId
       );
-      successMessage.value = `User was successfully deleted`;
+
+      // Show success message
+      successMessage.value = "Company deleted successfully";
+      showSuccess.value = true;
+    } else {
+      console.error("Failed to delete company:", response);
     }
   } catch (error) {
-    handleError(error, "Error deleting user");
+    console.error("Error deleting company:", error);
+    handleError(error, "Error deleting company");
   } finally {
     loading.value = false;
   }
 };
 
-const confirmRemoveUser = (id: string) => {
-  confirmMessage.value.message = `Do you really want to delete this user `;
-  confirmMessage.value.id = id;
-  showConfirm.value = true;
+const confirmRemoveUser = (organisationId: string) => {
+  console.log("Confirming deletion for id:", organisationId); // Debug log
+
+  confirmMessage.value.message = `Do you really want to delete this company?`;
+  confirmMessage.value.id = organisationId;
+  showConfirm.value = true; // Ensure this is set to true
+};
+
+const Suspension = async (organisationId: string) => {
+  loading.value = true;
+  try {
+    const response = await request(companyStore.suspend(organisationId));
+    if (response && response.data) {
+      successMessage.value = "Company suspended successfully";
+      showSuccess.value = true;
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } else {
+      console.error("Failed to suspend company:", response);
+    }
+  } catch (error) {
+    console.error("Error suspending company:", error);
+    handleError(error, "Error suspending company");
+  } finally {
+    loading.value = false;
+  }
+};
+
+const removeSuspension = async (organisationId: string) => {
+  loading.value = true;
+  try {
+    const response = await request(
+      companyStore.removeSuspension(organisationId)
+    );
+    if (response && response.data) {
+      successMessage.value = "Suspension removed successfully";
+      showSuccess.value = true;
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } else {
+      console.error("Failed to remove suspension:", response);
+    }
+  } catch (error) {
+    console.error("Error removing suspension:", error);
+    handleError(error, "Error removing suspension");
+  } finally {
+    loading.value = false;
+  }
+};
+
+const confirmSuspension = (organisationId: string) => {
+  console.log("Confirming Suspension for id:", organisationId);
+  confirmMessage.value.message = `Do you really want to suspend this company?`;
+  confirmMessage.value.id = organisationId;
+  showConfirmSuspend.value = true; // Use a separate flag
+};
+
+const confirmremoveSuspension = (organisationId: string) => {
+  console.log("Confirming Suspension removal for id:", organisationId);
+  confirmMessage.value.message = `Do you really want to remove suspension for this company?`;
+  confirmMessage.value.id = organisationId;
+  showConfirmSuspend.value = true;
 };
 
 const activeTab = computed(() => route.path);
-const emit = defineEmits<{ (e: "fetchCompanies"): void }>();
-
-const save = () => {
-  childComponent.value.saveChanges().then(() => {
-    emit("fetchCompanies");
-  });
-};
 </script>
 
 <template>
-  <!-- confirm alert -->
-  <confirmAlert
-    :showConfirm="showConfirm"
-    @closeConfirm="showConfirm = false"
-    v-if="showConfirm == true"
-  >
-    <template #title> Delete</template>
-
-    <template #confirm
-      ><span @click="[removeUser(confirmMessage.id), (showConfirm = false)]"
-        >CONFIRM</span
-      ></template
-    >
-    <template #message> {{ confirmMessage.message }}</template>
-  </confirmAlert>
-
-  <!-- successAlert -->
-  <successAlert
-    :showSuccess="showSuccess"
-    @closeSuccess="showSuccess = false"
-    v-if="showSuccess == true"
-  >
-    <template #otherMessage>CLOSE</template>
-    {{ successMessage }}</successAlert
-  >
-  <spinner
-    v-if="loading == true"
-    class="flex justify-center items-center lg:h-[400px] h-[300px]"
-  />
-
   <div class="px-6 py-9">
     <!-- Iterate over companyData to display each company's details -->
     <div v-for="company in companyData" :key="company.id">
@@ -123,16 +209,14 @@ const save = () => {
         >
           <div class="flex flex-col">
             <div class="flex items-start space-x-5-1">
-              <button @click="router.back()">
+              <button @click="router.push('/dashboard/companies')">
                 <IArrowLeftTail />
               </button>
               <div>
-                <!-- Bind the company name to the <h3> element -->
                 <h3
                   class="text-black-rgba font-medium lg:text-2xl text-lg whitespace-nowrap"
                 >
                   {{ company.name }}
-                  <!-- Display the company name here -->
                 </h3>
                 <span class="text-sm text-gray-rgba-3">Manage Company</span>
               </div>
@@ -202,22 +286,6 @@ const save = () => {
                 >
                   Employees
                 </span>
-
-                <span
-                  @click="
-                    router.push(
-                      `/dashboard/company-settings/${organisationId}/delete`
-                    )
-                  "
-                  :class="[
-                    activeTab.includes('delete')
-                      ? 'border-b-2 border-[#003b3d] pb-7 text-[#003b3d] font-semimedium'
-                      : '',
-                    'font-normal cursor-pointer',
-                  ]"
-                >
-                  Delete Company
-                </span>
               </div>
             </div>
           </div>
@@ -229,19 +297,30 @@ const save = () => {
             "
           >
             <div class="flex gap-4">
+              <!-- Suspend/Remove Suspension Button -->
               <ButtonBlue
-                @click="save"
+                @click="
+                  isSuspended
+                    ? confirmremoveSuspension(company.id)
+                    : confirmSuspension(company.id)
+                "
                 :disabled="childComponent?.disabled"
-                :style="{ backgroundColor: '#FFB400', color: '#fff' }"
+                :style="{
+                  backgroundColor: isSuspended ? '#28a745' : '#FFB400',
+                  color: '#fff',
+                }"
               >
                 <template v-slot:placeholder>
                   <spinner v-if="loading" />
-                  <span v-else>Suspend</span>
+                  <span v-else>{{
+                    isSuspended ? "Remove Suspension" : "Suspend"
+                  }}</span>
                 </template>
               </ButtonBlue>
 
+              <!-- Delete Button -->
               <ButtonBlue
-                @click="confirmRemoveUser(company.organisationId)"
+                @click="confirmRemoveUser(company.id)"
                 :disabled="childComponent?.disabled"
                 class="bg-[#FF4C51] text-white hover:bg-red-600 disabled:bg-gray-300"
               >
@@ -268,4 +347,73 @@ const save = () => {
       </router-view>
     </div>
   </div>
+
+  <!-- Confirm Alerts moved outside other elements -->
+  <confirmAlert
+    :showConfirm="showConfirmSuspend"
+    @closeConfirm="showConfirmSuspend = false"
+    v-if="showConfirmSuspend"
+  >
+    <template #title>{{
+      isSuspended ? "Remove Suspension" : "Suspend"
+    }}</template>
+    <template #message>{{ confirmMessage.message }}</template>
+    <template #confirm>
+      <span
+        @click="
+          isSuspended
+            ? [
+                removeSuspension(confirmMessage.id),
+                (showConfirmSuspend = false),
+              ]
+            : [Suspension(confirmMessage.id), (showConfirmSuspend = false)]
+        "
+      >
+        CONFIRM
+      </span>
+    </template>
+  </confirmAlert>
+
+  <confirmAlert
+    :showConfirm="showConfirm"
+    @closeConfirm="showConfirm = false"
+    v-if="showConfirm"
+  >
+    <template #title>Delete</template>
+    <template #message>{{ confirmMessage.message }}</template>
+    <template #confirm>
+      <span @click="[DeleteCompany(confirmMessage.id), (showConfirm = false)]">
+        CONFIRM
+      </span>
+    </template>
+  </confirmAlert>
+
+  <!-- Success Alert -->
+  <successAlert
+    :showSuccess="showSuccess"
+    @closeSuccess="showSuccess = false"
+    v-if="showSuccess"
+  >
+    <template #otherMessage>CLOSE</template>
+    {{ successMessage }}
+  </successAlert>
+
+  <!-- Loading Spinner -->
+  <spinner
+    v-if="loading"
+    class="flex justify-center items-center lg:h-[400px] h-[300px]"
+  />
 </template>
+<style>
+.confirm-alert {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+</style>

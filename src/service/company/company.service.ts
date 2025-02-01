@@ -95,11 +95,41 @@ class Company {
         return err;
       });
   }
-  async delete(id: string): Promise<any> {
+  async delete(organisationId: string): Promise<any> {
     const customRequest = this.createAxiosInstance();
 
     return await customRequest
-      .delete(`Organisation/delete/${id}`, {
+      .delete(`Organisation/delete/${organisationId}`, {
+        headers: authHeader(),
+      })
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
+
+  async suspend(organisationId: string): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .put(`Organisation/Deactivate/${organisationId}`, {
+        headers: authHeader(),
+      })
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
+
+  async removeSuspension(organisationId: string): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .put(`Organisation/Activate/${organisationId}`, {
         headers: authHeader(),
       })
       .then((res) => {

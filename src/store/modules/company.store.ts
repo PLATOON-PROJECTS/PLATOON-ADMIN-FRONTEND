@@ -90,9 +90,39 @@ const companyStore = defineStore("company", {
       }
     },
 
-    async delete(id: string): Promise<any> {
+    async delete(organisationId: string): Promise<any> {
       try {
-        const response = await companyService.delete(id);
+        const response = await companyService.delete(organisationId);
+        if (response.data) {
+          return response;
+        } else if (response.response) {
+          return Promise.reject(response.response);
+        } else {
+          return Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return Promise.reject(error);
+      }
+    },
+
+    async removeSuspension(organisationId: string): Promise<any> {
+      try {
+        const response = await companyService.removeSuspension(organisationId);
+        if (response.data) {
+          return response;
+        } else if (response.response) {
+          return Promise.reject(response.response);
+        } else {
+          return Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return Promise.reject(error);
+      }
+    },
+
+    async suspend(organisationId: string): Promise<any> {
+      try {
+        const response = await companyService.suspend(organisationId);
         if (response.data) {
           return response;
         } else if (response.response) {

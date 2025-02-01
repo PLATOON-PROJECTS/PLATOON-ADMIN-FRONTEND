@@ -31,19 +31,18 @@ class AuthService {
   //     });
   // }
   async register(data: Register): Promise<any> {
-
     const customRequest = this.createAxiosInstance();
 
     // Log the data being sent
-  console.log("Registering with data:", {
-    email: data.email,
-    password: data.password,
-    organisationName: data.company,
-  });
+    console.log("Registering with data:", {
+      email: data.email,
+      password: data.password,
+      organisationName: data.company,
+    });
 
     return await customRequest
       .post(
-        "/Organisation/Register", 
+        "/Organisation/Register",
         {
           email: data.email,
           password: data.password,
@@ -54,7 +53,7 @@ class AuthService {
         }
       )
       .then((res) => {
-        console.log("==========",res)
+        console.log("==========", res);
         return res;
       })
       .catch((err) => {
@@ -64,7 +63,7 @@ class AuthService {
 
   async sendEmailConfirmationLink(data: { email: string }): Promise<any> {
     const customRequest = this.createAxiosInstance();
-  
+
     return await customRequest
       .post("/Authentication/send-email-confirmation-link", data, {
         headers: authhHeader(),
@@ -78,7 +77,7 @@ class AuthService {
         return err;
       });
   }
-  
+
   // async register(data: Register): Promise<any> {
   //   return await this.request
   //     .post("/register", { ...data })
@@ -89,15 +88,34 @@ class AuthService {
   //       return err;
   //     });
   // }
-  async updateProfile(data: Update): Promise<any> {
-    return await this.request
-      .post("/profile", data, { headers: authHeader() })
+  // async updateProfile(data: Update): Promise<any> {
+  //   return await this.request
+  //     .post("/profile", data, { headers: authHeader() })
+  //     .then((res) => {
+  //       // console.log(res);
+  //       return res;
+  //     })
+  //     .catch((err) => {
+  //       // console.log(err);
+  //       return err;
+  //     });
+  // }
+
+  async updateAdminProfile(data: any): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .put("/Admin/update", data, {
+        headers: {
+          ...authhHeader(),
+          "Content-Type": "application/json-patch+json",
+        },
+      })
       .then((res) => {
-        // console.log(res);
+        console.log("Update Profile Response:", res);
         return res;
       })
       .catch((err) => {
-        // console.log(err);
         return err;
       });
   }
@@ -115,22 +133,22 @@ class AuthService {
   //     });
   // }
 
-
   async loginn(data: Login): Promise<any> {
-
     const customRequest = this.createAxiosInstance();
 
     return await customRequest
-      .post("/Authentication/login", 
+      .post(
+        "/Authentication/login",
         {
           email: data.email,
           password: data.password,
         },
         {
           headers: authhHeader(),
-        })
+        }
+      )
       .then((res) => {
-        console.log("==========",res)
+        console.log("==========", res);
         return res;
       })
       .catch((err) => {
@@ -163,9 +181,13 @@ class AuthService {
   async forgotPasswordInit(email: string): Promise<any> {
     const customRequest = this.createAxiosInstance();
     return await customRequest
-      .post(`/Authentication/forget-password?Email=${encodeURIComponent(email)}`, null, {
-        headers: authhHeader(),
-        })
+      .post(
+        `/Authentication/forget-password?Email=${encodeURIComponent(email)}`,
+        null,
+        {
+          headers: authhHeader(),
+        }
+      )
       .then((res) => {
         return res;
       })
@@ -176,15 +198,33 @@ class AuthService {
 
   async changePassword(data: ChangePassword): Promise<any> {
     return await this.request
-    .post(`/forgot/verify`, {
-      ...data,
-    })
-    .then((res) => {
-      return res;
-    })
-    .catch((err) => {
-      return err;
-    });
+      .post(`/forgot/verify`, {
+        ...data,
+      })
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
+  async changeThePassword(data: { newPassword: string }): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .put("/Authentication/change-password", data, {
+        headers: {
+          ...authHeader(),
+          "Content-Type": "application/json-patch+json",
+        },
+      })
+      .then((res) => {
+        console.log("Change Password Response:", res);
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
   }
 
   async forgotPasswordComplete(data: ForgotPasswordComplete): Promise<any> {
@@ -203,7 +243,8 @@ class AuthService {
     const customRequest = this.createAxiosInstance();
 
     return await customRequest
-      .post("/Authentication/reset-password", 
+      .post(
+        "/Authentication/reset-password",
         {
           email: data.email,
           token: data.token,
@@ -241,9 +282,13 @@ class AuthService {
   async logout(): Promise<any> {
     const customRequest = this.createAxiosInstance();
     return await customRequest
-    .put("/Authentication/logout", {}, { // Send an empty object as the body
-      headers: authhHeader(), // Pass headers correctly
-    })
+      .put(
+        "/Authentication/logout",
+        {},
+        {
+          headers: authhHeader(),
+        }
+      )
       .then((res) => {
         return res;
       })
@@ -251,12 +296,13 @@ class AuthService {
         return err;
       });
   }
-  async registerEmployee(data: { inviteId: string; password: string }): Promise<any> {
+  async registerEmployee(data: {
+    inviteId: string;
+    password: string;
+  }): Promise<any> {
     try {
-      // Create a custom Axios instance
       const customRequest = this.createAxiosInstance();
-  
-      // Send the request to register the employee
+
       const response = await customRequest.post(
         "/Employee/Register",
         {
@@ -267,13 +313,10 @@ class AuthService {
           headers: authhHeader(), // Custom auth header function
         }
       );
-  
-      // If successful, log and return the response
+
       console.log("Registration response:", response);
       return response;
-  
     } catch (error: any) {
-      // Log the error and propagate it to the caller
       if (error.response) {
         console.error("Registration error (response):", error.response.data);
         return Promise.reject(error.response.data);
@@ -283,7 +326,7 @@ class AuthService {
       }
     }
   }
-  
+
   async profile(): Promise<any> {
     return await this.request
       .get("/profile", {

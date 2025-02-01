@@ -132,7 +132,7 @@ const getProfile = async () => {
   </div>
 
   <div
-    class="lg:px-0 lg:flex justify-center mt-8 px-6 w-full"
+    class="bg-white lg:px-0 lg:flex justify-center pt-8 px-6 w-full min-h-screen"
     v-for="company in companyData"
     :key="company.id"
   >
@@ -159,13 +159,9 @@ const getProfile = async () => {
                 placeholder="Name of Company"
                 class="input-float peer pr-10.5"
                 :value="company.name"
+                readonly
+                disabled
               />
-              <label
-                for="name"
-                class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
-              >
-                Name
-              </label>
             </div>
 
             <!-- Email Address -->
@@ -177,13 +173,9 @@ const getProfile = async () => {
                 placeholder="Email Address"
                 class="input-float peer pr-10.5"
                 :value="company.admin.email"
+                readonly
+                disabled
               />
-              <!-- <label
-                for="email"
-                class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
-              >
-                Email Address
-              </label> -->
             </div>
 
             <!-- Phone Number -->
@@ -194,37 +186,24 @@ const getProfile = async () => {
                 maxlength="15"
                 placeholder="Phone Number"
                 class="input-float peer pr-10.5"
+                readonly
+                disabled
               />
-              <!-- <label
-                for="phone"
-                class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
-              >
-                Phone Number
-              </label> -->
             </div>
 
             <!-- Select Industry -->
             <div
-              class="cursor-pointer font-normal items-center text-left rounded-lg px-2 border text-gray-rgba-3 flex justify-between"
+              class="cursor-not-allowed font-normal items-center text-left rounded-lg px-2 border text-gray-rgba-3 flex justify-between bg-gray-100"
             >
               <input
                 type="text"
                 :value="industryState"
-                @click="[(showIndustries = true), (disabled = false)]"
-                class="rounded-lg text-sm text-black outline-none py-4 border-none focus:outline-none docus:border-none"
+                class="rounded-lg text-sm text-black outline-none py-4 border-none focus:outline-none"
                 placeholder="Select Industry"
                 readonly
+                disabled
               />
-              <span @click="showIndustries = !showIndustries">
-                <IArrowDown />
-              </span>
             </div>
-
-            <Industries
-              class="absolute z-50 h-56 shadow-lg scrollbar-hide overflow-auto top-15"
-              v-if="showIndustries"
-              @select="industryState = $event"
-            />
           </div>
 
           <!-- Select State -->
@@ -235,26 +214,16 @@ const getProfile = async () => {
             <div class="grid sm:grid-cols-2 gap-4">
               <div class="relative w-full">
                 <div
-                  class="cursor-pointer font-normal items-center text-left rounded-lg px-2 border text-gray-rgba-3 flex justify-between"
+                  class="cursor-not-allowed font-normal items-center text-left rounded-lg px-2 border text-gray-rgba-3 flex justify-between bg-gray-100"
                 >
                   <input
-                    @click="[(showState = true), (disabled = false)]"
                     :value="company.contactInfo.state"
                     type="text"
-                    class="rounded-lg text-black text-sm outline-none py-4 border-none focus:outline-none focus:border-none"
+                    class="rounded-lg text-black text-sm outline-none py-4 border-none focus:outline-none"
                     placeholder="Select State"
+                    readonly
+                    disabled
                   />
-                  <span @click="showState = !showState">
-                    <IArrowDown />
-                  </span>
-                </div>
-                <div
-                  class="absolute z-50 h-56 shadow-lg scrollbar-hide overflow-auto top-15 w-full"
-                  v-if="showState == true"
-                >
-                  <div>
-                    <component :is="State"></component>
-                  </div>
                 </div>
               </div>
 
@@ -267,13 +236,9 @@ const getProfile = async () => {
                   placeholder="City"
                   class="input-float peer pr-10.5"
                   :value="company.contactInfo.city"
+                  readonly
+                  disabled
                 />
-                <!-- <label
-                  for="city"
-                  class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
-                >
-                  City
-                </label> -->
               </div>
 
               <!-- Company Address -->
@@ -285,13 +250,9 @@ const getProfile = async () => {
                   placeholder="Company Address"
                   class="input-float peer w-full pr-10.5"
                   :value="company.contactInfo.street"
+                  readonly
+                  disabled
                 ></textarea>
-                <!-- <label
-                  for="address"
-                  class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
-                >
-                  Company Address
-                </label> -->
               </div>
             </div>
           </div>

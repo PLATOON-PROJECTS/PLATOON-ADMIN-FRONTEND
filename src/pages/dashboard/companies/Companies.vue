@@ -168,25 +168,6 @@ export default defineComponent({
           </tr>
         </tbody>
       </table>
-
-      <!-- Pagination Controls -->
-      <div class="flex justify-between items-center mt-4">
-        <button
-          @click="prevPage"
-          :disabled="currentPage === 1"
-          class="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span class="text-sm">Page {{ currentPage }}</span>
-        <button
-          @click="nextPage"
-          :disabled="companies.length < itemsPerPage"
-          class="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
     </div>
   </div>
 </template>

@@ -37,105 +37,41 @@ const authStore = defineStore("auth", {
     };
   },
   actions: {
-    // async userLogin(data: Login): Promise<any> {
-    //   try {
-    //     const response = await authService.login(data);
-
-    //     if (response && response.data && response.data.access_token) {
-    //       // console.log(response.data);
-      
-    //       storeItem(import.meta.env.VITE_ACCESSTK, {
-    //         rsa: response.data.access_token,
-    //       });
-
-    //       const data = JSON.stringify({
-    //         customerInfo: {
-    //           firstName: response.data.data.firstname,
-    //           lastName: response.data.data.lastname,
-    //           email: response.data.data.email,
-    //           phone: response.data.data.phone,
-    //         },
-    //       });
-
-    //       storeItem(import.meta.env.VITE_USERDETAILS, data);
-    //       this.isAuthenticated = true;
-
-    //       return await Promise.resolve(response);
-    //     } else if (response.response) {
-    //       return await Promise.reject(response.response);
-    //     } else {
-    //       return await Promise.reject(response.message);
-    //     }
-    //   } catch (error: any) {
-    //     // console.log(error);
-    //     return await Promise.reject(error);
-    //   }
-    // },
-
-    // async userLoginn(data: Login): Promise<any> {
-    //   try {
-    //     const response = await authService.loginn(data);
-
-    //     if (response && response.data && response.data.data.token) {
-    //       // console.log(response.data.data.token);
-    //       console.log("____________",response.data.data.email);
-      
-    //       storeItem(import.meta.env.VITE_ACCESSTOKEN, {
-    //         rsa: response.data.data.token,
-    //       });
-
-    //       const data = JSON.stringify({
-    //         customerInfo: {
-    //           email: response.data.data.email,
-    //         },
-    //       });
-
-    //       storeItem(import.meta.env.VITE_USERDETAILS, data);
-    //       this.isAuthenticateed = true;
-
-    //       return await Promise.resolve(response);
-    //     } else if (response.response) {
-    //       return await Promise.reject(response.response);
-    //     } else {
-    //       return await Promise.reject(response.message);
-    //     }
-    //   } catch (error: any) {
-    //     // console.log(error);
-    //     return await Promise.reject(error);
-    //   }
-    // },
     async userLoginn(data: Login): Promise<any> {
       try {
         const response = await authService.loginn(data);
-    
+
         if (response && response.data && response.data.data.token) {
           const token = response.data.data.token;
-          const userId = response.data.data.id; // Assuming you have an ID in the response
-    
+          const userId = response.data.data.id;
+
           storeItem(import.meta.env.VITE_ACCESSTOKEN, { rsa: token });
-    
+
           // Fetch additional user details
           const userDetailsResponse = await userService.show(userId);
-          
+
           // Handle the user details response
           if (userDetailsResponse && userDetailsResponse.data) {
-            console.log("////////////", userDetailsResponse.data)
+            console.log("////////////", userDetailsResponse.data);
             // Store user details in local storage or state
             const userData = JSON.stringify({
               customerInfo: {
-                firstName: userDetailsResponse.data.data.organisation.user.firstname,
-                lastName: userDetailsResponse.data.data.organisation.user.lastname,
+                firstName:
+                  userDetailsResponse.data.data.organisation.user.firstname,
+                lastName:
+                  userDetailsResponse.data.data.organisation.user.lastname,
                 email: userDetailsResponse.data.data.organisation.user.email,
                 phone: userDetailsResponse.data.data.organisation.user.phone,
                 // wallet: userDetailsResponse.data.data.organisation.wallet.balance,
-                organisationName: userDetailsResponse.data.data.organisation.organisationName,
+                organisationName:
+                  userDetailsResponse.data.data.organisation.organisationName,
                 organisationId: userDetailsResponse.data.data.organisation.id,
               },
             });
-    
+
             storeItem(import.meta.env.VITE_USERDETAILS, userData);
           }
-    
+
           this.isAuthenticateed = true;
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -147,7 +83,39 @@ const authStore = defineStore("auth", {
         return await Promise.reject(error);
       }
     },
-    
+
+    async updateAdminProfile(data: any): Promise<any> {
+      try {
+        const response = await authService.updateAdminProfile(data);
+
+        if (response && response.data && response.data.succeeded) {
+          console.log(response.data.message);
+
+          // clear or refresh user details here if needed
+          return response;
+        } else {
+          return Promise.reject(response.data.message || "Update failed");
+        }
+      } catch (error: any) {
+        return Promise.reject(error);
+      }
+    },
+    async changeThePassword(newPassword: string): Promise<any> {
+      try {
+        const response = await authService.changeThePassword({ newPassword });
+
+        if (response && response.data && response.data.succeeded) {
+          console.log(response.data.message);
+          return response;
+        } else {
+          return Promise.reject(
+            response.data.message || "Password change failed"
+          );
+        }
+      } catch (error: any) {
+        return Promise.reject(error);
+      }
+    },
     // async userRegister(data: Register): Promise<any> {
     //   try {
     //     const response = await authService.register(data);
@@ -178,7 +146,7 @@ const authStore = defineStore("auth", {
         return await Promise.reject(error);
       }
     },
-    
+
     async sendEmailConfirmationLink(email: string): Promise<any> {
       try {
         const response = await authService.sendEmailConfirmationLink({ email });
@@ -186,7 +154,7 @@ const authStore = defineStore("auth", {
       } catch (error: any) {
         return await Promise.reject(error);
       }
-    },    
+    },
     async userForgotPasswordInit(email: string): Promise<any> {
       try {
         const response = await authService.forgotPasswordInit(email);
@@ -203,7 +171,7 @@ const authStore = defineStore("auth", {
         return await Promise.reject(error);
       }
     },
-    async signInWithGoogle(tke: string,response:any): Promise<any> {
+    async signInWithGoogle(tke: string, response: any): Promise<any> {
       storeItem(import.meta.env.VITE_ACCESSTK, {
         rsa: tke,
       });
@@ -219,7 +187,6 @@ const authStore = defineStore("auth", {
 
       storeItem(import.meta.env.VITE_USERDETAILS, data);
       this.isAuthenticated = true;
-
     },
     async forgotPasswordComplete(data: any): Promise<any> {
       try {
@@ -266,7 +233,10 @@ const authStore = defineStore("auth", {
       }
     },
 
-    async registerEmployee(data: { inviteId: string; password: string }): Promise<any> {
+    async registerEmployee(data: {
+      inviteId: string;
+      password: string;
+    }): Promise<any> {
       try {
         const response = await authService.registerEmployee(data);
 
@@ -281,20 +251,20 @@ const authStore = defineStore("auth", {
         return await Promise.reject(error);
       }
     },
-    async changePassword(data: any): Promise<any> {
-      try {
-        const response = await authService.changePassword(data);
-        if (response.data) {
-          return await Promise.resolve(response);
-        } else if (response.response) {
-          return await Promise.reject(response.response);
-        } else {
-          return await Promise.reject(response.message);
-        }
-      } catch (error: any) {
-        return await Promise.reject(error);
-      }
-    },
+    // async changePassword(data: any): Promise<any> {
+    //   try {
+    //     const response = await authService.changePassword(data);
+    //     if (response.data) {
+    //       return await Promise.resolve(response);
+    //     } else if (response.response) {
+    //       return await Promise.reject(response.response);
+    //     } else {
+    //       return await Promise.reject(response.message);
+    //     }
+    //   } catch (error: any) {
+    //     return await Promise.reject(error);
+    //   }
+    // },
 
     async logoutUser(): Promise<any> {
       try {
@@ -326,47 +296,26 @@ const authStore = defineStore("auth", {
         return await Promise.reject(error);
       }
     },
-   
-    async updateProfile(data: Update): Promise<any> {
-      try {
-        const response = await authService.updateProfile(data);
 
-        if (response.data) {
-          return await Promise.resolve(response);
-        } else if (response.response) {
-          return await Promise.reject(response.response);
-        } else {
-          return await Promise.reject(response.message);
-        }
-      } catch (error: any) {
-        return await Promise.reject(error);
-      }
-    },
+    // async updateProfile(data: Update): Promise<any> {
+    //   try {
+    //     const response = await authService.updateProfile(data);
+
+    //     if (response.data) {
+    //       return await Promise.resolve(response);
+    //     } else if (response.response) {
+    //       return await Promise.reject(response.response);
+    //     } else {
+    //       return await Promise.reject(response.message);
+    //     }
+    //   } catch (error: any) {
+    //     return await Promise.reject(error);
+    //   }
+    // },
   },
 });
 
 export default authStore;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { defineStore } from "pinia";
 
 // import authService from "../../service/auth/auth.service";
 // import { storeItem } from "../../core/utils/storage.helper";
@@ -406,7 +355,7 @@ export default authStore;
 
 //         if (response && response.data && response.data.access_token) {
 //           // console.log(response.data);
-      
+
 //           storeItem(import.meta.env.VITE_ACCESSTK, {
 //             rsa: response.data.access_token,
 //           });
