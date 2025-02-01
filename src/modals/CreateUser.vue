@@ -49,11 +49,9 @@ const fetchEmployees = async () => {
     const response = await employeeStore.index(organisationId, 10, 1);
     if (response.data && response.data.succeeded) {
       employees.value = response.data.data.pageItems;
-      console.log("1111111", employees.value);
     }
     loading.value = false;
   } catch (error) {
-    console.log(error);
     loading.value = false;
   }
 };
@@ -66,15 +64,12 @@ const fetchRoles = async () => {
   loading.value = true;
   try {
     const response = await userStore.fetchRoles();
-    console.log("0000", response);
     // if (response.data && response.data.succeeded) {
     roles.value = response;
     // }
-    console.log("(((((((", roles.value);
 
     loading.value = false;
   } catch (error) {
-    console.log(error);
     loading.value = false;
   }
 };
@@ -98,7 +93,6 @@ const assignRole = async () => {
       roleId: selectedRoleData.id,
     };
 
-    console.log("!!!!!!!", requestBody);
     try {
       const response = await userStore.assignRole(
         requestBody.userId,

@@ -1,8 +1,13 @@
-import { http } from '../../core/utils/http';
-import authHeader from '../../core/utils/auth.header.js';
-import axios, { Axios } from 'axios';
-import { Create, Update, Bonus,Deduction } from './interface/employee.interface';
-import authhHeader from '../../core/utils/authh.header';
+import { http } from "../../core/utils/http";
+import authHeader from "../../core/utils/auth.header.js";
+import axios, { Axios } from "axios";
+import {
+  Create,
+  Update,
+  Bonus,
+  Deduction,
+} from "./interface/employee.interface";
+import authhHeader from "../../core/utils/authh.header";
 
 class Employee {
   constructor(private readonly request: Axios) {}
@@ -42,7 +47,7 @@ class Employee {
         return err;
       });
   }
-  async deleteBonus(id: any,bonusId:any): Promise<any> {
+  async deleteBonus(id: any, bonusId: any): Promise<any> {
     return await this.request
       .get(`/employee/${id}/extras/bonus/${bonusId}`, {
         headers: authHeader(),
@@ -82,7 +87,7 @@ class Employee {
         return err;
       });
   }
-  async deleteDeduction(id: any,deductionId:any): Promise<any> {
+  async deleteDeduction(id: any, deductionId: any): Promise<any> {
     return await this.request
       .get(`/employee/${id}/extras/deductions/${deductionId}`, {
         headers: authHeader(),
@@ -106,20 +111,23 @@ class Employee {
   //       return err;
   //     });
   // }
-  async index(organisationId: number, pageSize: number = 10, pageNumber: number = 1): Promise<any> {
+  async index(
+    organisationId: number,
+    pageSize: number = 10,
+    pageNumber: number = 1
+  ): Promise<any> {
     const customRequest = this.createAxiosInstance();
 
     return await customRequest
-      .get('/Employee/GetAllEmployees', {
+      .get("/Employee/GetAllEmployees", {
         headers: authhHeader(),
         params: {
-          OrganisationId: organisationId, 
+          OrganisationId: organisationId,
           PageSize: pageSize,
-          PageNumber: pageNumber
-        }
+          PageNumber: pageNumber,
+        },
       })
       .then((res) => {
-        console.log("Employees==========",res)
         return res;
       })
       .catch((err) => {
@@ -142,13 +150,13 @@ class Employee {
   async show(employeeId: string, organisationId: number): Promise<any> {
     const customRequest = this.createAxiosInstance();
 
-    return await customRequest      
-    .get('/Employee/GetEmployee', {
-      headers: authhHeader(),
-      params: {
-        OrganisationId: organisationId,
-        EmployeeId: employeeId
-      }
+    return await customRequest
+      .get("/Employee/GetEmployee", {
+        headers: authhHeader(),
+        params: {
+          OrganisationId: organisationId,
+          EmployeeId: employeeId,
+        },
       })
       .then((res) => {
         return res;
@@ -160,7 +168,7 @@ class Employee {
   async create(data: Create): Promise<any> {
     return await this.request
       .post(
-        '/employee',
+        "/employee",
         { ...data },
         {
           headers: authHeader(),
@@ -192,19 +200,20 @@ class Employee {
   async update(data: any): Promise<any> {
     const customRequest = this.createAxiosInstance();
 
-    return await customRequest.put('/Employee/Update-Profile', data, {
+    return await customRequest
+      .put("/Employee/Update-Profile", data, {
         headers: {
-            'Content-Type': 'application/json-patch+json',
-            ...authhHeader(),
+          "Content-Type": "application/json-patch+json",
+          ...authhHeader(),
         },
-    })
-    .then((res) => {
+      })
+      .then((res) => {
         return res;
-    })
-    .catch((err) => {
+      })
+      .catch((err) => {
         return err;
-    });
-}
+      });
+  }
 
   async delete(id: string): Promise<any> {
     return await this.request
@@ -218,10 +227,13 @@ class Employee {
         return err;
       });
   }
-  async deleteEmployee(employeeId: string, organisationId: number): Promise<any> {
+  async deleteEmployee(
+    employeeId: string,
+    organisationId: number
+  ): Promise<any> {
     const customRequest = this.createAxiosInstance();
 
-    return await customRequest 
+    return await customRequest
       .delete(`/Employee/Delete`, {
         headers: authhHeader(),
         params: {
@@ -236,7 +248,7 @@ class Employee {
         return err;
       });
   }
-  
+
   async download(): Promise<any> {
     return await this.request
       .get(`/employee/settings/export`, {
@@ -251,11 +263,11 @@ class Employee {
   }
   async generateCsvTemplate(): Promise<any> {
     const customRequest = this.createAxiosInstance();
-    
+
     return await customRequest
-      .post('/Employee/generate-csv-template', null, {
+      .post("/Employee/generate-csv-template", null, {
         headers: authhHeader(),
-        responseType: 'blob',
+        responseType: "blob",
       })
       .then((res) => {
         return res;
@@ -267,28 +279,29 @@ class Employee {
 
   async uploadCsv(formData: FormData): Promise<any> {
     const customRequest = this.createAxiosInstance();
-  
+
     return await customRequest
-      .post('/Organisation/upload-employees', formData, {
+      .post("/Organisation/upload-employees", formData, {
         headers: {
           ...authhHeader(),
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       })
       .then((res) => {
         return res;
       })
       .catch((err) => {
-        console.error('Error uploading CSV:', err);
+        console.error("Error uploading CSV:", err);
         return Promise.reject(err);
       });
   }
-  
-  async previewCsv(data:any): Promise<any> {
+
+  async previewCsv(data: any): Promise<any> {
     return await this.request
       .post(
-        `/employee/import?preview=true`, {
-          "employees": data
+        `/employee/import?preview=true`,
+        {
+          employees: data,
         },
         {
           headers: authHeader(),
@@ -302,11 +315,12 @@ class Employee {
       });
   }
 
-  async importCsv(data:any): Promise<any> {
+  async importCsv(data: any): Promise<any> {
     return await this.request
       .post(
-        `/employee/import`, {
-          "employees": data
+        `/employee/import`,
+        {
+          employees: data,
         },
         {
           headers: authHeader(),

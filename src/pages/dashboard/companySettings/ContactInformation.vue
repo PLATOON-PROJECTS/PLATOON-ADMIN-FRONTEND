@@ -80,7 +80,6 @@ const fetchCompaniesById = async () => {
     const response = await request(
       companyStore.companyById(Number(organisationId))
     );
-    console.log("res:", response);
 
     loading.value = true;
 

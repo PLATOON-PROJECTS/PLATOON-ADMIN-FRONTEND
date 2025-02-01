@@ -61,12 +61,10 @@ const parsedUserInfo =
   typeof userInfo.value === "string"
     ? JSON.parse(userInfo.value)
     : userInfo.value;
-console.log("userInfo before parsing:", userInfo.value);
 
 // Computed property to get initials
 const initials = computed(() => {
   const userDetails = parsedUserInfo;
-  console.log(">>>>>>>>>>>", userDetails);
   const firstName = userDetails.customerInfo.firstName || "";
   const lastName = userDetails.customerInfo.lastName || "";
   return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();

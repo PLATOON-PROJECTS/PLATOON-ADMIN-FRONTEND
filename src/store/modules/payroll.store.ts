@@ -186,12 +186,9 @@ const payrollStore = defineStore("payroll", {
     }): Promise<any> {
       try {
         const formData = new FormData();
-        console.log("Payload being sent:", formData);
         formData.append("CsvFile", payload.file);
         formData.append("OrganisationId", payload.organisationId.toString());
-        formData.forEach((value, key) => {
-          console.log(`${key}:`, value);
-        });
+        formData.forEach((value, key) => {});
         const response = await payrollService.uploadCsv(formData);
         return response;
       } catch (error) {
@@ -211,7 +208,6 @@ const payrollStore = defineStore("payroll", {
           organisationId,
           scheduledMonth
         );
-        console.log("Payroll uploaded successfully:", response);
         return response;
       } catch (error) {
         console.error("Error uploading payroll:", error);

@@ -33,13 +33,6 @@ class AuthService {
   async register(data: Register): Promise<any> {
     const customRequest = this.createAxiosInstance();
 
-    // Log the data being sent
-    console.log("Registering with data:", {
-      email: data.email,
-      password: data.password,
-      organisationName: data.company,
-    });
-
     return await customRequest
       .post(
         "/Organisation/Register",
@@ -53,7 +46,6 @@ class AuthService {
         }
       )
       .then((res) => {
-        console.log("==========", res);
         return res;
       })
       .catch((err) => {
@@ -69,7 +61,6 @@ class AuthService {
         headers: authhHeader(),
       })
       .then((res) => {
-        console.log("Email confirmation response:", res);
         return res;
       })
       .catch((err) => {
@@ -112,7 +103,6 @@ class AuthService {
         },
       })
       .then((res) => {
-        console.log("Update Profile Response:", res);
         return res;
       })
       .catch((err) => {
@@ -148,7 +138,6 @@ class AuthService {
         }
       )
       .then((res) => {
-        console.log("==========", res);
         return res;
       })
       .catch((err) => {
@@ -219,7 +208,6 @@ class AuthService {
         },
       })
       .then((res) => {
-        console.log("Change Password Response:", res);
         return res;
       })
       .catch((err) => {
@@ -270,7 +258,6 @@ class AuthService {
         headers: authhHeader(),
       })
       .then((res) => {
-        console.log("Email confirmation response:", res);
         return res;
       })
       .catch((err) => {
@@ -314,7 +301,6 @@ class AuthService {
         }
       );
 
-      console.log("Registration response:", response);
       return response;
     } catch (error: any) {
       if (error.response) {

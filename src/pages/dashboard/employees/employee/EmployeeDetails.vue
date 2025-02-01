@@ -47,32 +47,31 @@ const loading = ref(false);
 const fetchLoading = ref(true);
 const valid = ref(false);
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
-const defaultCountryCode = ref("234"); 
+const defaultCountryCode = ref("234");
 // Inject isEditForm from parent component
-const isEditForm = inject('isEditForm') as Ref<boolean>;
+const isEditForm = inject("isEditForm") as Ref<boolean>;
 const props = defineProps<{
   childComponentRef: any; // Define the prop type
 }>();
 
-
 let data = ref<{
-  userId: number | null;        
-  gender: string | null; 
+  userId: number | null;
+  gender: string | null;
   firstname: string | null;
   lastname: string | null;
   email: string | null;
-  telephone: string | null; 
+  telephone: string | null;
   status: string | null;
   group_id: number | null;
   grade_id: number | null;
-  countryCode: string | null; 
+  countryCode: string | null;
   account_details: {
     bank: string | null;
     account_name: string | null;
-    account_number: number | null; 
+    account_number: number | null;
   };
 }>({
-  userId: null,              
+  userId: null,
   gender: null,
   firstname: null,
   lastname: null,
@@ -88,7 +87,6 @@ let data = ref<{
     account_number: null,
   },
 });
-
 
 const grades = ref<any[]>([]);
 
@@ -121,7 +119,10 @@ const employeeId = computed(() => {
 
 // methods
 
-const parsedUserInfo = typeof userInfo.value === 'string' ? JSON.parse(userInfo.value) : userInfo.value;
+const parsedUserInfo =
+  typeof userInfo.value === "string"
+    ? JSON.parse(userInfo.value)
+    : userInfo.value;
 // Access the organisationId safely
 const organisationId = parsedUserInfo?.customerInfo?.organisationId;
 
@@ -154,12 +155,11 @@ const setGrades = (value: any[]) => {
 
 const onInput = (phone: string, phoneObject: any, input: any) => {
   if (phoneObject?.formatted) {
-    data.value.telephone = phoneObject.number; 
-    // data.value.countryCode = phoneObject.countryCode || '234'; 
+    data.value.telephone = phoneObject.number;
+    // data.value.countryCode = phoneObject.countryCode || '234';
     valid.value = phoneObject.valid;
   }
 };
-
 
 const validatePhone = () => {
   return valid.value;
@@ -175,9 +175,9 @@ const validatePhone = () => {
 //       firstname: v$.value.firstname.$model as string,
 //       lastname: v$.value.lastname.$model as string,
 //       telephone: {
-//         number: v$.value.telephone.$model as string, 
-//         countryCode: data.value.countryCode as string, 
-//       },      
+//         number: v$.value.telephone.$model as string,
+//         countryCode: data.value.countryCode as string,
+//       },
 //       status: data.value.status as string,
 //       department: data.value.group_id as number,
 //       grade_id: data.value.grade_id as number,
@@ -191,14 +191,12 @@ const validatePhone = () => {
 //       // photo: data.photo as any,
 //     };
 
-    
 //     if(dataObj.department == "---"){
 //       dataObj.department = null;
 //       dataObj.grade_id = null;
 //     }
 //     // console.log(dataObj);
 
-    
 //     // console.log(dataObj, v$.value.account_details.account_number.$model);
 
 //     loading.value = true;
@@ -217,43 +215,38 @@ const validatePhone = () => {
 //   }
 // };
 const saveChanges = async () => {
-    const isFormCorrect = await v$.value.$validate();
+  const isFormCorrect = await v$.value.$validate();
 
-    if (isFormCorrect) {
-        const dataObj = {
-          userId: data.value.userId, 
-          isActive: data.value.status === 'Active', 
-            firstName: v$.value.firstname.$model,
-            lastName: v$.value.lastname.$model,
-            countryCode: data.value.countryCode,
-            phoneNumber: data.value.telephone,
-            gender: data.value.gender,
-            employementType: "Full time", 
-            email: v$.value.email.$model,
-            departmentId: data.value.group_id,
-            gradeId: data.value.grade_id,
-        };
-        loading.value = true;
-        const response = await request(
-            employeeStore.update(dataObj),
-            loading
-        );
+  if (isFormCorrect) {
+    const dataObj = {
+      userId: data.value.userId,
+      isActive: data.value.status === "Active",
+      firstName: v$.value.firstname.$model,
+      lastName: v$.value.lastname.$model,
+      countryCode: data.value.countryCode,
+      phoneNumber: data.value.telephone,
+      gender: data.value.gender,
+      employementType: "Full time",
+      email: v$.value.email.$model,
+      departmentId: data.value.group_id,
+      gradeId: data.value.grade_id,
+    };
+    loading.value = true;
+    const response = await request(employeeStore.update(dataObj), loading);
 
-        handleError(response, userStore);
-        const successResponse = handleSuccess(response, showSuccess);
+    handleError(response, userStore);
+    const successResponse = handleSuccess(response, showSuccess);
 
-        if (successResponse && typeof successResponse !== "undefined") {
-            responseData.value = successResponse;
-            getProfile();
-            isEditForm.value = false; 
-            props.childComponentRef.disabled = true; 
-        }
+    if (successResponse && typeof successResponse !== "undefined") {
+      responseData.value = successResponse;
+      getProfile();
+      isEditForm.value = false;
+      props.childComponentRef.disabled = true;
     }
+  }
 };
 
-
 const getProfile = async () => {
-  console.log(employeeId.value);
   const response = await request(
     employeeStore.show(employeeId.value, organisationId),
     fetchLoading
@@ -265,25 +258,33 @@ const getProfile = async () => {
   if (successResponse && typeof successResponse !== "undefined") {
     // console.log("*****",successResponse.data);
     const employeeData = successResponse.data.data.employee;
-    console.log("*****", employeeData);
     // Map the values from the response to the data object
     data.value.email = employeeData.user.email;
     data.value.firstname = capitalizeFirstLetter(employeeData.user.firstname);
     data.value.lastname = capitalizeFirstLetter(employeeData.user.lastname);
-    data.value.gender = employeeData.user.gender.toLowerCase() === "male" ? "male" : "female";
+    data.value.gender =
+      employeeData.user.gender.toLowerCase() === "male" ? "male" : "female";
     data.value.telephone = employeeData.user.phone.number;
-    data.value.countryCode = getCountryCode(employeeData.user.phone.countryCode) || defaultCountryCode.value;   
-    data.value.status = employeeData.isActive ? 'Active' : 'Inactive';     
-    data.value.group_id = employeeData.department ? employeeData.department.id : '---';
-    data.value.grade_id = employeeData.grade ? employeeData.grade.id : '---';
-    gradeName.value = employeeData.grade ? employeeData.grade.name : '---';
-    departmentName.value = employeeData.department ? employeeData.department.name : '---';
-    data.value.account_details.bank = employeeData.bank_data?.bank ?? '---';
-    data.value.account_details.account_name = employeeData.bank_data?.account_name ?? '---';
-    data.value.account_details.account_number = employeeData.bank_data?.account_number || '';
+    data.value.countryCode =
+      getCountryCode(employeeData.user.phone.countryCode) ||
+      defaultCountryCode.value;
+    data.value.status = employeeData.isActive ? "Active" : "Inactive";
+    data.value.group_id = employeeData.department
+      ? employeeData.department.id
+      : "---";
+    data.value.grade_id = employeeData.grade ? employeeData.grade.id : "---";
+    gradeName.value = employeeData.grade ? employeeData.grade.name : "---";
+    departmentName.value = employeeData.department
+      ? employeeData.department.name
+      : "---";
+    data.value.account_details.bank = employeeData.bank_data?.bank ?? "---";
+    data.value.account_details.account_name =
+      employeeData.bank_data?.account_name ?? "---";
+    data.value.account_details.account_number =
+      employeeData.bank_data?.account_number || "";
     responseData.value.data = successResponse.data;
     data.value.userId = employeeData.user.id;
-       // console.log(response.data.data);
+    // console.log(response.data.data);
 
     emit(
       "setSingleEmployeeName",
@@ -299,13 +300,13 @@ getProfile();
 
 const fullName = computed({
   get() {
-    return `${data.value.firstname || ''} ${data.value.lastname || ''}`.trim();
+    return `${data.value.firstname || ""} ${data.value.lastname || ""}`.trim();
   },
   set(value: string) {
-    const names = value.split(' ');
-    data.value.firstname = names[0] || '';
-    data.value.lastname = names.length > 1 ? names.slice(1).join(' ') : '';
-  }
+    const names = value.split(" ");
+    data.value.firstname = names[0] || "";
+    data.value.lastname = names.length > 1 ? names.slice(1).join(" ") : "";
+  },
 });
 
 // validations rule
@@ -379,7 +380,6 @@ defineExpose({
   loading,
   v$,
 });
-
 </script>
 <template>
   <div class="">
@@ -439,8 +439,16 @@ defineExpose({
                   >
                     Fulll Name</label
                   >
-                  <div v-if="v$.firstname.$error || v$.lastname.$error" class="text-red text-xs">
-                    {{ "* " + (v$.firstname.$error ? v$.firstname.$errors[0].$message : v$.lastname.$errors[0].$message) }}
+                  <div
+                    v-if="v$.firstname.$error || v$.lastname.$error"
+                    class="text-red text-xs"
+                  >
+                    {{
+                      "* " +
+                      (v$.firstname.$error
+                        ? v$.firstname.$errors[0].$message
+                        : v$.lastname.$errors[0].$message)
+                    }}
                   </div>
                 </div>
 
@@ -490,7 +498,10 @@ defineExpose({
                     {{ "* " + v$.email.$errors[0].$message }}
                   </div>
                 </div>
-                <div class="relative" @click="[(disabled = false), emit('doNotEdit', disabled)]">
+                <div
+                  class="relative"
+                  @click="[(disabled = false), emit('doNotEdit', disabled)]"
+                >
                   <select
                     id="gender"
                     v-model="data.gender"
@@ -508,7 +519,6 @@ defineExpose({
                     Gender
                   </label>
                 </div>
-                
 
                 <div
                   class="relative"
@@ -520,14 +530,14 @@ defineExpose({
                     class="text-black text-sm border py-2"
                   ></div> -->
                   <input
-                  type="text"
-                  id="Telephone"
-                  v-model="data.telephone"
-                  :disabled="disabled"
-                  maxlength="110"
-                  class="input-float peer pr-10.5"
-                  placeholder=""
-                />
+                    type="text"
+                    id="Telephone"
+                    v-model="data.telephone"
+                    :disabled="disabled"
+                    maxlength="110"
+                    class="input-float peer pr-10.5"
+                    placeholder=""
+                  />
                   <label
                     for="Telephone"
                     class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
@@ -552,7 +562,6 @@ defineExpose({
                     @click="
                       [
                         (showBank = !showBank),
-
                         (disabled = false),
                         emit('doNotEdit', disabled),
                       ]
@@ -565,7 +574,7 @@ defineExpose({
                       disabled="true"
                       v-model="data.account_details.bank"
                       maxlength="55"
-                      class="input-float peer  border-none outline-none bg-transparent focus:outline-none focus:border:none"
+                      class="input-float peer border-none outline-none bg-transparent focus:outline-none focus:border:none"
                       placeholder=""
                     />
 
@@ -576,27 +585,25 @@ defineExpose({
                       Bank</label
                     >
                     <span class="cursor-pointer">
-                      <IArrowDown
-
-                      />
+                      <IArrowDown />
                     </span>
-
-                       </div>
-                    <div
-                      v-if="showBank"
-                      class="font-bold scrollbar-hide absolute z-50 shadow-sm bg-white w-full text-sm h-32 overflow-y-scroll px-5"
+                  </div>
+                  <div
+                    v-if="showBank"
+                    class="font-bold scrollbar-hide absolute z-50 shadow-sm bg-white w-full text-sm h-32 overflow-y-scroll px-5"
+                  >
+                    <p
+                      v-for="(bank, indexBank) in banks"
+                      :key="indexBank"
+                      @click="
+                        [
+                          (data.account_details.bank = parseBank(bank)),
+                          (showBank = !showBank),
+                        ]
+                      "
                     >
-                      <p v-for="(bank, indexBank) in banks" :key="indexBank"
-                        @click="
-                          [
-                            (data.account_details.bank = parseBank(bank)),
-                            (showBank = !showBank),
-                          ]
-                        "
-                      >
-                        {{ parseBank(bank) }}
-                      </p>
-                 
+                      {{ parseBank(bank) }}
+                    </p>
                   </div>
                 </div>
 
@@ -694,7 +701,10 @@ defineExpose({
             </div>
             <!--  -->
             <div class="space-y-4-1">
-              <h4 class="text-base text-black-200 font-medium">Others (BEFORE SELECTING THE GRADE MAKE SURE TO SELECT YOUR DEPARTMENT FIRST)</h4>
+              <h4 class="text-base text-black-200 font-medium">
+                Others (BEFORE SELECTING THE GRADE MAKE SURE TO SELECT YOUR
+                DEPARTMENT FIRST)
+              </h4>
               <div class="grid lg:grid-cols-3 gap-4">
                 <div
                   class="font-normal relative w-auto text-left rounded-lg px-4 border text-black py-4"
@@ -718,9 +728,7 @@ defineExpose({
                     />
 
                     <span class="cursor-pointer">
-                      <IArrowDown
-                        
-                      />
+                      <IArrowDown />
                     </span>
                   </div>
                   <div
@@ -778,9 +786,7 @@ defineExpose({
                     />
 
                     <span class="cursor-pointer">
-                      <IArrowDown
-                        
-                      />
+                      <IArrowDown />
                     </span>
                   </div>
                   <div
@@ -798,7 +804,12 @@ defineExpose({
                 <div
                   class="font-normal relative w-auto text-left rounded-lg px-4 border text-black"
                 >
-                  <select id="status" class="text-sm h-full text-black bg-transparent w-full border-none outline-none focus:outline-none focus:border:none" v-model="data.status" :disabled="disabled">
+                  <select
+                    id="status"
+                    class="text-sm h-full text-black bg-transparent w-full border-none outline-none focus:outline-none focus:border:none"
+                    v-model="data.status"
+                    :disabled="disabled"
+                  >
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
                   </select>

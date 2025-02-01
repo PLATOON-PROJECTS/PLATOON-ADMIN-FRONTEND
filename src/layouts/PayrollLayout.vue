@@ -103,7 +103,6 @@ const fetchDraftPayrollCount = async () => {
 
   if (successResponse && typeof successResponse !== "undefined") {
     draftData.value = successResponse.data.data;
-    console.log("AAAAAAAAA", draftData.value);
     cache("draft_payroll_count", successResponse.data.data);
   }
 };

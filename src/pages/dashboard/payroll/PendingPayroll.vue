@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, inject } from "vue";
 import CalenderInterface from "../../../layouts/CalenderLayout.vue";
-import { IIncDec, IIncDecBlue, IMenuVertical, IUserThree } from "../../../core/icons";
+import {
+  IIncDec,
+  IIncDecBlue,
+  IMenuVertical,
+  IUserThree,
+} from "../../../core/icons";
 import FCheckedComponent from "../../../components/forms/FCheckBox.vue";
 import ButtonLightBlue from "../../../components/buttons/ButtonLightBlue.vue";
 import ButtonBlue from "../../../components/buttons/ButtonBlue.vue";
@@ -17,7 +22,7 @@ import handleError from "../../../composables/handle_error.composable";
 import handleSuccess from "../../../composables/handle_success.composable";
 import { usePayrollStore, useUserStore } from "../../../store/index";
 import cache from "../../../composables/swr_cache";
-import {currency} from '../../../core/utils/currencyType'
+import { currency } from "../../../core/utils/currencyType";
 import { getItem } from "../../../core/utils/storage.helper";
 import Pagination from "../../../components/Pagination.vue";
 import { Payroll } from "../../../service/payroll/interface/payroll.interface";
@@ -45,10 +50,10 @@ const successMessage = ref("Action successful");
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
 const currentPage = ref(1);
 const totalPages = ref(1);
-const pageSize = ref(10);  
+const pageSize = ref(10);
 const totalItems = ref(0);
 const responseDataa = ref<{ data: Payroll[] }>({
-  data: []
+  data: [],
 });
 let allPayrolls: Payroll[] = [];
 
@@ -56,20 +61,25 @@ let allPayrolls: Payroll[] = [];
 const render = inject<any>("render");
 
 // methods
-const parsedUserInfo = typeof userInfo.value === 'string' ? JSON.parse(userInfo.value) : userInfo.value;
+const parsedUserInfo =
+  typeof userInfo.value === "string"
+    ? JSON.parse(userInfo.value)
+    : userInfo.value;
 
 const organisationId = parsedUserInfo?.customerInfo?.organisationId;
 
 // Helper function for date formatting
 const formatDate = (dateString: string) => {
   const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   };
-  return new Date(dateString).toLocaleDateString(undefined, options).replace(",", "");
+  return new Date(dateString)
+    .toLocaleDateString(undefined, options)
+    .replace(",", "");
 };
 
 const getCurrentMonthPayrollId = () => {
@@ -80,25 +90,22 @@ const getCurrentMonthPayrollId = () => {
   // Filter payrolls for the current month and year
   const payrolls = allPayrolls.filter((payroll) => {
     const scheduledDate = new Date(payroll.scheduledDate);
-    
+
     // Skip invalid dates
     if (isNaN(scheduledDate.getTime()) || scheduledDate.getFullYear() < 2023) {
       return false; // Skip invalid dates
     }
-    
-    // Check if it falls in the current month/year
-    return scheduledDate.getMonth() + 1 === currentMonth && scheduledDate.getFullYear() === currentYear;
-  });
 
-  console.log("ressss:", allPayrolls);
+    // Check if it falls in the current month/year
+    return (
+      scheduledDate.getMonth() + 1 === currentMonth &&
+      scheduledDate.getFullYear() === currentYear
+    );
+  });
 
   // Return the payroll ID of the first matching payroll or null
   return payrolls.length > 0 ? payrolls[0].payrollId : null;
 };
-
-
-
-
 
 // Method to navigate to CreateNew page
 // const navigateToCreateNew = () => {
@@ -108,20 +115,15 @@ const getCurrentMonthPayrollId = () => {
 //   // ...
 // };
 
-const approvePayroll = async (id: any) => {
+const approvePayroll = async (id: any) => {};
 
-}
-
-const declinePayroll = async (id: any) => {
-
-}
+const declinePayroll = async (id: any) => {};
 // Helper function for formatting scheduled date
 const formatScheduledDate = (dateString: string) => {
   const date = new Date(dateString);
-  const month = date.toLocaleString('default', { month: 'long' }); // Get the month name
+  const month = date.toLocaleString("default", { month: "long" }); // Get the month name
   return `${month} Salary Payment`; // Return the formatted string
 };
-
 
 const checkState = (id: any) => {
   return deletePayrollsId.value.includes(id) ? true : false;
@@ -158,7 +160,6 @@ const deleteSinglePayroll = async () => {
     const successResponse = handleSuccess(response, showSuccess);
     showSuccess.value = true;
 
-    
     if (successResponse && typeof successResponse !== "undefined") {
       responseData.value = responseData.value.filter((data: any) => {
         return !deletePayrollsId.value.includes(data.id) && data.id;
@@ -221,49 +222,57 @@ const confirmRemovePayrolls = () => {
 
 const fetchPayroll = async (page = 1) => {
   loading.value = true;
-  try{
-  const totalPayrollCached = cache("total_payroll");
-  if (typeof totalPayrollCached !== "undefined") {
+  try {
+    const totalPayrollCached = cache("total_payroll");
+    if (typeof totalPayrollCached !== "undefined") {
+      loading.value = false;
+      responseData.value.data = totalPayrollCached;
+      // @ts-ignore comment above the problematic line
+      responseData.value.sort(function (a, b) {
+        return b.id - a.id;
+      });
+    }
+    const response = await request(
+      payrollStore.index(organisationId, null, "Pending", 10, page),
+      loading
+    );
+
+    const successResponse = handleSuccess(response);
+
+    if (successResponse && typeof successResponse !== "undefined") {
+      // cache("total_payroll", successResponse.data.data.pageItems);
+      responseData.value.data = successResponse.data.data.pageItems;
+      currentPage.value = successResponse.data.data.currentPage;
+      totalPages.value = successResponse.data.data.numberOfPages;
+      totalItems.value = successResponse.data.data.pageSize * totalPages.value;
+      // @ts-ignore comment above the problematic line
+      responseData.value.data.sort(function (a, b) {
+        return b.id - a.id;
+      });
+
+      // @ts-ignore comment above the problematic line
+      // const sorted = responseData.value.sort(function(a, b){return b.id - a.id})
+      // console.log(responseData.value, sorted);
+    }
+  } catch (error) {
+    console.error("Error fetching payroll:", error);
+  } finally {
     loading.value = false;
-    responseData.value.data = totalPayrollCached;
-    // @ts-ignore comment above the problematic line
-    responseData.value.sort(function(a, b){return b.id - a.id})
   }
-  const response = await request(payrollStore.index(organisationId,null, "Pending", 10, page), loading);
-
-  const successResponse = handleSuccess(response);
-
-  if (successResponse && typeof successResponse !== "undefined") {
-    // cache("total_payroll", successResponse.data.data.pageItems);
-    responseData.value.data = successResponse.data.data.pageItems;
-    currentPage.value = successResponse.data.data.currentPage;
-    totalPages.value = successResponse.data.data.numberOfPages;
-    totalItems.value = successResponse.data.data.pageSize * totalPages.value; 
-    // @ts-ignore comment above the problematic line
-    responseData.value.data.sort(function(a, b){return b.id - a.id})
-
-    // @ts-ignore comment above the problematic line
-    // const sorted = responseData.value.sort(function(a, b){return b.id - a.id})
-    // console.log(responseData.value, sorted);
-    console.log("********",  responseData.value.data);
-  }
-} catch(error) {
-  console.error("Error fetching payroll:", error);
-} finally {
-   loading.value = false;
-}
-}; 
+};
 // fetchPayroll();
 fetchPayroll(currentPage.value);
 const updatePage = (page: number) => {
   fetchPayroll(page);
-}
+};
 
 // navigateToCreateNew();
 </script>
 <template>
   <div>
-    <div class="bg-white h-full rounded-lg py-6 space-y-5 overflow-auto scrollbar-hide">
+    <div
+      class="bg-white h-full rounded-lg py-6 space-y-5 overflow-auto scrollbar-hide"
+    >
       <confirmAlert
         :showConfirm="showConfirm"
         @closeConfirm="showConfirm = false"
@@ -299,8 +308,8 @@ const updatePage = (page: number) => {
             <div class="relative cursor-pointer">
               <div class="flex space-x-2 text-blue">
                 <span
-                @click="sortByMonth()"
-                class="text-sm pt-1 font-semimedium whitespace-nowrap"
+                  @click="sortByMonth()"
+                  class="text-sm pt-1 font-semimedium whitespace-nowrap"
                   >Filter by Date</span
                 >
                 <span class="pt-2">
@@ -397,7 +406,7 @@ const updatePage = (page: number) => {
                         scope=" col"
                         class="py-4 font-normal text-left whitespace-nowrap"
                       >
-                      Total Net Pay
+                        Total Net Pay
                       </th>
                       <th
                         scope="col"
@@ -435,7 +444,7 @@ const updatePage = (page: number) => {
                       :key="pay.payrollId"
                       class="text-black-100"
                     >
-                    <!-- <td class="py-4 whitespace-nowrap">
+                      <!-- <td class="py-4 whitespace-nowrap">
                         <div class="text-left flex flex-col">
                           <span class="text-sm font-semimedium"
                             >{{ index+1 }}
@@ -451,10 +460,16 @@ const updatePage = (page: number) => {
                           /> -->
 
                           <div class="flex flex-col">
-                            <span class="text-sm font-semimedium"> {{ formatScheduledDate(pay.scheduledDate) }} </span
-                            >
-                            <span class="text-xs text-gray-rgba-3"> 
-                              {{ pay.totalEmployees }} {{ pay.totalEmployees <= 1 ? 'Employee' : 'Employees' }}
+                            <span class="text-sm font-semimedium">
+                              {{ formatScheduledDate(pay.scheduledDate) }}
+                            </span>
+                            <span class="text-xs text-gray-rgba-3">
+                              {{ pay.totalEmployees }}
+                              {{
+                                pay.totalEmployees <= 1
+                                  ? "Employee"
+                                  : "Employees"
+                              }}
                             </span>
                           </div>
                         </div>
@@ -462,14 +477,20 @@ const updatePage = (page: number) => {
                       <td class="py-4 whitespace-nowrap">
                         <div class="text-left flex flex-col">
                           <span class="text-sm font-semimedium"
-                            >₦{{ pay.totalNetPay ? currency(pay.totalNetPay) : "0" }}
+                            >₦{{
+                              pay.totalNetPay ? currency(pay.totalNetPay) : "0"
+                            }}
                           </span>
                         </div>
                       </td>
                       <td class="py-4 whitespace-nowrap">
                         <div class="font-normal text-left flex flex-col">
                           <span class="text-sm font-semimedium"
-                            >₦{{ pay.totalGrossPay ? currency(pay.totalGrossPay) : "0" }}</span
+                            >₦{{
+                              pay.totalGrossPay
+                                ? currency(pay.totalGrossPay)
+                                : "0"
+                            }}</span
                           >
                           <span class="text-xs text-gray-rgba-3">Gross</span>
                         </div>
@@ -477,9 +498,16 @@ const updatePage = (page: number) => {
                       <td class="py-4 flex whitespace-nowrap">
                         <div class="font-normal text-left flex flex-col">
                           <span class="text-sm font-semimedium"
-                            >₦ {{ pay.totalDeductions ? currency(pay.totalDeductions) : "0" }}
+                            >₦
+                            {{
+                              pay.totalDeductions
+                                ? currency(pay.totalDeductions)
+                                : "0"
+                            }}
                           </span>
-                          <span class="text-xs text-gray-rgba-3">Tax, Pensions, Health</span>
+                          <span class="text-xs text-gray-rgba-3"
+                            >Tax, Pensions, Health</span
+                          >
                         </div>
                       </td>
                       <td class="py-4 items-center text-left whitespace-nowrap">
@@ -488,7 +516,7 @@ const updatePage = (page: number) => {
                             class="text-sm font-semimedium"
                             :style="{
                               color:
-                                pay && pay.status 
+                                pay && pay.status
                                   ? pay.status.toLowerCase() === 'approved'
                                     ? '#46A754'
                                     : pay.status.toLowerCase() === 'pending'
@@ -501,23 +529,26 @@ const updatePage = (page: number) => {
                             >{{ pay.status }}
                           </span>
                           <span class="text-xs text-gray-rgba-3"
-                            >Submitted: {{ pay.submissionDate ? formatDate(pay.submissionDate) : "N/A" }}</span
+                            >Submitted:
+                            {{
+                              pay.submissionDate
+                                ? formatDate(pay.submissionDate)
+                                : "N/A"
+                            }}</span
                           >
                         </div>
                       </td>
                       <td class="py-4 text-left whitespace-nowrap">
                         <div class="flex items-center space-x-2">
                           <div class="flex w-full justify-between">
-                            <ButtonBlue
-                                @click="approvePayroll(pay.payrollId)"
-                            >
-                                <template v-slot:placeholder>Approve</template>
+                            <ButtonBlue @click="approvePayroll(pay.payrollId)">
+                              <template v-slot:placeholder>Approve</template>
                             </ButtonBlue>
                             <ButtonLightRed
-                                @click="declinePayroll(pay.payrollId)"
+                              @click="declinePayroll(pay.payrollId)"
                             >
-                            <template v-slot:placeholder>Decline</template>
-                          </ButtonLightRed>
+                              <template v-slot:placeholder>Decline</template>
+                            </ButtonLightRed>
                             <ButtonLightBlue
                               @click="
                                 router.push(
@@ -551,7 +582,7 @@ const updatePage = (page: number) => {
                         </template>
                         <template #actions>
                           <button
-                          @click="router.push('/dashboard/payroll/add-new')"
+                            @click="router.push('/dashboard/payroll/add-new')"
                             class="bg-[#003b3d] text-white px-4+1 py-2.5+1 rounded-full text-sm"
                           >
                             + Create payroll
@@ -566,12 +597,12 @@ const updatePage = (page: number) => {
           </div>
         </div>
         <!-- end of table -->
-        <Pagination 
-        :currentPage="currentPage" 
-        :totalPages="totalPages"
-        :pageSize="pageSize"
-        :totalItems="totalItems"
-        @updatePage="updatePage"
+        <Pagination
+          :currentPage="currentPage"
+          :totalPages="totalPages"
+          :pageSize="pageSize"
+          :totalItems="totalItems"
+          @updatePage="updatePage"
         />
       </div>
     </div>

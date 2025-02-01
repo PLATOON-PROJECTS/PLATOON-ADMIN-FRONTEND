@@ -1,9 +1,20 @@
 <script setup lang="ts">
-import { ref, provide, watch, onMounted, nextTick, reactive, computed } from "vue";
+import {
+  ref,
+  provide,
+  watch,
+  onMounted,
+  nextTick,
+  reactive,
+  computed,
+} from "vue";
 import successAlert from "../../../components/alerts/SuccessAlert.vue";
 import spinner from "../../../components/timer/Spinner.vue";
 
-import { Create, EmployeePayroll } from "../../../service/payroll/interface/payroll.interface";
+import {
+  Create,
+  EmployeePayroll,
+} from "../../../service/payroll/interface/payroll.interface";
 import {
   IIncDec,
   IMenuVertical,
@@ -57,35 +68,40 @@ const showTax = ref(false);
 const showNetPay = ref(false);
 const dataObj = ref<any>({});
 const responseData = ref<any>({ data: [], message: "" });
-const employeeMap = ref<Record<string, string>>({}); 
+const employeeMap = ref<Record<string, string>>({});
 const successMessage = ref("Action successful");
 
 const dataObjj = reactive({
-    employees: []
+  employees: [],
 });
 
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
 const currentPage = ref(1);
 const totalPages = ref(1);
-const pageSize = ref(10); 
+const pageSize = ref(10);
 const totalItems = ref(0);
 const employeeSalaries = ref([]);
 const totalSalaries = ref(0);
 const totalEmployees = ref(0);
 
 const payrollData = ref<any>(null);
-const parsedUserInfo = typeof userInfo.value === 'string' ? JSON.parse(userInfo.value) : userInfo.value;
+const parsedUserInfo =
+  typeof userInfo.value === "string"
+    ? JSON.parse(userInfo.value)
+    : userInfo.value;
 const organisationId = parsedUserInfo?.customerInfo?.organisationId;
 
 const month = computed(() => {
   const date = new Date(responseData.value?.payroll?.scheduledDate);
-  return isNaN(date.getTime()) ? "" : date.toLocaleString('default', { month: 'long' }); 
+  return isNaN(date.getTime())
+    ? ""
+    : date.toLocaleString("default", { month: "long" });
 });
 
 const period = computed(() => {
   const date = new Date(responseData.value?.payroll?.scheduledDate);
   if (isNaN(date.getTime())) {
-    return ""; 
+    return "";
   }
   const year = date.getFullYear();
   const startOfMonth = new Date(year, date.getMonth(), 1);
@@ -100,14 +116,13 @@ provide("selectedDepartment", [data, departmentName]);
 provide("employeeMap", employeeMap);
 // method
 
-const formatNumber = (number:number) => {
+const formatNumber = (number: number) => {
   return number.toLocaleString();
-}
+};
 
 const fetchPayroll = async () => {
   const { payrollId } = router.currentRoute.value.query;
   const parsedPayrollId = Number(payrollId);
-  console.log("AAA", parsedPayrollId)
   const organisationId = parsedUserInfo?.customerInfo?.organisationId;
 
   if (isNaN(parsedPayrollId)) {
@@ -124,8 +139,7 @@ const fetchPayroll = async () => {
     });
 
     if (response.succeeded) {
-      responseData.value = response.data.pageItems; 
-      console.log("Payroll data fetched successfully:", responseData.value);
+      responseData.value = response.data.pageItems;
       const data = response.data.pageItems;
       employeeSalaries.value = data.employeeSalaries;
       totalSalaries.value = data.totalSalaries;
@@ -139,7 +153,7 @@ const fetchPayroll = async () => {
 };
 
 // onMounted(() => {
-  fetchPayroll();
+fetchPayroll();
 // });
 
 const removeEmployee = async (employeeId: number) => {
@@ -152,62 +166,73 @@ const removeEmployee = async (employeeId: number) => {
   }
 
   try {
-    loading.value = true; 
-    const response = await payrollStore.removeEmployee(parsedPayrollId, employeeId);
-    
+    loading.value = true;
+    const response = await payrollStore.removeEmployee(
+      parsedPayrollId,
+      employeeId
+    );
+
     if (response.succeeded) {
       showSuccess.value = true;
       successMessage.value = "Employee removed successfully!";
-      await fetchPayroll(); 
+      await fetchPayroll();
     } else {
       throw new Error(response.message);
     }
   } catch (error) {
     console.error("Error removing employee:", error);
   } finally {
-    loading.value = false; 
+    loading.value = false;
   }
 };
 
 const saveAndContinue = async () => {
   const payrollId = responseData.value?.payroll?.id;
   if (payrollId) {
-    await router.push({ 
-      name: "dashboard.payroll.summary", 
-      query: { payrollId } 
+    await router.push({
+      name: "dashboard.payroll.summary",
+      query: { payrollId },
     });
   } else {
     console.error("Payroll ID is missing.");
   }
 };
 
-const selectedEmployee = ref({ id: null, bonus: 0, deduction: 0, taxAmount: 0, netPay: 0 });
+const selectedEmployee = ref({
+  id: null,
+  bonus: 0,
+  deduction: 0,
+  taxAmount: 0,
+  netPay: 0,
+});
 
 const handleBonusSave = (bonusData: { amount: number; reason: string }) => {
-  console.log("Bonus Data Received:", bonusData);
-  const employee = responseData.value.data.find((e: { id: null }) => e.id === selectedEmployee.value.id);
+  const employee = responseData.value.data.find(
+    (e: { id: null }) => e.id === selectedEmployee.value.id
+  );
   if (employee) {
-    employee.bonus = { ...bonusData }; 
+    employee.bonus = { ...bonusData };
   }
   showBonus.value = false;
 };
 
-const handleDeductionSave = (deductionData: { amount: number; reason: string }) => {
-  console.log("Deduction Data Received:", deductionData);
-  const employee = responseData.value.data.find((e: { id: null }) => e.id === selectedEmployee.value.id);
+const handleDeductionSave = (deductionData: {
+  amount: number;
+  reason: string;
+}) => {
+  const employee = responseData.value.data.find(
+    (e: { id: null }) => e.id === selectedEmployee.value.id
+  );
   if (employee) {
-    employee.deduction = { ...deductionData }; 
-   
+    employee.deduction = { ...deductionData };
   }
   showDeduction.value = false;
 };
 
 const handleTaxSave = (taxData: { amount: number }) => {
-  console.log("Tax Data Received:", taxData);
   const employee = responseData.value.data.find(
     (e: { id: null }) => e.id === selectedEmployee.value.id
   );
-  console.log("Taxxxx:", taxData.amount);
 
   if (employee) {
     employee.taxAmount = taxData.amount;
@@ -216,47 +241,47 @@ const handleTaxSave = (taxData: { amount: number }) => {
 };
 
 const handleNetSave = (netPayData: { amount: number }) => {
-  console.log("NetPay Data Received:", netPayData);
   const employee = responseData.value.data.find(
     (e: { id: null }) => e.id === selectedEmployee.value.id
   );
   if (employee) {
-    employee.netPay = netPayData.amount; 
+    employee.netPay = netPayData.amount;
   }
   showNetPay.value = false;
 };
-
 </script>
 <template>
-  <div class="bg-white h-full rounded-t-lg py-6 space-y-5 overflow-auto scrollbar-hide">
+  <div
+    class="bg-white h-full rounded-t-lg py-6 space-y-5 overflow-auto scrollbar-hide"
+  >
     <!-- modals -->
     <AddBonus
-    v-if="showBonus"
-    :employeeId="selectedEmployee.id"
-    :employeeAmount="selectedEmployee.bonus"
-    @save_bonus="handleBonusSave"
-    @close_bonus="showBonus = false"
+      v-if="showBonus"
+      :employeeId="selectedEmployee.id"
+      :employeeAmount="selectedEmployee.bonus"
+      @save_bonus="handleBonusSave"
+      @close_bonus="showBonus = false"
     />
     <AddDeduction
-    v-if="showDeduction"
-    :employeeId="selectedEmployee.id"
-    :employeeAmount="selectedEmployee.deduction"
-    @save_deduction="handleDeductionSave"
-    @close_deduction="showDeduction = false"
+      v-if="showDeduction"
+      :employeeId="selectedEmployee.id"
+      :employeeAmount="selectedEmployee.deduction"
+      @save_deduction="handleDeductionSave"
+      @close_deduction="showDeduction = false"
     />
     <AddTax
-    v-if="showTax"
-    :employeeId="selectedEmployee.id"
-    :employeeAmount="selectedEmployee.taxAmount"
-    @save_tax="handleTaxSave"
-    @close_tax="showTax = false"
+      v-if="showTax"
+      :employeeId="selectedEmployee.id"
+      :employeeAmount="selectedEmployee.taxAmount"
+      @save_tax="handleTaxSave"
+      @close_tax="showTax = false"
     />
     <AddNetPay
-    v-if="showNetPay"
-    :employeeId="selectedEmployee.id"
-    :employeeAmount="selectedEmployee.netPay"
-    @save_net="handleNetSave"
-    @close_net="showNetPay = false"
+      v-if="showNetPay"
+      :employeeId="selectedEmployee.id"
+      :employeeAmount="selectedEmployee.netPay"
+      @save_net="handleNetSave"
+      @close_net="showNetPay = false"
     />
     <!-- successAlert -->
     <successAlert
@@ -270,26 +295,27 @@ const handleNetSave = (netPayData: { amount: number }) => {
     <div class="px-5 py-2">
       <div class="space-y-6">
         <div class="flex justify-between">
-            <div class="flex space-x-5">
-                <div class="pt-1">
-                  <IArrowLeftTail />
-                </div>
-                <div>
-                  <h3 class="font-bold text-2xl whitespace-nowrap">
-                    {{ month }} Salary Payment
-                  </h3>
-                  <p class="text-sm pt-1 font-semimedium whitespace-nowrap">
-                    <span class="text-black-200">Payroll period: </span>
-                    <span>{{ period }}</span>
-                  </p>
-                </div>
-              </div>
-              <div>
-                <ButtonBlue @click="saveAndContinue">
-                <template v-slot:placeholder>
-                    <span>Save & Continue</span></template>
-                </ButtonBlue>
+          <div class="flex space-x-5">
+            <div class="pt-1">
+              <IArrowLeftTail />
             </div>
+            <div>
+              <h3 class="font-bold text-2xl whitespace-nowrap">
+                {{ month }} Salary Payment
+              </h3>
+              <p class="text-sm pt-1 font-semimedium whitespace-nowrap">
+                <span class="text-black-200">Payroll period: </span>
+                <span>{{ period }}</span>
+              </p>
+            </div>
+          </div>
+          <div>
+            <ButtonBlue @click="saveAndContinue">
+              <template v-slot:placeholder>
+                <span>Save & Continue</span></template
+              >
+            </ButtonBlue>
+          </div>
         </div>
 
         <div class="relative w-20">
@@ -298,7 +324,9 @@ const handleNetSave = (netPayData: { amount: number }) => {
               @click="showDepartment = !showDepartment"
               class="text-sm pt-1 font-semimedium text-black-200 whitespace-nowrap cursor-pointer"
             >
-              {{ departmentName === "" ? "Sort by Department" : departmentName }}</span
+              {{
+                departmentName === "" ? "Sort by Department" : departmentName
+              }}</span
             >
             <span class="pt-2">
               <IIncDec @click="showDepartment = !showDepartment" />
@@ -328,11 +356,12 @@ const handleNetSave = (netPayData: { amount: number }) => {
             <div class="align-middle inline-block min-w-full">
               <div class="overflow-hidden sm:rounded-lg">
                 <table id="data-table" class="min-w-full table-fixed">
-                  <thead
-                    class="text-black-200 text-sm text-left"
-                  >
+                  <thead class="text-black-200 text-sm text-left">
                     <tr>
-                      <th scope="col" class="py-4 text-left flex items-center space-x-3">
+                      <th
+                        scope="col"
+                        class="py-4 text-left flex items-center space-x-3"
+                      >
                         <span> Name </span>
                       </th>
                       <th scope="col" class="py-4 text-left whitespace-nowrap">
@@ -357,22 +386,33 @@ const handleNetSave = (netPayData: { amount: number }) => {
                   </thead>
                   <tbody class="bg-white divide-y divide-grey-200">
                     <tr
-                      v-for="(employee, index) in responseData?.employeeSalaries"
+                      v-for="(
+                        employee, index
+                      ) in responseData?.employeeSalaries"
                       :key="employee.employeeId"
                       class="text-black-100"
                     >
                       <td class="py-4 whitespace-nowrap">
                         <div class="flex items-center space-x-3">
                           <div class="flex flex-col">
-                            <span class="text-sm font-semimedium">{{ employee.firstName }} {{ employee.lastName }}</span>
-                            <span class="text-xs text-gray-rgba-3">₦{{ employee.grossPay }}/yr</span>
+                            <span class="text-sm font-semimedium"
+                              >{{ employee.firstName }}
+                              {{ employee.lastName }}</span
+                            >
+                            <span class="text-xs text-gray-rgba-3"
+                              >₦{{ employee.grossPay }}/yr</span
+                            >
                           </div>
                         </div>
                       </td>
                       <td class="py-4 whitespace-nowrap">
                         <div class="text-left flex flex-col">
-                          <span class="text-sm font-semimedium"> ₦{{ employee.grossPay }}  </span>
-                          <span class="text-xs text-gray-rgba-3">Direct deposit</span>
+                          <span class="text-sm font-semimedium">
+                            ₦{{ employee.grossPay }}
+                          </span>
+                          <span class="text-xs text-gray-rgba-3"
+                            >Direct deposit</span
+                          >
                         </div>
                       </td>
                       <td class="py-4 whitespace-nowrap">
@@ -389,11 +429,13 @@ const handleNetSave = (netPayData: { amount: number }) => {
                             <span class="text-sm font-semimedium">
                               ₦{{ employee.bonus?.amount || 0 }}
                             </span>
-                            <span class="text-xs text-gray-rgba-3">Commisions</span>
+                            <span class="text-xs text-gray-rgba-3"
+                              >Commisions</span
+                            >
                           </div>
                         </div>
                       </td>
-                    
+
                       <td class="py-4 flex whitespace-nowrap">
                         <div class="flex space-x-2">
                           <ITablePencil
@@ -406,9 +448,11 @@ const handleNetSave = (netPayData: { amount: number }) => {
                           />
                           <div class="font-normal text-left flex flex-col">
                             <span class="text-sm font-semimedium">
-                                ₦{{ employee.deduction?.amount || 0 }}
+                              ₦{{ employee.deduction?.amount || 0 }}
                             </span>
-                            <span class="text-xs text-gray-rgba-3">Pensions, Health</span>
+                            <span class="text-xs text-gray-rgba-3"
+                              >Pensions, Health</span
+                            >
                           </div>
                         </div>
                       </td>
@@ -421,16 +465,18 @@ const handleNetSave = (netPayData: { amount: number }) => {
                                 (selectedEmployee.id = employee.id),
                               ]
                             "
-                            />
+                          />
                           <div class="font-normal flex flex-col">
-                            <span class="text-sm font-semimedium">  ₦{{ employee.taxAmount || 0 }} </span>
+                            <span class="text-sm font-semimedium">
+                              ₦{{ employee.taxAmount || 0 }}
+                            </span>
                             <span class="text-xs text-gray-rgba-3">LAGIT</span>
                           </div>
                         </div>
                       </td>
                       <td class="py-4 text-left whitespace-nowrap">
                         <div class="flex space-x-2">
-                          <ITablePencil 
+                          <ITablePencil
                             @click="
                               [
                                 (showNetPay = true),
@@ -440,8 +486,12 @@ const handleNetSave = (netPayData: { amount: number }) => {
                           />
                           <div class="flex w-full justify-between">
                             <div class="text-left flex flex-col">
-                              <span class="text-sm font-semimedium"> ₦{{ employee.netPay || 0 }} </span>
-                              <span class="text-xs text-gray-rgba-3">Direct deposit</span>
+                              <span class="text-sm font-semimedium">
+                                ₦{{ employee.netPay || 0 }}
+                              </span>
+                              <span class="text-xs text-gray-rgba-3"
+                                >Direct deposit</span
+                              >
                             </div>
                           </div>
                         </div>
@@ -449,7 +499,11 @@ const handleNetSave = (netPayData: { amount: number }) => {
                       <td class="py-4 whitespace-nowrap">
                         <div class="flex items-center space-x-3">
                           <div class="flex flex-col">
-                            <span class="text-sm font-semimedium text-red" @click="removeEmployee(employee.employeeId)">Remove</span>                          
+                            <span
+                              class="text-sm font-semimedium text-red"
+                              @click="removeEmployee(employee.employeeId)"
+                              >Remove</span
+                            >
                           </div>
                         </div>
                       </td>

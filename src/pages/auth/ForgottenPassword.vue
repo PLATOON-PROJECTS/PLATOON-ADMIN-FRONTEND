@@ -72,9 +72,11 @@ const handleForgottenInit = async (): Promise<void> => {
 
   if (isFormCorrect) {
     const email = data.email;
-console.log("///////", email)
     loading.value = true;
-    const response = await request(authStore.userForgotPasswordInit(email), loading);
+    const response = await request(
+      authStore.userForgotPasswordInit(email),
+      loading
+    );
 
     handleError(response, userStore);
     const successResponse = handleSuccess(response, showSuccess);
@@ -84,8 +86,8 @@ console.log("///////", email)
       // responseData.value.message = "Login successful";
       // console.log(responseData.value);
       setTimeout(() => {
-          router.replace("/login");
-        }, 3000);
+        router.replace("/login");
+      }, 3000);
       // setTimeout(() => {
       //   (window.location as unknown as string) = responseData.value.data.data
       //     .companies[0]
@@ -146,9 +148,9 @@ onMounted(() => {
   verifyEmail();
 });
 
-const gotoExternalRouteOnTab = (route:string) => {
-    window.location.href = route;
-}
+const gotoExternalRouteOnTab = (route: string) => {
+  window.location.href = route;
+};
 </script>
 
 <template>

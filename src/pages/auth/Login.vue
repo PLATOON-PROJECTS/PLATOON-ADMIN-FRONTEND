@@ -87,13 +87,9 @@ const handleLogin = async (): Promise<void> => {
       // console.log(true);
       responseData.value = successResponse;
       responseData.value.message = "Login successful";
-      console.log("Response Data:::::::::", responseData.value);
 
       const userId = successResponse.data.data.id;
       localStorage.setItem("userId", userId);
-      console.log("Stored User ID:", localStorage.getItem("userId"));
-      console.log("===========", userId);
-      console.log("====^^^^====", successResponse);
 
       setTimeout(() => {
         window.location.href = "/dashboard/home"; // Redirect to dashboard

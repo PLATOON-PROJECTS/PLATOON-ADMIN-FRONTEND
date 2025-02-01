@@ -86,7 +86,6 @@ const render = inject<any>("render");
 //   }
 // };
 
-
 const validatePhone = () => {
   return valid.value;
 };
@@ -95,10 +94,10 @@ const setGrades = (value: any[]) => {
   grades.value = value;
 };
 
-async function checkDomainExists(email:string | null) {
-  const domain = email?.split('@')[1];
+async function checkDomainExists(email: string | null) {
+  const domain = email?.split("@")[1];
   try {
-    const response = await fetch(`https://${domain}`, { mode: 'no-cors' });
+    const response = await fetch(`https://${domain}`, { mode: "no-cors" });
     return true; // Returns true if the domain exists
   } catch (error) {
     return false; // Returns false if there's an error or domain doesn't exist
@@ -121,37 +120,35 @@ const handleInvite = async () => {
     // };
 
     const sendData = {
-      firstName: v$.value.name.$model.split(' ')[0], // Assuming name is "First Last"
-      lastName: v$.value.name.$model.split(' ')[1],
+      firstName: v$.value.name.$model.split(" ")[0], // Assuming name is "First Last"
+      lastName: v$.value.name.$model.split(" ")[1],
       email: v$.value.email.$model as string,
       phoneNumber: data.value.phoneNumber as string,
-      countryCode: data.value.countryCode, 
-      employmentType: data.value.employmentType, 
-      gradeId: Number(data.value.gradeId), 
-      // gradeId: Number(data.value.gradeId), 
+      countryCode: data.value.countryCode,
+      employmentType: data.value.employmentType,
+      gradeId: Number(data.value.gradeId),
+      // gradeId: Number(data.value.gradeId),
       departmentId: Number(data.value.departmentId),
     };
-    console.log("Data to be sent:", sendData);
 
     loading.value = true;
     const is_alive = await checkDomainExists(data.value.email)
-    .then((result: any) => {
-      if (result) {
-        return true;
-      } else {
-        return false;
-      }
-    })
-    .catch(error => {
-      return "Not yet ready";
-    });
+      .then((result: any) => {
+        if (result) {
+          return true;
+        } else {
+          return false;
+        }
+      })
+      .catch((error) => {
+        return "Not yet ready";
+      });
 
-    if(is_alive){
+    if (is_alive) {
       const response = await request(
         employeeStore.invitationCreate(sendData),
         loading
       );
-      console.log("Response from API:", response);
 
       handleError(response, userStore);
       if (response && response.data) {
@@ -165,9 +162,9 @@ const handleInvite = async () => {
         setTimeout(() => {
           render.value = true;
           emit("close");
-        }, 5000)
+        }, 5000);
       }
-    }else{
+    } else {
       loading.value = false;
       invalidDomain.value = true;
     }
@@ -312,7 +309,9 @@ const v$ = useVuelidate(rules as any, data);
               </div> -->
 
               <div class="flex space-x-2">
-                <div class="font-normal text-left rounded-xl px-4 h-[48px] w-[25%] relative border border-grey-300">
+                <div
+                  class="font-normal text-left rounded-xl px-4 h-[48px] w-[25%] relative border border-grey-300"
+                >
                   <input
                     type="text"
                     v-model="data.countryCode"
@@ -320,7 +319,9 @@ const v$ = useVuelidate(rules as any, data);
                     class="rounded-lg w-full placeholder-strong text-black text-sm outline-none border-none h-full focus:outline-none focus:border-none"
                   />
                 </div>
-                <div class="font-normal text-left rounded-xl px-4 h-[48px] w-[75%] relative border border-grey-300">
+                <div
+                  class="font-normal text-left rounded-xl px-4 h-[48px] w-[75%] relative border border-grey-300"
+                >
                   <input
                     type="text"
                     v-model="data.phoneNumber"
@@ -329,9 +330,9 @@ const v$ = useVuelidate(rules as any, data);
                   />
                 </div>
               </div>
-             <!--  -->
-            
-             <!--  -->
+              <!--  -->
+
+              <!--  -->
 
               <div
                 class="font-normal relative w-auto text-left rounded-xl px-4 h-[48px] text-gray-rgba-3 border text-black"
@@ -360,7 +361,7 @@ const v$ = useVuelidate(rules as any, data);
                     ></component>
                   </div>
                 </div>
-<!-- 
+                <!-- 
                 <div v-if="v$.department.$error" class="!text-red-100 text-xs">
                   {{ "* " + v$.department.$errors[0].$message }}
                 </div> -->
@@ -381,17 +382,17 @@ const v$ = useVuelidate(rules as any, data);
 
               <!--  -->
               <div
-              class="font-normal text-left rounded-xl px-4 h-[48px] relative border border-grey-300"
-            >
-              <input
-                required
-                type="text"
-                v-model="data.employmentType"
-                class="w-full rounded-lg placeholder-strong text-black text-sm outline-none border-none h-full focus:outline-none focus:border-none \"
-                placeholder="Select employment type"
-              />
-            </div>
-             <!-- <div
+                class="font-normal text-left rounded-xl px-4 h-[48px] relative border border-grey-300"
+              >
+                <input
+                  required
+                  type="text"
+                  v-model="data.employmentType"
+                  class="w-full rounded-lg placeholder-strong text-black text-sm outline-none border-none h-full focus:outline-none focus:border-none \"
+                  placeholder="Select employment type"
+                />
+              </div>
+              <!-- <div
                 class="font-normal relative w-auto text-left rounded-xl px-4 h-[48px] text-gray-rgba-3 border text-black"
               >
                 <div class="flex justify-between items-center h-full">

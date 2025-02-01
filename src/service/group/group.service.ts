@@ -9,15 +9,17 @@ class Group {
 
   private createAxiosInstance() {
     return axios.create({
-      baseURL: "https://platoon-backend.onrender.com/api", 
-      headers: authhHeader(), 
+      baseURL: "https://platoon-backend.onrender.com/api",
+      headers: authhHeader(),
     });
   }
 
-  async index(organisationId: number, pageSize: number = 10, pageNumber: number = 1): Promise<any> {
-    
+  async index(
+    organisationId: number,
+    pageSize: number = 10,
+    pageNumber: number = 1
+  ): Promise<any> {
     const customRequest = this.createAxiosInstance();
-    console.log("Requesting departments with organisationId:", organisationId); // Log the organisationId
 
     return await customRequest
       .get(`/Department/fetch-all-department`, {
@@ -25,11 +27,10 @@ class Group {
         params: {
           OrganisationId: organisationId,
           PageSize: pageSize,
-          PageNumber: pageNumber 
-        }
+          PageNumber: pageNumber,
+        },
       })
       .then((res) => {
-        console.log("Index endpoint==========",res)
         return res;
       })
       .catch((err) => {
@@ -37,18 +38,16 @@ class Group {
       });
   }
   async totalDepartment(organisationId: number): Promise<any> {
-    
     const customRequest = this.createAxiosInstance();
 
     return await customRequest
       .get(`/Department/total-department-count`, {
         headers: authhHeader(),
         params: {
-          OrganisationId: organisationId
-        }
+          OrganisationId: organisationId,
+        },
       })
       .then((res) => {
-        console.log("Index endpoint==========",res)
         return res;
       })
       .catch((err) => {
@@ -56,7 +55,10 @@ class Group {
       });
   }
 
-  async fetchEmployeesCount(organisationId: number, departmentId: number): Promise<any> {
+  async fetchEmployeesCount(
+    organisationId: number,
+    departmentId: number
+  ): Promise<any> {
     const customRequest = this.createAxiosInstance();
     return await customRequest
       .get(`/Employee/fetch-employees-count-for-a-department`, {
@@ -70,7 +72,10 @@ class Group {
       .catch((err) => err);
   }
 
-  async fetchActiveEmployeesCount(organisationId: number, departmentId: number): Promise<any> {
+  async fetchActiveEmployeesCount(
+    organisationId: number,
+    departmentId: number
+  ): Promise<any> {
     const customRequest = this.createAxiosInstance();
     return await customRequest
       .get(`/Employee/fetch-active-employees-count-for-a-department`, {
@@ -129,28 +134,25 @@ class Group {
   // }
 
   async create(data: Create): Promise<any> {
-
     const customRequest = this.createAxiosInstance();
 
     return await customRequest
       .post(
-        "/Department/create-department", 
+        "/Department/create-department",
         {
           departmentName: data.name,
-          supportingName: data.supportingName || "", 
-          grades: data.grades.map(grade => ({
+          supportingName: data.supportingName || "",
+          grades: data.grades.map((grade) => ({
             name: grade.name,
             code: grade.code,
-            grossPay: grade.grossPay 
-
-          }))
+            grossPay: grade.grossPay,
+          })),
         },
         {
           headers: authhHeader(),
         }
       )
       .then((res) => {
-        console.log("==========",res)
         return res;
       })
       .catch((err) => {

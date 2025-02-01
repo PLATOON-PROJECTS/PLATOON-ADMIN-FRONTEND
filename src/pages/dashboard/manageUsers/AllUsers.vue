@@ -63,7 +63,6 @@ const fetchUsers = async (page: number) => {
       page
     );
     if (response.data) {
-      console.log("========", response.data.data.pageItems);
       responseData.value.data = response.data.data.pageItems;
       currentPage.value = response.data.data.currentPage;
       totalPages.value = response.data.data.numberOfPages;

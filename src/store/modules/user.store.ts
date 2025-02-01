@@ -32,12 +32,6 @@ const userStore = defineStore("user", {
       try {
         const response = await userService.show(userId);
         if (response && response.data && response.data.data) {
-          console.log(
-            "_____\\\\\\\\_____",
-            response.data.data.organisation.user.email
-          );
-          console.log("_____----_____", response.data.data);
-
           const data = JSON.stringify({
             customerInfo: {
               firstName: response.data.data.organisation.user.firstname,
@@ -52,7 +46,6 @@ const userStore = defineStore("user", {
             },
           });
           storeItem(import.meta.env.VITE_USERDETAILS, data);
-          console.log("^^^^", data);
           return await Promise.resolve(response);
         } else if (response.response) {
           return await Promise.reject(response.response);
@@ -118,7 +111,6 @@ const userStore = defineStore("user", {
     async getUserRole(userId: number): Promise<any> {
       try {
         const response = await userService.getUserRoleById(userId);
-        console.log("Response from service:", response);
         if (response.succeeded) {
           return response.data;
         } else {
@@ -147,7 +139,6 @@ const userStore = defineStore("user", {
     async assignRole(userId: number, roleId: number): Promise<any> {
       try {
         const response = await userService.assignRole({ userId, roleId });
-        console.log("Responseeeeeeee:", response);
         if (response.data) {
           return await Promise.resolve(response.data);
         } else if (response.response) {

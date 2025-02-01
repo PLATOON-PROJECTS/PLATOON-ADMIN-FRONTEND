@@ -31,7 +31,6 @@ const updatePayrollFee = async () => {
         // Handle success
         showSuccess.value = true;
         responseData.value = response;
-        console.log("Payroll fee updated successfully");
         isEditing.value = false;
         disabled.value = true;
       } else {

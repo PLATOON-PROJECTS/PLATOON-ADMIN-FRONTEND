@@ -100,14 +100,12 @@ const updateAdminProfile = async (event?: Event) => {
       countryCode: countryCode,
       phoneNumber: formattedNumber,
     };
-    console.log("===========", dataObj);
     loading.value = true;
     try {
       const response = await request(
         authStore.updateAdminProfile(dataObj),
         loading
       );
-      console.log("res", response);
 
       handleError(response, userStore);
       const successResponse = handleSuccess(response, showSuccess);
@@ -164,11 +162,9 @@ const updateAdminProfile = async (event?: Event) => {
 
 const fetchUserDetails = async () => {
   const userId = Number(localStorage.getItem("userId"));
-  console.log("User ID:", userId);
 
   if (userId) {
     const response = await request(userStore.show(userId));
-    console.log("API Response:", response);
 
     const successResponse = handleSuccess(response);
 
@@ -190,8 +186,6 @@ const fetchUserDetails = async () => {
         state: organisationData.address.state || "",
         country: organisationData.address.country || "",
       };
-
-      console.log("Updated Data:", data.value);
     } else {
       console.error("Invalid response data:", successResponse);
     }

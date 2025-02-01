@@ -23,13 +23,9 @@ const props = defineProps({
 const fetchUserRole = async (userId: number) => {
   try {
     const roleData = await userStore.getUserRole(userId);
-    console.log("Fetched role data:", roleData);
     if (roleData) {
       userRoleData.value = roleData;
-      console.log("Fetched role data:", userRoleData.value);
-      console.log("User Firstname:", userRoleData.value.user.firstname);
-      console.log("User Lastname:", userRoleData.value.user.lastname);
-      console.log("User Role:", userRoleData.value.roleId);
+
       const userRoleId = userRoleData.value.roleId;
       const fetchedRole = roles.value.find((role) => role.id === userRoleId);
       selectedRole.value = fetchedRole ? fetchedRole.name : "";
@@ -45,19 +41,15 @@ const fetchRoles = async () => {
   loading.value = true;
   try {
     const response = await userStore.fetchRoles();
-    console.log("0000", response);
     roles.value = response;
-    console.log("(((((((", roles.value);
     loading.value = false;
   } catch (error) {
-    console.log(error);
     loading.value = false;
   }
 };
 
 onMounted(() => {
   const storedUserId = localStorage.getItem("selectedUserId");
-  console.log("====", storedUserId);
   if (storedUserId) {
     userId.value = JSON.parse(storedUserId);
     if (userId.value !== null) {
@@ -80,12 +72,7 @@ const saveChanges = async () => {
     );
     if (roleToUpdate) {
       try {
-        console.log("Sending data:", {
-          userId: userId.value,
-          roleId: roleToUpdate.id,
-        });
         await userStore.updateRole(userId.value, roleToUpdate.id);
-        console.log("Role updated successfully");
         localStorage.removeItem("selectedUserId");
         openUpdateUser.value = false;
         props.fetchUsers();

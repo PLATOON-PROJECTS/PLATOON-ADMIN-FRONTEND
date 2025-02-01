@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import {
   IWallet,
   IQuestionMark,
@@ -49,10 +49,13 @@ const showConfirm = ref(false);
 const employeeData = ref<any>([]);
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
 const responseData = ref<any>({ data: {}, message: "" });
+const totalRevenueData = ref<any>({ data: {}, message: "" });
+const totalFundDisbursed = ref<any>({ data: {}, message: "" });
+const totalFundReceived = ref<any>({ data: {}, message: "" });
+const pendingDisbursementData = ref<any>({ data: {}, message: "" });
 const videoChange = ref(false);
 const loading = ref(false);
 
-console.log("userInfo before parsing:", userInfo.value);
 const parsedUserInfo =
   typeof userInfo.value === "string"
     ? JSON.parse(userInfo.value)
@@ -63,23 +66,105 @@ const organisationId = parsedUserInfo?.customerInfo?.organisationId;
 
 // methods
 
-const fetchWallet = async () => {
-  const walletCached = cache("wallet");
+const fetchTotalRevenue = async () => {
+  loading.value = true;
 
-  if (typeof walletCached !== "undefined") {
-    responseData.value.data = walletCached;
-  }
+  try {
+    const response = await request(walletStore.getTotalRevenue());
+    console.log("myres", response);
 
-  const response = await request(walletStore.getWallet());
-
-  const successResponse = handleSuccess(response);
-  if (successResponse && typeof successResponse !== "undefined") {
-    // console.log(successResponse.data.data);
-    cache("wallet", successResponse.data.data);
-    responseData.value.data = successResponse.data.data;
-    // console.log(responseData.value);
+    if (response && response.data) {
+      totalRevenueData.value = [response.data.data]; // Wrap the data in an array for consistency
+    } else {
+      console.error("No data found in response:", response);
+    }
+  } catch (error) {
+    console.error("Failed to fetch company:", error);
+  } finally {
+    loading.value = false;
   }
 };
+
+const fetchTotalFundReceived = async () => {
+  loading.value = true;
+
+  try {
+    const response = await request(walletStore.getTotalFundReceived());
+    console.log("myres", response);
+
+    if (response && response.data) {
+      totalFundReceived.value = [response.data.data]; // Wrap the data in an array for consistency
+    } else {
+      console.error("No data found in response:", response);
+    }
+  } catch (error) {
+    console.error("Failed to fetch company:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const fetchPendingDisbursement = async () => {
+  loading.value = true;
+
+  try {
+    const response = await request(walletStore.pendingDisbursement());
+    console.log("myres", response);
+
+    if (response && response.data) {
+      pendingDisbursementData.value = [response.data.data]; // Wrap the data in an array for consistency
+    } else {
+      console.error("No data found in response:", response);
+    }
+  } catch (error) {
+    console.error("Failed to fetch company:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+const fetchTotalFundDisbursed = async () => {
+  loading.value = true;
+
+  try {
+    const response = await request(walletStore.getTotalFundDisbursed());
+    console.log("myres", response);
+
+    if (response && response.data) {
+      totalFundDisbursed.value = [response.data.data]; // Wrap the data in an array for consistency
+    } else {
+      console.error("No data found in response:", response);
+    }
+  } catch (error) {
+    console.error("Failed to fetch company:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchTotalRevenue();
+  fetchTotalFundReceived();
+  fetchPendingDisbursement();
+  fetchTotalFundDisbursed();
+});
+
+// const fetchTotalRevenue = async () => {
+//   // const walletCached = cache("wallet");
+
+//   // if (typeof walletCached !== "undefined") {
+//   //   responseData.value.data = walletCached;
+//   // }
+
+//   const response = await request(walletStore.getTotalRevenue());
+
+//   const successResponse = handleSuccess(response);
+//   if (successResponse && typeof successResponse !== "undefined") {
+//     // console.log(successResponse.data.data);
+//     cache("wallet", successResponse.data.data);
+//     responseData.value.data = successResponse.data.data;
+//     // console.log(responseData.value);
+//   }
+// };
 
 const dashboardData = async () => {
   const walletCached = cache("wallet");
@@ -129,7 +214,6 @@ const fetchEmployees = async (page = 1) => {
   if (successResponse && typeof successResponse !== "undefined") {
     employeeData.value = successResponse.data.data.pageItems.length;
     cache("total_employees_length", successResponse.data.data.pageItems.length);
-    console.log("*********", successResponse.data.data.pageItems.length);
   }
 };
 const confirmLogout = () => {
@@ -141,7 +225,6 @@ const logout = async () => {
   try {
     const response = await request(authStore.logoutUser());
     if (response && response.status === 200) {
-      console.log("Logout successful:", response);
       window.location.href = "/login";
     } else {
       console.error("Logout failed:", response);
@@ -153,19 +236,17 @@ const logout = async () => {
 
 const fetchUserDetails = async () => {
   const userId = Number(localStorage.getItem("userId")); // Retrieve userId from storage
-  console.log("User ID:", userId);
   if (userId) {
     const response = await request(userStore.show(userId));
-    console.log("API Response:", response);
     const successResponse = handleSuccess(response);
     if (successResponse) {
       responseData.value.data.userDetails = successResponse.data;
-      console.log("API Responseeeeeeeeee:", successResponse.data);
     }
   }
 };
 
 // fetchWallet();
+fetchTotalRevenue();
 fetchUserDetails();
 fetchEmployees();
 // console.log(useBrowserStore().$state.isDarkModeOn);
@@ -381,38 +462,38 @@ fetchEmployees();
           </div>
           <div class="flex gap-4 items-center">
             <div>
-              <h3 class="font-bold text-black-rgba dark:text-white text-2xl">
+              <h3 class="font-bold text-black-rgba dark:text-white text-xl">
                 ₦
-                {{ currency(JSON.parse(userInfo)?.customerInfo?.wallet ?? 0) }}
+                {{ totalFundDisbursed[0] ?? 0 }}
               </h3>
               <span class="text-black-rgba-100 text-xs"
                 >Total funds disbursed</span
               >
             </div>
             <div>
-              <h3 class="font-bold text-black-rgba dark:text-white text-2xl">
+              <h3 class="font-bold text-black-rgba dark:text-white text-xl">
                 ₦
-                {{ currency(JSON.parse(userInfo)?.customerInfo?.wallet ?? 0) }}
+                {{ pendingDisbursementData[0] ?? 0 }}
               </h3>
-              <span class="text-black-rgba-100 text-xs"
+              <span class="text-black-rgba-100 text-xs whitespace-nowrap"
                 >Total Pending disbursement</span
               >
             </div>
           </div>
           <div class="flex gap-4 items-center">
             <div>
-              <h3 class="font-bold text-black-rgba dark:text-white text-2xl">
+              <h3 class="font-bold text-black-rgba dark:text-white text-xl">
                 ₦
-                {{ currency(JSON.parse(userInfo)?.customerInfo?.wallet ?? 0) }}
+                {{ totalFundReceived[0] ?? 0 }}
               </h3>
               <span class="text-black-rgba-100 text-xs"
                 >Total funds recieved</span
               >
             </div>
             <div>
-              <h3 class="font-bold text-black-rgba dark:text-white text-2xl">
+              <h3 class="font-bold text-black-rgba dark:text-white text-xl">
                 ₦
-                {{ currency(JSON.parse(userInfo)?.customerInfo?.wallet ?? 0) }}
+                {{ totalRevenueData[0] ?? 0 }}
               </h3>
               <span class="text-black-rgba-100 text-xs"
                 >Total revenue recieved</span

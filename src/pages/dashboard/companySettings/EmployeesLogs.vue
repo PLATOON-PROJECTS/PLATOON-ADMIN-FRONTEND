@@ -172,13 +172,11 @@ const fetchEmployees = async (page = 1) => {
 
   // console.log("fetching employeee");
   const totalEmployeeCached = cache("total_employees");
-  console.log("##########", totalEmployeeCached);
 
   if (typeof totalEmployeeCached !== "undefined") {
     loading.value = false;
     responseData.value.data = totalEmployeeCached;
   }
-  console.log("ertyuio", responseData.value.data);
   const response = await request(
     employeeStore.index(organisationId, 10, page),
     loading

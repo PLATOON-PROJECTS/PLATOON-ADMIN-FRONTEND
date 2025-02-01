@@ -1,83 +1,76 @@
 <script setup lang="ts">
-import { ref, reactive, inject, computed, provide } from 'vue';
-import ButtonBlue from '../components/buttons/ButtonBlue.vue';
-import SuccessAlert from '../components/alerts/SuccessAlert.vue';
-import { IArrowDown, IClose, IMenuVertical } from '../core/icons';
-import { request } from '../composables/request.composable';
-import handleError from '../composables/handle_error.composable';
-import handleSuccess from '../composables/handle_success.composable';
-import spinner from '../components/timer/Spinner.vue';
-import { useEmployeeStore, useUserStore } from '../store/index';
-import { useRouter } from 'vue-router';
-import { stringValidate, numberValidate } from '../validations/validate';
-import { storeItem, getItem } from '../core/utils/storage.helper';
-import useVuelidate from '@vuelidate/core';
-import { Occurence } from '../Enums/enum';
-import { required, email, helpers } from '@vuelidate/validators';
+import { ref, reactive, inject, computed, provide } from "vue";
+import ButtonBlue from "../components/buttons/ButtonBlue.vue";
+import SuccessAlert from "../components/alerts/SuccessAlert.vue";
+import { IArrowDown, IClose, IMenuVertical } from "../core/icons";
+import { request } from "../composables/request.composable";
+import handleError from "../composables/handle_error.composable";
+import handleSuccess from "../composables/handle_success.composable";
+import spinner from "../components/timer/Spinner.vue";
+import { useEmployeeStore, useUserStore } from "../store/index";
+import { useRouter } from "vue-router";
+import { stringValidate, numberValidate } from "../validations/validate";
+import { storeItem, getItem } from "../core/utils/storage.helper";
+import useVuelidate from "@vuelidate/core";
+import { Occurence } from "../Enums/enum";
+import { required, email, helpers } from "@vuelidate/validators";
 
-const router=useRouter();
+const router = useRouter();
 // initialize router
 
 // props
-const props = defineProps<{ employeeId: any, employeeAmount:number }>();
+const props = defineProps<{ employeeId: any; employeeAmount: number }>();
 
 // initialize store
 const employeeStore = useEmployeeStore();
 const userStore = useUserStore();
 // emits
 const emit = defineEmits<{
-  (e: 'close_bonus'): void;
-   (e: 'payroll_init'): void;
-   (e: 'save_bonus', bonusData: { amount: number; reason: string }): void; 
+  (e: "close_bonus"): void;
+  (e: "payroll_init"): void;
+  (e: "save_bonus", bonusData: { amount: number; reason: string }): void;
 }>();
 
 // variables
 const loading = ref(false);
 const showOccurence = ref(false);
 
-const data:any = ref({
+const data: any = ref({
   amount: props.employeeAmount ?? 0,
-  reason: '',
+  reason: "",
   type: Occurence.ONCE,
-  end_date: '',
+  end_date: "",
 });
 
 const showSuccess = ref(false);
 const responseData = ref<any>();
 const valid = ref(false);
 
-const render = inject<any>('render');
-
-
+const render = inject<any>("render");
 
 // validations rule
 const rules = computed(() => {
   return {
     amount: {
-      required: helpers.withMessage('Email amount is required', required),
+      required: helpers.withMessage("Email amount is required", required),
     },
     reason: {
-      required: helpers.withMessage(' Reason is required', required),
+      required: helpers.withMessage(" Reason is required", required),
     },
   };
 });
 
 const handleSubmit = () => {
   if (v$.value.$invalid) {
-    return; 
+    return;
   }
-  
-  emit('save_bonus', {
-    amount: data.value.amount,
-    reason: data.value.reason
-  });
-  console.log('Emitting Bonus Data:', {
+
+  emit("save_bonus", {
     amount: data.value.amount,
     reason: data.value.reason,
-  }); 
+  });
 
-
-  emit('close_bonus');
+  emit("close_bonus");
 };
 
 const v$ = useVuelidate(rules as any, data);
@@ -107,7 +100,8 @@ const v$ = useVuelidate(rules as any, data);
         <div
           class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md"
         >
-          <form @submit.prevent="handleSubmit"
+          <form
+            @submit.prevent="handleSubmit"
             class="bg-white px-[37px] py-[27px] space-y-8"
           >
             <!-- content -->
@@ -153,7 +147,7 @@ const v$ = useVuelidate(rules as any, data);
                   />
                 </div>
                 <div v-if="v$.amount.$error" class="text-red-600 text-xs">
-                  {{ '* ' + v$.amount.$errors[0].$message }}
+                  {{ "* " + v$.amount.$errors[0].$message }}
                 </div>
               </div>
               <!-- <div
@@ -218,7 +212,7 @@ const v$ = useVuelidate(rules as any, data);
                 ></textarea>
               </div>
               <div v-if="v$.reason.$error" class="text-red-600 text-xs">
-                {{ '* ' + v$.reason.$errors[0].$message }}
+                {{ "* " + v$.reason.$errors[0].$message }}
               </div>
               <!--  -->
             </div>

@@ -43,8 +43,8 @@ const showConfirm = ref(false);
 const confirmMessage = ref({ message: "" });
 const confirmType = ref("");
 const csv64 = ref("");
-const csvContent:any = ref([]);
-const loading = ref(false)
+const csvContent: any = ref([]);
+const loading = ref(false);
 const csvInput = ref(null);
 const previewing = ref(false);
 const errorHeader = ref([]);
@@ -52,18 +52,19 @@ const hasError = ref(false);
 const loadingDepartment = ref(true);
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
 
-const ErrorLog:any = ref([]);
-const headerError:any = ref([]);
+const ErrorLog: any = ref([]);
+const headerError: any = ref([]);
 
-const showError:any = ref([]);
+const showError: any = ref([]);
 
 const responseData = ref<any>({ data: [], message: "" });
-const parsedUserInfo = typeof userInfo.value === 'string' ? JSON.parse(userInfo.value) : userInfo.value;
+const parsedUserInfo =
+  typeof userInfo.value === "string"
+    ? JSON.parse(userInfo.value)
+    : userInfo.value;
 
 // Access the organisationId safely
 const organisationId = parsedUserInfo?.customerInfo?.organisationId;
-
-console.log("Organisation ID:", organisationId);
 
 // methods
 const updateId = (id: any) => {
@@ -81,8 +82,6 @@ const fetchInviteEmployees = async () => {
   if (successResponse && typeof successResponse !== "undefined") {
     inviteData.value = successResponse.data.data;
     cache("total_pending_employees", successResponse.data.data);
-    console.log(successResponse.data);
-    console.log(successResponse.data.data);
   }
 };
 fetchInviteEmployees();
@@ -90,26 +89,22 @@ fetchInviteEmployees();
 const fetchEmployees = async (page = 1) => {
   loading.value = true;
   const totalEmployeeCached = cache("total_employees_length");
-  console.log("&&&&", totalEmployeeCached)
   if (typeof totalEmployeeCached !== "undefined") {
     employeeData.value = totalEmployeeCached;
   }
   const response = await request(employeeStore.index(organisationId, 10, page));
 
   const successResponse = handleSuccess(response);
-  loading.value = false; 
+  loading.value = false;
   if (successResponse && typeof successResponse !== "undefined") {
     employeeData.value = successResponse.data.data.pageItems.length;
     cache("total_employees_length", employeeData.value);
-    console.log("*********",successResponse.data.data.pageItems.length);
-    console.log("****++++++*****",employeeData.value);
   }
 };
 fetchEmployees();
 
 const fetchGroups = async () => {
   const groupCachedData = cache("total_departments");
-  console.log("&&&&", groupCachedData)
   if (typeof groupCachedData !== "undefined") {
     groupData.value = groupCachedData;
     loadingDepartment.value = false;
@@ -123,7 +118,6 @@ const fetchGroups = async () => {
   if (successResponse && typeof successResponse !== "undefined") {
     groupData.value = successResponse.data.data;
     cache("total_departments", groupData.value);
-    console.log("!!!!!!!!", groupData.value);
   }
 };
 fetchGroups();
@@ -136,12 +130,12 @@ const download = () => {
   showConfirm.value = true;
 };
 
-const csvToBase64 = async (data:any) => {
+const csvToBase64 = async (data: any) => {
   const file = data.target.files[0];
-  
+
   // Check if a file is selected
   if (!file) {
-    console.error('No file selected!');
+    console.error("No file selected!");
     return;
   }
 
@@ -149,7 +143,7 @@ const csvToBase64 = async (data:any) => {
 
   try {
     // Read file content as text
-    const fileContent:any = await new Promise((resolve, reject) => {
+    const fileContent: any = await new Promise((resolve, reject) => {
       reader.onload = () => resolve(reader.result);
       reader.onerror = reject;
       reader.readAsText(file);
@@ -157,12 +151,10 @@ const csvToBase64 = async (data:any) => {
 
     // Convert text to Base64
     csv64.value = btoa(fileContent);
-
   } catch (error) {
-    console.error('An error occurred while reading the file:', error);
+    console.error("An error occurred while reading the file:", error);
   }
-}
-
+};
 
 // const importCsv = async () => {
 //   downloading.value = true;
@@ -204,14 +196,14 @@ const csvToBase64 = async (data:any) => {
 
 //   // Append the CSV file and OrganisationId to the FormData
 //   formData.append('csvfile', new Blob([atob(csv64.value)], { type: 'text/csv' }), 'employees.csv');
-//   formData.append('OrganisationId', organisationId.toString()); 
+//   formData.append('OrganisationId', organisationId.toString());
 
 //   try {
 //     const response = await employeeStore.importCsvFile(formData);
-    
+
 //     handleError(response, userStore);
 //     const successResponse = handleSuccess(response, showSuccess);
-    
+
 //     loading.value = false;
 
 //     if (successResponse && typeof successResponse !== "undefined") {
@@ -236,12 +228,12 @@ const csvToBase64 = async (data:any) => {
 const handleCsvUpload = async (event: Event) => {
   const file = (event.target as HTMLInputElement)?.files?.[0];
   if (!file) {
-    console.error('No file selected!');
+    console.error("No file selected!");
     return;
   }
 
   if (!organisationId) {
-    console.error('Organisation ID not found!');
+    console.error("Organisation ID not found!");
     return;
   }
 
@@ -251,12 +243,11 @@ const handleCsvUpload = async (event: Event) => {
       organisationId,
     });
 
-    console.log('CSV uploaded successfully:', response);
-    showModal.value = false; 
+    showModal.value = false;
     showSuccess.value = true;
-    successMessage.value = 'CSV imported successfully!';
+    successMessage.value = "CSV imported successfully!";
   } catch (error) {
-    console.error('Error uploading CSV:', error);
+    console.error("Error uploading CSV:", error);
     showError.value = true;
   } finally {
     clearInput();
@@ -268,7 +259,7 @@ const downloadCsvTemplate = async () => {
   try {
     await employeeStore.downloadCsvTemplate();
     successMessage.value = "Template downloaded successfully!";
-    showModal.value = false; 
+    showModal.value = false;
     // showSuccess.value = true;
   } catch (error) {
     console.error("Error:", error);
@@ -279,9 +270,7 @@ const downloadCsvTemplate = async () => {
 
 const importCsv = async () => {
   showModal.value = true;
-
 };
-
 
 // const previewCsvAction = async (file:any) => {
 //   previewing.value = true;
@@ -291,18 +280,18 @@ const importCsv = async () => {
 
 //   if(file.target.value){
 //     downloading.value = true;
-  
+
 //     await csvToBase64(file);
 //     headerError.value = [];
-  
+
 //     const response = await request(employeeStore.previewCsvFile(csv64.value), downloading);
-  
+
 //     openImportCSV.value = false;
 //     handleError(response, userStore);
-  
+
 //     const successResponse = handleSuccess(response, showSuccess);
 //     // openImportCSV.value = false;
-  
+
 //     if (successResponse && typeof successResponse !== "undefined") {
 //       // console.log(successResponse.data);
 //       // console.log('---')
@@ -310,7 +299,7 @@ const importCsv = async () => {
 //       csvContent.value = successResponse.data;
 //       responseData.value.message= successResponse.message;
 //       ErrorLog.value = [];
-  
+
 //       let index = 0;
 //       let allKeys:any = [];
 
@@ -323,7 +312,7 @@ const importCsv = async () => {
 //           headerError.value.push(element);
 //         }
 //       })
-      
+
 //       if(hasError.value){
 //         const errorHeaderIndicator:any = headerError.value.join(', ')
 //         const Uppercase = errorHeaderIndicator.toUpperCase();
@@ -352,7 +341,7 @@ const importCsv = async () => {
 //               });
 //             }
 //           });
-    
+
 //           if(obj.row.telephone.length < 10 || obj.row.telephone.length > 11){
 //             ErrorLog.value.push({
 //                 keyName: 'telephone',
@@ -360,7 +349,7 @@ const importCsv = async () => {
 //                 message: "Telephone Should be 11 digits.",
 //               });
 //           }
-    
+
 //           if(obj.row.account_number.length !== 10){
 //             ErrorLog.value.push({
 //                 keyName: 'account_number',
@@ -368,7 +357,7 @@ const importCsv = async () => {
 //                 message: "Account Number Should be 10 digits.",
 //               });
 //           }
-    
+
 //           if(Number.isInteger(obj.row.telephone)){
 //             ErrorLog.value.push({
 //                 keyName: 'telephone',
@@ -376,27 +365,27 @@ const importCsv = async () => {
 //                 message: "Telephone Must Be A Number.",
 //               });
 //           }
-    
+
 //           if(Number.isInteger(obj.row.account_number)){
 //             ErrorLog.value.push({
 //                 keyName: 'account_number',
 //                 index: index,
 //                 message: "Account Number Must Be A Number.",
-//               });    
+//               });
 //           }
-    
+
 //           if(Number.isInteger(obj.row.bank_code)){
 //             ErrorLog.value.push({
 //               keyName: 'bank_code',
 //               index: index,
 //               message: "Bank Code Must Be A Number",
-//             }); 
+//             });
 //           }
 
 //           if (obj.error.length) {
 //             showError.value[index] = false;
 //           }
-    
+
 //           index++;
 //         });
 //         previewCSV.value = true;
@@ -414,15 +403,19 @@ const clearInput = () => {
   // console.log(csvInput)
   csvInput.value = null;
   // console.log('red')
-}
+};
 
-const checkTable = (index:number, key:string) => {
-  const found = ErrorLog.value.find((obj:any) => obj.index === index && obj.message === ErrorLog.value[0].message && obj.keyName == key);
-  if(found){
-    return true
+const checkTable = (index: number, key: string) => {
+  const found = ErrorLog.value.find(
+    (obj: any) =>
+      obj.index === index &&
+      obj.message === ErrorLog.value[0].message &&
+      obj.keyName == key
+  );
+  if (found) {
+    return true;
   }
-}
-
+};
 </script>
 <template>
   <!-- MODALS -->
@@ -448,9 +441,7 @@ const checkTable = (index:number, key:string) => {
     >
       <template #title> Delete</template>
       <template #confirm>
-        <span>
-          CONFIRM
-        </span>
+        <span> CONFIRM </span>
       </template>
       <template #message> {{ confirmMessage.message }}</template>
     </confirmAlert>
@@ -463,18 +454,59 @@ const checkTable = (index:number, key:string) => {
       <template #otherMessage>CLOSE</template>
       {{ csvContent.message }}</successAlert
     >
-    <div v-if="showModal" class="flex items-center justify-center fixed top-0 left-0 bg-black/20 h-screen w-screen z-[99999]" >
+    <div
+      v-if="showModal"
+      class="flex items-center justify-center fixed top-0 left-0 bg-black/20 h-screen w-screen z-[99999]"
+    >
       <div class="box bg-white rounded-md md:w-[500px] w-[95%] h-[360px]">
         <header class="flex flex-col p-4">
-          <div class="flex items-center justify-center ml-auto w-[40px] h-[40px] rounded-full bg-grey cursor-pointer" @click="showModal = false">
-            <svg width="24px" height="24px" viewBox="-0.5 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M3 21.32L21 3.32001" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M3 3.32001L21 21.32" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+          <div
+            class="flex items-center justify-center ml-auto w-[40px] h-[40px] rounded-full bg-grey cursor-pointer"
+            @click="showModal = false"
+          >
+            <svg
+              width="24px"
+              height="24px"
+              viewBox="-0.5 0 25 25"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g
+                id="SVGRepo_tracerCarrier"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></g>
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  d="M3 21.32L21 3.32001"
+                  stroke="#000000"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></path>
+                <path
+                  d="M3 3.32001L21 21.32"
+                  stroke="#000000"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></path>
+              </g>
+            </svg>
           </div>
           <div class="text-left mt-7 px-[35px]">
-            <h3  class="font-bold text-2xl whitespace-nowrap">Add Employees in Bulk</h3>
-            <p class="text-sm pt-1 font-semimedium">Employee will recieve an email notification</p>
+            <h3 class="font-bold text-2xl whitespace-nowrap">
+              Add Employees in Bulk
+            </h3>
+            <p class="text-sm pt-1 font-semimedium">
+              Employee will recieve an email notification
+            </p>
           </div>
           <div class="flex flex-col mt-7 gap-4 px-[35px]">
-            <button @click="downloadCsvTemplate" class="bg-[#003b3d] text-center text-white px-4+1 py-2.5+1 rounded-full text-sm"
+            <button
+              @click="downloadCsvTemplate"
+              class="bg-[#003b3d] text-center text-white px-4+1 py-2.5+1 rounded-full text-sm"
             >
               Download CSV Template
             </button>
@@ -490,26 +522,74 @@ const checkTable = (index:number, key:string) => {
             >
               <span>Import New CSV</span>
             </label>
-            <input id="csvInput" ref="csvInput" type="file" accept=".csv" class="hidden" @change="handleCsvUpload">
+            <input
+              id="csvInput"
+              ref="csvInput"
+              type="file"
+              accept=".csv"
+              class="hidden"
+              @change="handleCsvUpload"
+            />
           </div>
         </header>
       </div>
     </div>
-    <div v-if="previewCSV" class="flex items-center justify-center fixed top-0 left-0 bg-black/20 h-screen w-screen z-[99999] overflow-hidden" @click.self="previewCSV = false, openImportCSV = false, clearInput()">
-      <div class="box bg-white rounded-md md:w-[90%] w-[95%] md:h-[370px] h-[400px]">
+    <div
+      v-if="previewCSV"
+      class="flex items-center justify-center fixed top-0 left-0 bg-black/20 h-screen w-screen z-[99999] overflow-hidden"
+      @click.self="(previewCSV = false), (openImportCSV = false), clearInput()"
+    >
+      <div
+        class="box bg-white rounded-md md:w-[90%] w-[95%] md:h-[370px] h-[400px]"
+      >
         <header class="flex flex-col p-4">
           <div class="flex justify-between">
-            <div class="text-[20px] font-bold">Preview <span class="text-[14px] text-[#852525]">{{ ErrorLog.length ? `(${ErrorLog[0].message})` : '' }}</span></div>
-            <div class="flex items-center justify-center w-[40px] h-[40px] rounded-full bg-grey cursor-pointer" @click="previewCSV = false, clearInput()">
-              <svg width="24px" height="24px" viewBox="-0.5 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M3 21.32L21 3.32001" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M3 3.32001L21 21.32" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+            <div class="text-[20px] font-bold">
+              Preview
+              <span class="text-[14px] text-[#852525]">{{
+                ErrorLog.length ? `(${ErrorLog[0].message})` : ""
+              }}</span>
+            </div>
+            <div
+              class="flex items-center justify-center w-[40px] h-[40px] rounded-full bg-grey cursor-pointer"
+              @click="(previewCSV = false), clearInput()"
+            >
+              <svg
+                width="24px"
+                height="24px"
+                viewBox="-0.5 0 25 25"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g
+                  id="SVGRepo_tracerCarrier"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M3 21.32L21 3.32001"
+                    stroke="#000000"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  ></path>
+                  <path
+                    d="M3 3.32001L21 21.32"
+                    stroke="#000000"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  ></path>
+                </g>
+              </svg>
             </div>
           </div>
           <div class="overflow-auto h-[220px]">
             <fieldset class="overflow-hidden sm:rounded-lg">
               <table class="min-w-full table-fixed">
-                <thead
-                  class="text-black-200 text-sm text-left"
-                >
+                <thead class="text-black-200 text-sm text-left">
                   <tr>
                     <th
                       scope="col"
@@ -517,114 +597,230 @@ const checkTable = (index:number, key:string) => {
                     >
                       <!-- <CheckBox customClasses="indeterminate-check" /> -->
 
-                      <div class="space-x-2 flex items-center"><span>FIRSTNAME</span></div>
+                      <div class="space-x-2 flex items-center">
+                        <span>FIRSTNAME</span>
+                      </div>
                     </th>
-                    <th scope=" col" class="py-4 font-normal text-left">LASTNAME</th>
-                    <th scope="col" class="py-4 font-normal text-left">EMAIL</th>
-                    <th scope="col" class="py-4 font-normal text-left">TELEPHONE</th>
+                    <th scope=" col" class="py-4 font-normal text-left">
+                      LASTNAME
+                    </th>
+                    <th scope="col" class="py-4 font-normal text-left">
+                      EMAIL
+                    </th>
+                    <th scope="col" class="py-4 font-normal text-left">
+                      TELEPHONE
+                    </th>
                     <th scope="col" class="py-4 font-normal text-left">BANK</th>
-                    <th scope="col" class="py-4 font-normal text-left">BANK_CODE</th>
-                    <th scope="col" class="py-4 font-normal text-left">ACCOUNT NAME</th>
-                    <th scope="col" class="py-4 font-normal text-left">ACCOUNT_NUMBER</th>
-                    <th scope="col" class="py-4 font-normal text-left">PAYOUT_AMOUNT</th>
+                    <th scope="col" class="py-4 font-normal text-left">
+                      BANK_CODE
+                    </th>
+                    <th scope="col" class="py-4 font-normal text-left">
+                      ACCOUNT NAME
+                    </th>
+                    <th scope="col" class="py-4 font-normal text-left">
+                      ACCOUNT_NUMBER
+                    </th>
+                    <th scope="col" class="py-4 font-normal text-left">
+                      PAYOUT_AMOUNT
+                    </th>
                   </tr>
                 </thead>
-                <tbody
-                  class="bg-white divide-y divide-grey-200"
-                >
+                <tbody class="bg-white divide-y divide-grey-200">
                   <tr
-                  v-for="(item, index) in csvContent?.data" :key="index" 
+                    v-for="(item, index) in csvContent?.data"
+                    :key="index"
                     class="text-black-100"
                   >
-                    <td class="py-4 w-[25%]" :class="{'border border-red':checkTable(index, 'firstname')}">
+                    <td
+                      class="py-4 w-[25%]"
+                      :class="{
+                        'border border-red': checkTable(index, 'firstname'),
+                      }"
+                    >
                       <div class="flex items-center space-x-3 flex-shrink-0">
                         <div class="flex flex-col">
-                          <span class="text-sm font-semimedium"
-                            >{{ item.row.firstname }}</span
-                          >
+                          <span class="text-sm font-semimedium">{{
+                            item.row.firstname
+                          }}</span>
                         </div>
                       </div>
                     </td>
-                    <td class="py-4 whitespace-nowrap" :class="{'border border-red':checkTable(index, 'lastname')}">
+                    <td
+                      class="py-4 whitespace-nowrap"
+                      :class="{
+                        'border border-red': checkTable(index, 'lastname'),
+                      }"
+                    >
                       <div class="flex items-center space-x-3 flex-shrink-0">
                         <div class="flex flex-col">
-                          <span class="text-sm font-semimedium"
-                            >{{ item.row.lastname }}</span
-                          >
+                          <span class="text-sm font-semimedium">{{
+                            item.row.lastname
+                          }}</span>
                         </div>
                       </div>
                     </td>
-                    <td class="py-4 whitespace-nowrap" :class="{'border border-red':checkTable(index, 'email')}">
+                    <td
+                      class="py-4 whitespace-nowrap"
+                      :class="{
+                        'border border-red': checkTable(index, 'email'),
+                      }"
+                    >
                       <div class="flex items-center space-x-3 flex-shrink-0">
                         <div class="flex flex-col">
-                          <span class="text-sm font-semimedium"
-                            >{{ item.row.email }}</span
-                          >
+                          <span class="text-sm font-semimedium">{{
+                            item.row.email
+                          }}</span>
                         </div>
                       </div>
                     </td>
-                    <td class="py-4 whitespace-nowrap" :class="{'border border-red':checkTable(index, 'telephone')}">
+                    <td
+                      class="py-4 whitespace-nowrap"
+                      :class="{
+                        'border border-red': checkTable(index, 'telephone'),
+                      }"
+                    >
                       <div class="flex items-center space-x-3 flex-shrink-0">
                         <div class="flex flex-col">
-                          <span class="text-sm font-semimedium"
-                            >{{ item.row.telephone }}</span
-                          >
+                          <span class="text-sm font-semimedium">{{
+                            item.row.telephone
+                          }}</span>
                         </div>
                       </div>
                     </td>
-                    <td class="py-4 text-left whitespace-nowrap" :class="{'border border-red':checkTable(index, 'bank')}">
+                    <td
+                      class="py-4 text-left whitespace-nowrap"
+                      :class="{
+                        'border border-red': checkTable(index, 'bank'),
+                      }"
+                    >
                       <div class="flex items-center space-x-3 flex-shrink-0">
                         <div class="flex flex-col">
-                          <span class="text-sm font-semimedium"
-                            >{{ item.row.bank }}</span
-                          >
+                          <span class="text-sm font-semimedium">{{
+                            item.row.bank
+                          }}</span>
                         </div>
                       </div>
                     </td>
-                    <td class="py-4 text-left whitespace-nowrap" :class="{'border border-red':checkTable(index, 'bank_code')}">
+                    <td
+                      class="py-4 text-left whitespace-nowrap"
+                      :class="{
+                        'border border-red': checkTable(index, 'bank_code'),
+                      }"
+                    >
                       <div class="flex items-center space-x-3 flex-shrink-0">
                         <div class="flex flex-col">
-                          <span class="text-sm font-semimedium"
-                            >{{ item.row.bank_code }}</span
-                          >
+                          <span class="text-sm font-semimedium">{{
+                            item.row.bank_code
+                          }}</span>
                         </div>
                       </div>
                     </td>
-                    <td class="py-4 text-left whitespace-nowrap" :class="{'border border-red':checkTable(index, 'account_name')}">
+                    <td
+                      class="py-4 text-left whitespace-nowrap"
+                      :class="{
+                        'border border-red': checkTable(index, 'account_name'),
+                      }"
+                    >
                       <div class="flex items-center space-x-3 flex-shrink-0">
                         <div class="flex flex-col">
-                          <span class="text-sm font-semimedium"
-                            >{{ item.row.account_name }}</span
-                          >
+                          <span class="text-sm font-semimedium">{{
+                            item.row.account_name
+                          }}</span>
                         </div>
                       </div>
                     </td>
-                    <td class="py-4 text-left whitespace-nowrap" :class="{'border border-red':checkTable(index, 'account_number')}">
+                    <td
+                      class="py-4 text-left whitespace-nowrap"
+                      :class="{
+                        'border border-red': checkTable(
+                          index,
+                          'account_number'
+                        ),
+                      }"
+                    >
                       <div class="flex items-center space-x-3 flex-shrink-0">
                         <div class="flex flex-col">
-                          <span class="text-sm font-semimedium"
-                            >{{ item.row.account_number }}</span
-                          >
+                          <span class="text-sm font-semimedium">{{
+                            item.row.account_number
+                          }}</span>
                         </div>
                       </div>
                     </td>
-                    <td class="py-4 text-left whitespace-nowrap" :class="{'border border-red':checkTable(index, 'payout_amount')}">
+                    <td
+                      class="py-4 text-left whitespace-nowrap"
+                      :class="{
+                        'border border-red': checkTable(index, 'payout_amount'),
+                      }"
+                    >
                       <div class="flex items-center space-x-3 flex-shrink-0">
                         <div class="flex flex-col">
-                          <span class="text-sm font-semimedium"
-                            >{{ item.row.payout_amount }}</span
-                          >
+                          <span class="text-sm font-semimedium">{{
+                            item.row.payout_amount
+                          }}</span>
                         </div>
                       </div>
                     </td>
                     <td v-if="item.error.length">
-                      <button type="button" class="error-preview block relative" @click="showError[index] = !showError[index]">
-                        <svg v-if="!showError[index]" width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 15H12.01M12 12V9M4.98207 19H19.0179C20.5615 19 21.5233 17.3256 20.7455 15.9923L13.7276 3.96153C12.9558 2.63852 11.0442 2.63852 10.2724 3.96153L3.25452 15.9923C2.47675 17.3256 3.43849 19 4.98207 19Z" stroke="#de1b1b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-                        <svg v-else width="24px" height="24px" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill="#000000" d="M195.2 195.2a64 64 0 0 1 90.496 0L512 421.504 738.304 195.2a64 64 0 0 1 90.496 90.496L602.496 512 828.8 738.304a64 64 0 0 1-90.496 90.496L512 602.496 285.696 828.8a64 64 0 0 1-90.496-90.496L421.504 512 195.2 285.696a64 64 0 0 1 0-90.496z"></path></g></svg>
+                      <button
+                        type="button"
+                        class="error-preview block relative"
+                        @click="showError[index] = !showError[index]"
+                      >
+                        <svg
+                          v-if="!showError[index]"
+                          width="24px"
+                          height="24px"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                          <g
+                            id="SVGRepo_tracerCarrier"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></g>
+                          <g id="SVGRepo_iconCarrier">
+                            <path
+                              d="M12 15H12.01M12 12V9M4.98207 19H19.0179C20.5615 19 21.5233 17.3256 20.7455 15.9923L13.7276 3.96153C12.9558 2.63852 11.0442 2.63852 10.2724 3.96153L3.25452 15.9923C2.47675 17.3256 3.43849 19 4.98207 19Z"
+                              stroke="#de1b1b"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            ></path>
+                          </g>
+                        </svg>
+                        <svg
+                          v-else
+                          width="24px"
+                          height="24px"
+                          viewBox="0 0 1024 1024"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="#000000"
+                        >
+                          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                          <g
+                            id="SVGRepo_tracerCarrier"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          ></g>
+                          <g id="SVGRepo_iconCarrier">
+                            <path
+                              fill="#000000"
+                              d="M195.2 195.2a64 64 0 0 1 90.496 0L512 421.504 738.304 195.2a64 64 0 0 1 90.496 90.496L602.496 512 828.8 738.304a64 64 0 0 1-90.496 90.496L512 602.496 285.696 828.8a64 64 0 0 1-90.496-90.496L421.504 512 195.2 285.696a64 64 0 0 1 0-90.496z"
+                            ></path>
+                          </g>
+                        </svg>
                       </button>
-                      <div class="error-preview-display absolute md:right-[100px] sm:right-[-100px] right-0 sm:w-[400px] w-full max-h-[400px] overflow-y-auto bg-[#f4f4f4] p-6 py-4 rounded-lg z-10" v-show="showError[index]">
-                        <p v-for="(errorItem, errorIndex) in item.error" :key="errorIndex">
-                          {{ `${1+errorIndex}. ${errorItem}` }}
+                      <div
+                        class="error-preview-display absolute md:right-[100px] sm:right-[-100px] right-0 sm:w-[400px] w-full max-h-[400px] overflow-y-auto bg-[#f4f4f4] p-6 py-4 rounded-lg z-10"
+                        v-show="showError[index]"
+                      >
+                        <p
+                          v-for="(errorItem, errorIndex) in item.error"
+                          :key="errorIndex"
+                        >
+                          {{ `${1 + errorIndex}. ${errorItem}` }}
                         </p>
                       </div>
                     </td>
@@ -639,7 +835,8 @@ const checkTable = (index:number, key:string) => {
               :disabled="ErrorLog.length || showError.length"
               class="bg-[#003b3d] text-white px-4+1 py-2.5+1 rounded-full text-sm mt-7 ml-auto"
             >
-              <spinner v-if="loading == true" /> <span v-else>Confirm Import</span>
+              <spinner v-if="loading == true" />
+              <span v-else>Confirm Import</span>
             </button>
           </div>
         </header>
@@ -655,37 +852,41 @@ const checkTable = (index:number, key:string) => {
         >
       </div>
       <div class="flex gap-3" v-if="!loadingDepartment">
-        
         <button
           v-if="isActiveRoute('dashboard.employees.all')"
           @click="importCsv"
           class="bg-[#003b3d] text-white px-4+1 py-2.5+1 rounded-full text-sm"
         >
-        + Import CSV
+          + Import CSV
         </button>
         <button
           v-if="isActiveRoute('dashboard.employees.all')"
-          @click="groupData? isInviteEmployee = !isInviteEmployee : emptyDept = true"
-          class="bg-[#003b3d] text-white px-4+1 py-2.5+1 rounded-full text-sm" :class="{'opacity-50':emptyDept}"
+          @click="
+            groupData
+              ? (isInviteEmployee = !isInviteEmployee)
+              : (emptyDept = true)
+          "
+          class="bg-[#003b3d] text-white px-4+1 py-2.5+1 rounded-full text-sm"
+          :class="{ 'opacity-50': emptyDept }"
         >
-          {{ !emptyDept ? '+ Invite User' : 'Create Department First'}}
+          {{ !emptyDept ? "+ Invite User" : "Create Department First" }}
         </button>
         <button
-        v-else
+          v-else
           @click="isCreateDepartment = !isCreateDepartment"
           class="bg-[#003b3d] text-white px-4+1 py-2.5+1 rounded-full text-sm"
         >
-        + Create Department
+          + Create Department
         </button>
         <button
-        @click="
-        router.push({
-          name: 'dashboard.employees.multiple',
-        })
-      "
+          @click="
+            router.push({
+              name: 'dashboard.employees.multiple',
+            })
+          "
           class="bg-[#003b3d] text-white px-4+1 py-2.5+1 rounded-full text-sm"
         >
-        + Invite Multiple Users
+          + Invite Multiple Users
         </button>
         <!-- <button
           v-if="isActiveRoute('dashboard.employees.departments')"
@@ -737,7 +938,7 @@ const checkTable = (index:number, key:string) => {
             <IDoubleMark />
           </template>
 
-           <template v-slot:other-informations>
+          <template v-slot:other-informations>
             {{ employeeData }}
           </template>
         </Card>
@@ -804,7 +1005,7 @@ const checkTable = (index:number, key:string) => {
             <ILinkHorizontal />
           </template>
           <template v-slot:other-informations>{{
-            groupData && groupData 
+            groupData && groupData
           }}</template>
         </Card>
       </router-link>
@@ -829,7 +1030,7 @@ const checkTable = (index:number, key:string) => {
 /* .error-preview-display{
   display: none;
 } */
-  /* .error-preview:hover + .error-preview-display{
+/* .error-preview:hover + .error-preview-display{
     display: block;
   } */
 </style>

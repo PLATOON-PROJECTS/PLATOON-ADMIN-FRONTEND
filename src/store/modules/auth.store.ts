@@ -52,7 +52,6 @@ const authStore = defineStore("auth", {
 
           // Handle the user details response
           if (userDetailsResponse && userDetailsResponse.data) {
-            console.log("////////////", userDetailsResponse.data);
             // Store user details in local storage or state
             const userData = JSON.stringify({
               customerInfo: {
@@ -89,8 +88,6 @@ const authStore = defineStore("auth", {
         const response = await authService.updateAdminProfile(data);
 
         if (response && response.data && response.data.succeeded) {
-          console.log(response.data.message);
-
           // clear or refresh user details here if needed
           return response;
         } else {
@@ -105,7 +102,6 @@ const authStore = defineStore("auth", {
         const response = await authService.changeThePassword({ newPassword });
 
         if (response && response.data && response.data.succeeded) {
-          console.log(response.data.message);
           return response;
         } else {
           return Promise.reject(

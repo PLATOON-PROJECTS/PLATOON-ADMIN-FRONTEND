@@ -247,7 +247,6 @@ const saveChanges = async () => {
 };
 
 const getProfile = async () => {
-  console.log(employeeId.value);
   const response = await request(
     employeeStore.show(employeeId.value, organisationId),
     fetchLoading
@@ -259,7 +258,6 @@ const getProfile = async () => {
   if (successResponse && typeof successResponse !== "undefined") {
     // console.log("*****",successResponse.data);
     const employeeData = successResponse.data.data.employee;
-    console.log("*****", employeeData);
     // Map the values from the response to the data object
     data.value.email = employeeData.user.email;
     data.value.firstname = capitalizeFirstLetter(employeeData.user.firstname);

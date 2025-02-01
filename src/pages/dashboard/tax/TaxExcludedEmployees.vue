@@ -184,13 +184,11 @@ function toggleDropdown() {
 }
 
 function downloadAsCSV() {
-  console.log("Downloading as CSV...");
   // Add functionality to download as CSV
   isOpen.value = false;
 }
 
 function downloadToEmail() {
-  console.log("Downloading to email...");
   // Add functionality to trigger email download
   isOpen.value = false;
 }

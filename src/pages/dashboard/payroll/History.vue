@@ -97,8 +97,6 @@ const getCurrentMonthPayrollId = () => {
     );
   });
 
-  console.log("ressss:", allPayrolls);
-
   // Return the payroll ID of the first matching payroll or null
   return payrolls.length > 0 ? payrolls[0].payrollId : null;
 };
@@ -246,7 +244,6 @@ const fetchPayroll = async (page = 1) => {
     // @ts-ignore comment above the problematic line
     // const sorted = responseData.value.sort(function(a, b){return b.id - a.id})
     // console.log(responseData.value, sorted);
-    console.log("********", responseData.value.data);
   }
 };
 // fetchPayroll();
@@ -283,13 +280,11 @@ const fetchAllPayrolls = async () => {
     }
   } while (page <= totalPages);
 
-  console.log("Total Payrolls Fetched:", allPayrolls.length);
   responseDataa.value.data = allPayrolls;
   loading.value = false;
 
   // Call the function here after fetching all payrolls
   const payrollId = getCurrentMonthPayrollId();
-  console.log("Payroll ID:", payrollId);
 };
 
 // const navigateToCreateNew = () => {

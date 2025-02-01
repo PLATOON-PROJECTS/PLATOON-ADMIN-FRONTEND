@@ -131,8 +131,6 @@ const DeleteCompany = async (organisationId: string) => {
 };
 
 const confirmRemoveUser = (organisationId: string) => {
-  console.log("Confirming deletion for id:", organisationId); // Debug log
-
   confirmMessage.value.message = `Do you really want to delete this company?`;
   confirmMessage.value.id = organisationId;
   showConfirm.value = true; // Ensure this is set to true
@@ -183,14 +181,12 @@ const removeSuspension = async (organisationId: string) => {
 };
 
 const confirmSuspension = (organisationId: string) => {
-  console.log("Confirming Suspension for id:", organisationId);
   confirmMessage.value.message = `Do you really want to suspend this company?`;
   confirmMessage.value.id = organisationId;
   showConfirmSuspend.value = true; // Use a separate flag
 };
 
 const confirmremoveSuspension = (organisationId: string) => {
-  console.log("Confirming Suspension removal for id:", organisationId);
   confirmMessage.value.message = `Do you really want to remove suspension for this company?`;
   confirmMessage.value.id = organisationId;
   showConfirmSuspend.value = true;

@@ -50,13 +50,12 @@ const handleError = (response: any, store: any) => {
       }
     }
   } else if (response && typeof response.data === "undefined") {
-    console.log(response);
     store.error.type = errorType.technicalError;
     store.error.message =
       " you seem to be offline. Connect to an internet and try again";
     store.error.value = true;
     return;
-  }else if (response && response.data.status === 500) {
+  } else if (response && response.data.status === 500) {
     store.error.type = "Invalid Header";
     store.error.message = "you";
     store.error.value = true;
