@@ -66,6 +66,8 @@ const parsedUserInfo =
 // Access the organisationId safely
 const organisationId = parsedUserInfo?.customerInfo?.organisationId;
 
+console.log("Organisation ID:", organisationId);
+
 // methods
 const updateId = (id: any) => {
   selectedDepartmentId.value = id;
@@ -82,6 +84,8 @@ const fetchInviteEmployees = async () => {
   if (successResponse && typeof successResponse !== "undefined") {
     inviteData.value = successResponse.data.data;
     cache("total_pending_employees", successResponse.data.data);
+    console.log(successResponse.data);
+    console.log(successResponse.data.data);
   }
 };
 fetchInviteEmployees();
@@ -89,6 +93,7 @@ fetchInviteEmployees();
 const fetchEmployees = async (page = 1) => {
   loading.value = true;
   const totalEmployeeCached = cache("total_employees_length");
+  console.log("&&&&", totalEmployeeCached);
   if (typeof totalEmployeeCached !== "undefined") {
     employeeData.value = totalEmployeeCached;
   }
@@ -99,12 +104,15 @@ const fetchEmployees = async (page = 1) => {
   if (successResponse && typeof successResponse !== "undefined") {
     employeeData.value = successResponse.data.data.pageItems.length;
     cache("total_employees_length", employeeData.value);
+    console.log("*********", successResponse.data.data.pageItems.length);
+    console.log("****++++++*****", employeeData.value);
   }
 };
 fetchEmployees();
 
 const fetchGroups = async () => {
   const groupCachedData = cache("total_departments");
+  console.log("&&&&", groupCachedData);
   if (typeof groupCachedData !== "undefined") {
     groupData.value = groupCachedData;
     loadingDepartment.value = false;
@@ -118,6 +126,7 @@ const fetchGroups = async () => {
   if (successResponse && typeof successResponse !== "undefined") {
     groupData.value = successResponse.data.data;
     cache("total_departments", groupData.value);
+    console.log("!!!!!!!!", groupData.value);
   }
 };
 fetchGroups();
@@ -243,6 +252,7 @@ const handleCsvUpload = async (event: Event) => {
       organisationId,
     });
 
+    console.log("CSV uploaded successfully:", response);
     showModal.value = false;
     showSuccess.value = true;
     successMessage.value = "CSV imported successfully!";

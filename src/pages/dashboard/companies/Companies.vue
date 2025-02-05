@@ -1,7 +1,8 @@
 <script>
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, ref, computed } from "vue";
 import { useCompanyStore } from "../../../store/index";
 import { useRouter } from "vue-router";
+import EmptyState from "../../../components/EmptyState.vue";
 
 export default defineComponent({
   name: "CompanyTable",
@@ -35,6 +36,9 @@ export default defineComponent({
       return date.toLocaleDateString();
     };
 
+    // Computed property to check if companies list is empty
+    const isEmpty = computed(() => companies.value.length === 0);
+
     // Pagination functions
     const nextPage = () => {
       currentPage.value++;
@@ -61,6 +65,7 @@ export default defineComponent({
       itemsPerPage,
       nextPage,
       prevPage,
+      isEmpty,
     };
   },
 });
@@ -83,7 +88,7 @@ export default defineComponent({
       </div>
 
       <!-- Table -->
-      <table v-else class="min-w-full table-fixed">
+      <table v-if="!isEmpty" class="min-w-full table-fixed">
         <thead class="text-black-200 text-sm text-left">
           <tr>
             <th
@@ -168,6 +173,15 @@ export default defineComponent({
           </tr>
         </tbody>
       </table>
+
+      <!-- Empty State -->
+      <EmptyState v-else>
+        <template #icon>
+          <IUserThree />
+        </template>
+        <template #heading> Companies </template>
+        <template #desc> No company available </template>
+      </EmptyState>
     </div>
   </div>
 </template>

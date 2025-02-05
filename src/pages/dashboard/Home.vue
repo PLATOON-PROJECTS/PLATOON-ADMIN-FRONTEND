@@ -26,6 +26,7 @@ import { getItem } from "../../core/utils/storage.helper";
 import handleSuccess from "../../composables/handle_success.composable";
 import cache from "../../composables/swr_cache";
 import { currency } from "../../core/utils/currencyType";
+import { useCompanyStore } from "../../store/index";
 
 import {
   useWalletStore,
@@ -53,8 +54,11 @@ const totalRevenueData = ref<any>({ data: {}, message: "" });
 const totalFundDisbursed = ref<any>({ data: {}, message: "" });
 const totalFundReceived = ref<any>({ data: {}, message: "" });
 const pendingDisbursementData = ref<any>({ data: {}, message: "" });
+const compaiesCountData = ref<any>({ data: {}, message: "" });
 const videoChange = ref(false);
 const loading = ref(false);
+const companyStore = useCompanyStore();
+// const companies = ref([]);
 
 const parsedUserInfo =
   typeof userInfo.value === "string"
@@ -66,12 +70,25 @@ const organisationId = parsedUserInfo?.customerInfo?.organisationId;
 
 // methods
 
+const totalCompaniesCount = async () => {
+  loading.value = true; // Show loader
+  try {
+    const data = await companyStore.companyCount();
+    console.log("mydata", data);
+
+    compaiesCountData.value = data;
+  } catch (error) {
+    console.error("Failed to fetch companies:", error);
+  } finally {
+    loading.value = false; // Hide loader
+  }
+};
+
 const fetchTotalRevenue = async () => {
   loading.value = true;
 
   try {
     const response = await request(walletStore.getTotalRevenue());
-    console.log("myres", response);
 
     if (response && response.data) {
       totalRevenueData.value = [response.data.data]; // Wrap the data in an array for consistency
@@ -90,7 +107,6 @@ const fetchTotalFundReceived = async () => {
 
   try {
     const response = await request(walletStore.getTotalFundReceived());
-    console.log("myres", response);
 
     if (response && response.data) {
       totalFundReceived.value = [response.data.data]; // Wrap the data in an array for consistency
@@ -109,7 +125,6 @@ const fetchPendingDisbursement = async () => {
 
   try {
     const response = await request(walletStore.pendingDisbursement());
-    console.log("myres", response);
 
     if (response && response.data) {
       pendingDisbursementData.value = [response.data.data]; // Wrap the data in an array for consistency
@@ -127,7 +142,6 @@ const fetchTotalFundDisbursed = async () => {
 
   try {
     const response = await request(walletStore.getTotalFundDisbursed());
-    console.log("myres", response);
 
     if (response && response.data) {
       totalFundDisbursed.value = [response.data.data]; // Wrap the data in an array for consistency
@@ -146,6 +160,7 @@ onMounted(() => {
   fetchTotalFundReceived();
   fetchPendingDisbursement();
   fetchTotalFundDisbursed();
+  totalCompaniesCount();
 });
 
 // const fetchTotalRevenue = async () => {
@@ -377,7 +392,7 @@ fetchEmployees();
           </div>
           <div>
             <h3 class="font-bold text-black-rgba dark:text-white text-2xl">
-              {{ employeeData }}
+              {{ compaiesCountData.data.data ?? 0 }}
             </h3>
             <span class="text-black-rgba-100 text-xs">Total Balance</span>
           </div>

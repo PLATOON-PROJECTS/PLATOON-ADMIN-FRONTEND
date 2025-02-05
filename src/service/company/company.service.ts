@@ -34,6 +34,21 @@ class Company {
       });
   }
 
+  async companyCount(): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .get("/Organisation/total-organisation-count", {
+        headers: authHeader(),
+      })
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
+
   async switch(id: string): Promise<any> {
     return await this.request
       .get(`/companies/${id}/switch`, {

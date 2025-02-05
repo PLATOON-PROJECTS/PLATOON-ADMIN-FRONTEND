@@ -60,6 +60,21 @@ const companyStore = defineStore("company", {
       }
     },
 
+    async companyCount(): Promise<any> {
+      try {
+        const response = await companyService.companyCount();
+        if (response.data) {
+          return response;
+        } else if (response.response) {
+          return Promise.reject(response.response);
+        } else {
+          return Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return Promise.reject(error);
+      }
+    },
+
     async create(data: Create): Promise<any> {
       try {
         const response = await companyService.create(data);

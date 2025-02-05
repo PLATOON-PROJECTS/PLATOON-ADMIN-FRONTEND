@@ -134,6 +134,28 @@ class Employee {
         return err;
       });
   }
+
+  async getEmployeeById(
+    organisationId: number,
+    employeeId: number
+  ): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .get("/Employee/GetEmployee", {
+        headers: authhHeader(),
+        params: {
+          OrganisationId: organisationId,
+          EmployeeId: employeeId,
+        },
+      })
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
   async employeesInDepartment(id: string): Promise<any> {
     return await this.request
       .get(`/employee?department=${id}`, {

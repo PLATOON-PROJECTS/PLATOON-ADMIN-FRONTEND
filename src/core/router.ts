@@ -373,11 +373,11 @@ const routes = [
         ],
       },
       {
-        path: "view-employee/:id",
+        path: ":organisationId/view-employee/:employeeId",
         name: "dashboard.employees.single",
         component: ViewEmployeeLayout,
         meta: {
-          title: "Destiny Employee - Profile - Dashboard",
+          title: "Employee - Profile - Dashboard",
         },
         children: [
           {

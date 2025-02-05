@@ -14,7 +14,7 @@ import spinner from "../../../components/timer/Spinner.vue";
 import { ICaretUpDown, IMenuVertical, IUserThree } from "../../../core/icons";
 import CalenderInterface from "../../../layouts/CalenderLayout.vue";
 import EmptyState from "../../../components/EmptyState.vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { request } from "../../../composables/request.composable";
 import handleError from "../../../composables/handle_error.composable";
 import handleSuccess from "../../../composables/handle_success.composable";
@@ -25,6 +25,7 @@ import { getItem } from "../../../core/utils/storage.helper";
 import Pagination from "../../../components/Pagination.vue";
 
 const router = useRouter();
+const route = useRoute();
 
 // initialize store
 const employeeStore = useEmployeeStore();
@@ -68,8 +69,9 @@ const parsedUserInfo =
   typeof userInfo.value === "string"
     ? JSON.parse(userInfo.value)
     : userInfo.value;
-const organisationId = parsedUserInfo?.customerInfo?.organisationId;
-// methods
+const organisationId = Array.isArray(route.params.id)
+  ? route.params.id[0]
+  : route.params.id; // methods
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
 
@@ -178,10 +180,10 @@ const fetchEmployees = async (page = 1) => {
     responseData.value.data = totalEmployeeCached;
   }
   const response = await request(
-    employeeStore.index(organisationId, 10, page),
+    employeeStore.index(Number(organisationId), 10, page),
     loading
   );
-  // console.log(loading.value);
+  console.log("myres", response);
 
   const successResponse = handleSuccess(response);
 
@@ -225,7 +227,9 @@ const getDepartments = async (page = 1) => {
     departmentValues.value = cachedData;
   }
 
-  const response = await request(groupStore.index(organisationId, 10, page));
+  const response = await request(
+    groupStore.index(Number(organisationId), 10, page)
+  );
 
   // handleError(response, userStore);
   const successResponse = handleSuccess(response);
@@ -497,7 +501,9 @@ watch(showDepartment, (newValue, oldValue) => {
                     <div class="flex items-center justify-between">
                       <button
                         @click="
-                          router.push(`/dashboard/view-employee/${user.id}`)
+                          router.push(
+                            `/dashboard/${organisationId}/view-employee/${user.id}`
+                          )
                         "
                         class="text-[#003b3d] bg-red-light text-sm text-bold px-4 py-2 rounded-full"
                       >
@@ -519,29 +525,7 @@ watch(showDepartment, (newValue, oldValue) => {
                     </template>
                     <template #heading> Employees </template>
                     <template #desc>
-                      All employees will be displayed here. Click on the “invite
-                      employee” <br />
-                      to start managing employees
-                    </template>
-                    <template #actions>
-                      <button
-                        v-if="departmentState"
-                        @click="openEmployee()"
-                        class="bg-[#003b3d] text-white px-4+1 py-2.5+1 rounded-full text-sm"
-                      >
-                        + Invite Employees
-                      </button>
-                      <button
-                        v-else
-                        @click="
-                          router.push({
-                            name: 'dashboard.employees.departments',
-                          })
-                        "
-                        class="bg-[#4a7e6a]/70 text-white px-4+1 py-2.5+1 rounded-full text-sm capitalize"
-                      >
-                        Your department is empty, please create new department.
-                      </button>
+                      No employee yet for this organisation
                     </template>
                   </EmptyState>
                 </tr>
