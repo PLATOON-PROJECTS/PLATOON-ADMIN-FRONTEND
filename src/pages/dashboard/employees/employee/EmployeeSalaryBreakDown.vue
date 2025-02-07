@@ -27,9 +27,9 @@ import {
   stringValidate,
   numberValidate,
 } from "../../../../validations/validate";
-import { formatNumber, dateFormat } from "../../../../core/helpers/actions"
+import { formatNumber, dateFormat } from "../../../../core/helpers/actions";
 // @ts-ignore comment
-import html2pdf from 'html2pdf.js';
+import html2pdf from "html2pdf.js";
 
 import { useRoute } from "vue-router";
 import { getItem } from "../../../../core/utils/storage.helper";
@@ -49,7 +49,10 @@ const loading = ref(false);
 const fetchLoading = ref(false);
 const valid = ref(false);
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
-const parsedUserInfo = typeof userInfo.value === 'string' ? JSON.parse(userInfo.value) : userInfo.value;
+const parsedUserInfo =
+  typeof userInfo.value === "string"
+    ? JSON.parse(userInfo.value)
+    : userInfo.value;
 const organisationId = parsedUserInfo?.customerInfo?.organisationId;
 let data = ref<{
   firstname: string | null;
@@ -92,7 +95,7 @@ const grandTotal = ref({
   deductions: 0,
   tax: 0,
   net_salary: 0,
-})
+});
 
 const showSuccess = ref(false);
 
@@ -193,7 +196,7 @@ const validatePhone = () => {
 // const getProfile = async () => {
 //   // console.log(employeeId.value);
 //   const response = await request(
-//     employeeStore.show(organisationId ,employeeId.value), 
+//     employeeStore.show(organisationId ,employeeId.value),
 //     fetchLoading
 //   );
 
@@ -225,7 +228,7 @@ const validatePhone = () => {
 //     responseData.value.data = successResponse.data;
 //     // console.log(response.data.data);
 
-//     responseData.value.data.data.payments.forEach((item:any) => { 
+//     responseData.value.data.data.payments.forEach((item:any) => {
 //       if(item.status == 'completed'){
 //         grandTotal.value.gross_salary = item.meta && item.meta.salary.gross ? grandTotal.value.gross_salary + item.meta.salary.gross : 0;
 //         grandTotal.value.net_salary = item.meta && item.meta.salary.total ? grandTotal.value.net_salary + item.meta.salary.total : 0;
@@ -318,29 +321,27 @@ defineExpose({
   v$,
 });
 
+const exportToPDF = () => {
+  var element = document.getElementById("element-to-print");
+  var opt = {
+    orientation: "p",
+    unit: "mm",
+    format: "a4",
+    putOnlyUsedFonts: true,
+    floatPrecision: 16,
+    image: { type: "jpeg", quality: 1.5 },
+    html2canvas: { scale: 4 },
+  };
 
- const exportToPDF = () => {
-    var element = document.getElementById('element-to-print');
-    var opt = {
-        orientation: 'p',
-        unit: 'mm',
-        format: 'a4',
-        putOnlyUsedFonts:true,
-        floatPrecision: 16,
-        image: { type: 'jpeg', quality: 1.50 },
-        html2canvas:  { scale: 4 },
-    };
-
-    html2pdf().set(opt).from(element).save();
-}
-
+  html2pdf().set(opt).from(element).save();
+};
 </script>
 
 <template>
   <spinner
-      v-if="fetchLoading == true"
-      class="flex justify-center items-center lg:h-[400px] h-[300px]"
-    />
+    v-if="fetchLoading == true"
+    class="flex justify-center items-center lg:h-[400px] h-[300px]"
+  />
   <div class="pt-6 pb-24 lg:px-16+2" v-else>
     <div class="mx-auto lg:w-[500px] space-y-18">
       <div class="space-y-9 lg:px-[30px] px-[20px]" id="element-to-print">
@@ -394,12 +395,14 @@ defineExpose({
         </div>
       </div>
 
-      <div class="lg:space-x-4 lg:block flex  flex-col justify-center lg:space-y-0 space-y-2">
-        <button
+      <div
+        class="lg:space-x-4 lg:block flex flex-col justify-center lg:space-y-0 space-y-2"
+      >
+        <!-- <button
           class="bg-[#003b3d] text-white px-4+1 py-2.5+1 rounded-full text-sm whitespace-nowrap"
         >
           Update employee salary
-        </button>
+        </button> -->
         <button
           class="text-[#003b3d] bg-red-light text-sm text-bold px-4+1 py-2.5+1 rounded-full whitespace-nowrap"
           @click="exportToPDF()"

@@ -39,13 +39,13 @@ const CompaniesPage = () =>
   import("../pages/dashboard/companies/Companies.vue");
 
 //employees
-const EmployeesPage = () =>
-  import("../pages/dashboard/employees/Employees.vue");
+// const EmployeesPage = () =>
+//   import("../pages/dashboard/employees/Employees.vue");
 
-const PendingEmployeePage = () =>
-  import("../pages/dashboard/employees/PendingEmployees.vue");
-const EmployeeDepartmentPage = () =>
-  import("../pages/dashboard/employees/Departments.vue");
+// const PendingEmployeePage = () =>
+//   import("../pages/dashboard/employees/PendingEmployees.vue");
+// const EmployeeDepartmentPage = () =>
+//   import("../pages/dashboard/employees/Departments.vue");
 
 // departments
 const DepartmentEmployees = () =>
@@ -302,76 +302,76 @@ const routes = [
           title: "Settings - Dashboard",
         },
       },
-      {
-        path: "employees",
-        name: "dashboard.employees",
-        component: EmployeeLayout,
-        meta: {
-          title: "Employees - Dashboard",
-        },
-        children: [
-          {
-            path: "",
-            name: "dashboard.employees.all",
-            component: EmployeesPage,
-            meta: {
-              title: "Employees - Dashboard",
-              showEmployeeCards: true,
-            },
-          },
-          {
-            path: "pending",
-            name: "dashboard.employees.pending",
-            component: PendingEmployeePage,
-            meta: {
-              title: "Employees - Dashboard",
-              showEmployeeCards: true,
-            },
-          },
-          {
-            path: "departments",
-            name: "dashboard.employees.departments",
-            component: EmployeeDepartmentPage,
-            meta: {
-              title: "Employees - Dashboard",
-              showEmployeeCards: true,
-            },
-          },
-          {
-            path: "departments/:id",
-            name: "dashboard.employees.departments.single",
-            component: SingleDepartmentLayout,
-            meta: {
-              title: "Departments - Dashboard",
-            },
-            children: [
-              {
-                path: "",
-                name: "dashboard.employees.departments.single.settings",
-                component: DepartmentSettings,
-              },
-              {
-                path: "settings",
-                name: "dashboard.employees.departments.single.payroll-settings",
-                component: DepartmentPayrollSettings,
-              },
-              {
-                path: "employees",
-                name: "dashboard.employees.departments.single.employees",
-                component: DepartmentEmployees,
-              },
-            ],
-          },
-          {
-            path: "companies-setting/:id",
-            name: "dashboard.company.single",
-            component: CompanySettingsLayout,
-            meta: {
-              title: " CompanySetting - Dashboard",
-            },
-          },
-        ],
-      },
+      // {
+      //   path: "employees",
+      //   name: "dashboard.employees",
+      //   component: EmployeeLayout,
+      //   meta: {
+      //     title: "Employees - Dashboard",
+      //   },
+      //   children: [
+      //     {
+      //       path: "",
+      //       name: "dashboard.employees.all",
+      //       component: EmployeesPage,
+      //       meta: {
+      //         title: "Employees - Dashboard",
+      //         showEmployeeCards: true,
+      //       },
+      //     },
+      //     {
+      //       path: "pending",
+      //       name: "dashboard.employees.pending",
+      //       component: PendingEmployeePage,
+      //       meta: {
+      //         title: "Employees - Dashboard",
+      //         showEmployeeCards: true,
+      //       },
+      //     },
+      //     {
+      //       path: "departments",
+      //       name: "dashboard.employees.departments",
+      //       component: EmployeeDepartmentPage,
+      //       meta: {
+      //         title: "Employees - Dashboard",
+      //         showEmployeeCards: true,
+      //       },
+      //     },
+      //     {
+      //       path: "departments/:id",
+      //       name: "dashboard.employees.departments.single",
+      //       component: SingleDepartmentLayout,
+      //       meta: {
+      //         title: "Departments - Dashboard",
+      //       },
+      //       children: [
+      //         {
+      //           path: "",
+      //           name: "dashboard.employees.departments.single.settings",
+      //           component: DepartmentSettings,
+      //         },
+      //         {
+      //           path: "settings",
+      //           name: "dashboard.employees.departments.single.payroll-settings",
+      //           component: DepartmentPayrollSettings,
+      //         },
+      //         {
+      //           path: "employees",
+      //           name: "dashboard.employees.departments.single.employees",
+      //           component: DepartmentEmployees,
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       path: "companies-setting/:id",
+      //       name: "dashboard.company.single",
+      //       component: CompanySettingsLayout,
+      //       meta: {
+      //         title: " CompanySetting - Dashboard",
+      //       },
+      //     },
+      //   ],
+      // },
       {
         path: ":organisationId/view-employee/:employeeId",
         name: "dashboard.employees.single",

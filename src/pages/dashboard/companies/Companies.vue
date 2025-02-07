@@ -11,61 +11,87 @@ export default defineComponent({
     const companies = ref([]);
     const loading = ref(false);
     const router = useRouter();
-
-    // Pagination states
     const currentPage = ref(1);
-    const itemsPerPage = ref(10); // Show 10 items per page
+    const totalPages = ref(1);
+    const pageSize = 10;
+    const totalItems = ref(0);
 
-    const fetchCompanies = async () => {
-      loading.value = true; // Show loader
+    const fetchCompanies = async (page = 1) => {
+      loading.value = true;
       try {
-        const data = await companyStore.fetchCompany(
-          itemsPerPage.value,
-          currentPage.value
-        );
-        companies.value = data;
+        const response = await companyStore.fetchCompany(pageSize, page);
+        console.log("API Response:", response);
+
+        if (response && Array.isArray(response.pageItems)) {
+          companies.value = response.pageItems;
+          currentPage.value = response.currentPage || 1;
+          totalPages.value = response.numberOfPages || 1;
+          totalItems.value =
+            (response.pageSize || 10) * (response.numberOfPages || 1);
+        } else {
+          console.warn("Unexpected API response structure:", response);
+          companies.value = [];
+        }
       } catch (error) {
-        console.error("Failed to fetch companies:", error);
+        console.error("Error fetching companies:", error);
+        companies.value = [];
       } finally {
-        loading.value = false; // Hide loader
+        loading.value = false;
       }
     };
 
+    // Computed property to display companies in reverse order (last index first)
+    const sortedCompanies = computed(() => {
+      return [...companies.value].reverse();
+    });
+
     const formatDate = (dateString) => {
+      if (!dateString) return "N/A";
       const date = new Date(dateString);
       return date.toLocaleDateString();
     };
 
-    // Computed property to check if companies list is empty
-    const isEmpty = computed(() => companies.value.length === 0);
+    const isEmpty = computed(
+      () => !sortedCompanies.value || sortedCompanies.value.length === 0
+    );
 
-    // Pagination functions
+    onMounted(() => {
+      fetchCompanies(currentPage.value);
+    });
+
+    const updatePage = (page) => {
+      if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page;
+        fetchCompanies(currentPage.value);
+      }
+    };
+
     const nextPage = () => {
-      currentPage.value++;
-      fetchCompanies();
+      if (currentPage.value < totalPages.value) {
+        currentPage.value++;
+        fetchCompanies(currentPage.value);
+      }
     };
 
     const prevPage = () => {
       if (currentPage.value > 1) {
         currentPage.value--;
-        fetchCompanies();
+        fetchCompanies(currentPage.value);
       }
     };
 
-    onMounted(() => {
-      fetchCompanies();
-    });
-
     return {
-      companies,
-      formatDate,
-      router,
+      sortedCompanies,
       loading,
+      formatDate,
+      isEmpty,
       currentPage,
-      itemsPerPage,
+      totalPages,
+      totalItems,
       nextPage,
       prevPage,
-      isEmpty,
+      updatePage,
+      router,
     };
   },
 });
@@ -76,9 +102,7 @@ export default defineComponent({
     class="bg-white rounded-t-lg divide-y divide-grey-200 overflow-auto scrollbar-hide w-full"
   >
     <div class="p-8 bg-transparent">
-      <div>
-        <p class="font-bold text-2xl">Companies</p>
-      </div>
+      <p class="font-bold text-2xl">Companies</p>
 
       <!-- Loader -->
       <div v-if="loading" class="flex justify-center items-center py-8">
@@ -87,88 +111,45 @@ export default defineComponent({
         ></div>
       </div>
 
-      <!-- Table -->
+      <!-- Company Table -->
       <table v-if="!isEmpty" class="min-w-full table-fixed">
         <thead class="text-black-200 text-sm text-left">
           <tr>
-            <th
-              scope="col"
-              class="py-4 font-normal text-left flex items-center space-x-3 flex-shrink-0"
-            >
-              Name
-            </th>
+            <th scope="col" class="py-4 font-normal text-left">Name</th>
             <th scope="col" class="py-4 font-normal text-left">Date added</th>
             <th scope="col" class="py-4 font-normal text-left">
               No of employees
             </th>
-            <th scope="col" class="py-4 font-normal text-left">Admin.</th>
+            <th scope="col" class="py-4 font-normal text-left">Admin</th>
             <th scope="col" class="py-4 font-normal text-left">Action</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-grey-200">
           <tr
-            v-for="company in companies"
+            v-for="company in sortedCompanies"
             :key="company.id"
             class="text-black-100"
           >
-            <td
-              class="py-4 whitespace-nowrap flex items-center space-x-3 flex-shrink-0"
-            >
-              <div class="font-normal text-left flex flex-col">
-                <span class="text-sm font-semimedium">{{ company.name }}</span>
-                <span class="text-xs text-gray-rgba-3">{{
-                  company.admin.email
-                }}</span>
-              </div>
-            </td>
+            <td class="py-4 whitespace-nowrap">{{ company.name }}</td>
             <td class="py-4 whitespace-nowrap">
-              <div class="text-left flex flex-col">
-                <span class="text-sm font-semimedium">{{
-                  formatDate(company.dateAdded)
-                }}</span>
-                <span class="text-xs text-green">{{
-                  company.isActive ? "Active" : "Inactive"
-                }}</span>
-              </div>
+              {{ formatDate(company.dateAdded) }}
             </td>
+            <td class="py-4 whitespace-nowrap">{{ company.employeeCount }}</td>
             <td class="py-4 whitespace-nowrap">
-              <div class="font-normal text-left flex flex-col">
-                <span class="text-sm font-semimedium">
-                  {{ company.employeeCount }}
-                </span>
-              </div>
+              {{ company.admin?.firstname || "N/A" }}
+              {{ company.admin?.lastname || "" }}
             </td>
-
-            <td
-              class="py-4 whitespace-nowrap flex items-center space-x-3 flex-shrink-0"
-            >
-              <div class="font-normal text-left flex flex-col">
-                <span class="text-sm font-semimedium"
-                  >{{ company.admin.firstname }}
-                  {{ company.admin.lastname }}
-                </span>
-                <span class="text-xs text-gray-rgba-3">{{
-                  company.admin.email
-                }}</span>
-              </div>
-            </td>
-
             <td class="py-4 text-left whitespace-nowrap w-[18%]">
-              <div class="flex items-center justify-between">
-                <button
-                  @click="
-                    router.push(
-                      `/dashboard/company-settings/${company.id}/company-information`
-                    )
-                  "
-                  class="text-[#003b3d] bg-red-light text-sm text-bold px-4+1 py-2 rounded-full"
-                >
-                  View Company
-                </button>
-                <button>
-                  <IMenuVertical />
-                </button>
-              </div>
+              <button
+                @click="
+                  router.push(
+                    `/dashboard/company-settings/${company.id}/company-information`
+                  )
+                "
+                class="text-[#003b3d] bg-red-light text-sm font-bold px-4 py-2 rounded-full"
+              >
+                View Company
+              </button>
             </td>
           </tr>
         </tbody>
@@ -182,6 +163,29 @@ export default defineComponent({
         <template #heading> Companies </template>
         <template #desc> No company available </template>
       </EmptyState>
+
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="flex justify-between mt-4">
+        <button
+          @click="prevPage"
+          :disabled="currentPage === 1"
+          class="px-4 py-2 text-sm bg-gray-200 rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+
+        <span class="text-sm font-medium">
+          Page {{ currentPage }} of {{ totalPages }}
+        </span>
+
+        <button
+          @click="nextPage"
+          :disabled="currentPage === totalPages"
+          class="px-4 py-2 text-sm bg-gray-200 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
     </div>
   </div>
 </template>

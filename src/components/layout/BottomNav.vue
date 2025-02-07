@@ -38,13 +38,13 @@ const showMoreMenu = ref(false);
           </router-link>
         </li>
         <li id="sm-step-1">
-          <router-link to="/dashboard/employees">
+          <router-link to="/dashboard/companies">
             <div class="side-nav-link">
               <div class="flex flex-col items-center h-10 justify-between">
                 <span>
                   <IUserThree
                     :color="
-                      isActiveRoute('dashboard.employees')
+                      isActiveRoute('dashboard.companies')
                         ? '#0960CD'
                         : '#626669'
                     "
@@ -52,11 +52,11 @@ const showMoreMenu = ref(false);
                 </span>
                 <span
                   :class="[
-                    isActiveRoute('dashboard.employees')
+                    isActiveRoute('dashboard.companies')
                       ? 'text-[#003b3d] font-medium'
                       : 'text-black-200',
                   ]"
-                  >Employees</span
+                  >Companies</span
                 >
               </div>
             </div>

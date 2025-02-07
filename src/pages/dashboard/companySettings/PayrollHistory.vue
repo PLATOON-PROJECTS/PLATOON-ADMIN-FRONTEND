@@ -1,108 +1,28 @@
 <script setup lang="ts">
-import { useRouter } from "vue-router";
-import { ref, provide, reactive, computed } from "vue";
-import useVuelidate from "@vuelidate/core";
-import { email, helpers, minLength, sameAs } from "@vuelidate/validators";
-import ButtonBlue from "../../../components/buttons/ButtonBlue.vue";
+import { ref, onMounted } from "vue";
 import EmptyState from "../../../components/EmptyState.vue";
-import Grade from "../../../components/dropdowns/grades.vue";
-import {
-  IEyeOpened,
-  ICaretUpDown,
-  IMenuVertical,
-  IUserThree,
-  IArrowDown,
-  IIncDec,
-} from "../../../core/icons";
-import SuccessAlert from "../../../components/alerts/SuccessAlert.vue";
+import { IUserThree } from "../../../core/icons";
 import { request } from "../../../composables/request.composable";
-import handleError from "../../../composables/handle_error.composable";
-import handleSuccess from "../../../composables/handle_success.composable";
 import spinner from "../../../components/timer/Spinner.vue";
-import {
-  useEmployeeStore,
-  useUserStore,
-  useWalletStore,
-} from "../../../store/index";
-import { stringValidate, numberValidate } from "../../../validations/validate";
+import { useWalletStore, usePayrollStore } from "../../../store/index";
 import html2pdf from "html2pdf.js";
-
 import { formatNumber, dateFormat } from "../../../core/helpers/actions";
-
 import { useRoute } from "vue-router";
 
-// initialize route
+// Initialize route
 const route = useRoute();
 
-// initialize store
-const employeeStore = useEmployeeStore();
-const userStore = useUserStore();
+// Initialize store
 const walletStore = useWalletStore();
+const payrollStore = usePayrollStore();
 
-// variables
-const disabled = ref(true);
-const showBank = ref(false);
+// Reactive variables
+const totalRevenueData = ref<any>({ data: {}, message: "" });
+const totalFundDisbursed = ref<any>({ data: {}, message: "" });
+const totalFundReceived = ref<any>({ data: {}, message: "" });
+const pendingDisbursementData = ref<any>({ data: {}, message: "" });
+const payrollData = ref<any[]>([]);
 const loading = ref(false);
-const fetchLoading = ref(true);
-const valid = ref(false);
-
-let data = ref<{
-  firstname: string | null;
-  lastname: string | null;
-  email: string | null;
-  telephone: number | null;
-  active: number | null;
-  group_id: number | null;
-  grade_id: number | null;
-  account_details: {
-    bank: string | null;
-    account_name: string | null;
-    account_number: number | null;
-  };
-}>({
-  firstname: null,
-  lastname: null,
-  email: null,
-  telephone: null,
-  active: 1,
-  group_id: null,
-  grade_id: null,
-  account_details: {
-    bank: null,
-    account_name: null,
-    account_number: null,
-  },
-});
-const grades = ref<any[]>([]);
-const payments: any = ref([
-  {
-    payroll: {
-      created_at: "",
-    },
-    meta: {
-      salary: {
-        gross: 0,
-        total: 0,
-      },
-      breakdown: {
-        tax: 0,
-        bonus: 0,
-        deduction: 0,
-      },
-    },
-  },
-]);
-
-const departmentName = ref("");
-const showDepartment = ref(false);
-const gradeName = ref("");
-const showGrade = ref(false);
-const banks = ref<string[]>([]);
-
-const showSuccess = ref(false);
-
-const errorResponse = ref("");
-const responseData = ref<any>({ data: null, message: "" });
 const slip = ref({
   name: "",
   narration: "",
@@ -113,547 +33,348 @@ const slip = ref({
   tax: 0,
   netPay: 0,
 });
+const generatingPDF = ref<{ [key: number]: boolean }>({}); // Track loading state for each row
 
-// provide and inject
-provide("showDepartment", showDepartment);
-provide("selectedDepartment", [data, departmentName]);
-provide("showGrade", showGrade);
-provide("selectedGrade", [data, gradeName]);
-// emits
-const emit = defineEmits<{
-  (e: "setSingleEmployeeName", name: string): void;
-  (e: "doNotEdit", value: boolean): void;
-}>();
-
-// computed
-const employeeId = computed(() => {
-  return route.params.id as string;
+// Fetch data on mounted
+onMounted(() => {
+  fetchTotalRevenue();
+  fetchTotalFundReceived();
+  fetchPendingDisbursement();
+  fetchTotalFundDisbursed();
+  fetchCompanyPayrollById();
 });
 
-// methods
-
-const parseBank = (item: any) => {
-  return item.bankName;
-};
-const fetchBank = async () => {
-  const response = await request(walletStore.getBanks());
-
-  // handleError(response, userStore);
-  const successResponse = handleSuccess(response);
-
-  if (successResponse && typeof successResponse !== "undefined") {
-    // console.log(successResponse.data);
-
-    banks.value = successResponse.data.data;
-  }
-};
-const setGrades = (value: any[]) => {
-  // console.log("set grade fired");
-  gradeName.value = "";
-  grades.value = value;
-  showGrade.value = false;
-};
-
-const onInput = (phone: number, phoneObject: any, input: any) => {
-  if (phoneObject?.formatted) {
-    data.value.telephone = phoneObject.number;
-    valid.value = phoneObject.valid;
+// Fetch total revenue
+const fetchTotalRevenue = async () => {
+  loading.value = true;
+  try {
+    const response = await request(walletStore.getTotalRevenue());
+    if (response?.data) {
+      totalRevenueData.value = [response.data.data];
+    }
+  } catch (error) {
+    console.error("Failed to fetch total revenue:", error);
+  } finally {
+    loading.value = false;
   }
 };
 
-const validatePhone = () => {
-  return valid.value;
+// Fetch total funds received
+const fetchTotalFundReceived = async () => {
+  loading.value = true;
+  try {
+    const response = await request(walletStore.getTotalFundReceived());
+    if (response?.data) {
+      totalFundReceived.value = [response.data.data];
+    }
+  } catch (error) {
+    console.error("Failed to fetch total funds received:", error);
+  } finally {
+    loading.value = false;
+  }
 };
 
-const saveChanges = async () => {
-  // check if form is formattted correctly
-  const isFormCorrect = await v$.value.$validate();
+// Fetch pending disbursement
+const fetchPendingDisbursement = async () => {
+  loading.value = true;
+  try {
+    const response = await request(walletStore.pendingDisbursement());
+    if (response?.data) {
+      pendingDisbursementData.value = [response.data.data];
+    }
+  } catch (error) {
+    console.error("Failed to fetch pending disbursement:", error);
+  } finally {
+    loading.value = false;
+  }
+};
 
-  if (isFormCorrect == true) {
-    const dataObj = {
-      email: v$.value.email.$model as string,
-      firstname: v$.value.firstname.$model as string,
-      lastname: v$.value.lastname.$model as string,
-      telephone: v$.value.telephone.$model as number,
-      active: 1,
-      department: data.value.group_id as number,
-      grade_id: data.value.grade_id as number,
-      account_details: {
-        bank: data.value.account_details.bank as string,
-        account_name: data.value.account_details.account_name as string,
-        account_number: v$.value.account_details.account_number
-          .$model as number,
-      },
+// Fetch total funds disbursed
+const fetchTotalFundDisbursed = async () => {
+  loading.value = true;
+  try {
+    const response = await request(walletStore.getTotalFundDisbursed());
+    if (response?.data) {
+      totalFundDisbursed.value = [response.data.data];
+    }
+  } catch (error) {
+    console.error("Failed to fetch total funds disbursed:", error);
+  } finally {
+    loading.value = false;
+  }
+};
 
-      // photo: data.photo as any,
-    };
-    // console.log(dataObj, v$.value.account_details.account_number.$model);
-
-    loading.value = true;
+// Fetch company payroll by ID
+const fetchCompanyPayrollById = async () => {
+  loading.value = true;
+  try {
+    const organisationId = Number(route.params.id);
     const response = await request(
-      employeeStore.update(dataObj, employeeId.value),
-      loading
+      payrollStore.companyPayrollById(organisationId)
     );
-
-    handleError(response, userStore);
-    const successResponse = handleSuccess(response, showSuccess);
-
-    if (successResponse && typeof successResponse !== "undefined") {
-      responseData.value = successResponse;
-      getProfile();
+    if (response?.data?.data?.pageItems) {
+      payrollData.value = response.data.data.pageItems;
     }
+  } catch (error) {
+    console.error("Failed to fetch company payroll:", error);
+  } finally {
+    loading.value = false;
   }
 };
 
-const getProfile = async () => {
-  // console.log(employeeId.value);
-  const response = await request(
-    employeeStore.show(employeeId.value),
-    fetchLoading
-  );
+// Prepare slip info and trigger PDF generation
+const slipInfo = async (item: any) => {
+  generatingPDF.value[item.payrollId] = true; // Start loading for this row
 
-  payments.value = [];
-
-  // handleError(response, userStore);
-  const successResponse = handleSuccess(response);
-
-  if (successResponse && typeof successResponse !== "undefined") {
-    // console.log(successResponse.data);
-    data.value.email = successResponse.data.data.email;
-    data.value.firstname = successResponse.data.data.firstname;
-    data.value.lastname = successResponse.data.data.lastname;
-    data.value.telephone = successResponse.data.data.telephone;
-    data.value.active = successResponse.data.data.active;
-    data.value.group_id = successResponse.data.data.group
-      ? successResponse.data.data.group.id
-      : "---";
-    data.value.grade_id = successResponse.data.data.grade_id ?? "---";
-    gradeName.value =
-      successResponse.data.data.grade && successResponse.data.data.grade.name;
-    departmentName.value = successResponse.data.data.group
-      ? successResponse.data.data.group.name
-      : "---";
-    data.value.account_details.bank =
-      successResponse.data.data.bank_data &&
-      successResponse.data.data.bank_data.bank;
-    data.value.account_details.account_name =
-      successResponse.data.data.bank_data &&
-      successResponse.data.data.bank_data.account_name;
-    data.value.account_details.account_number =
-      successResponse.data.data.bank_data &&
-      successResponse.data.data.bank_data.account_number;
-    // data.value = successResponse.data;
-    responseData.value.data = successResponse.data;
-
-    if (
-      responseData.value.data &&
-      responseData.value.data.data.payments.length
-    ) {
-      responseData.value.data.data.payments.forEach((item: any) => {
-        if (item.status == "completed") {
-          payments.value.push(item);
-        }
-      });
-    }
-
-    emit(
-      "setSingleEmployeeName",
-      `${data.value.firstname} ${data.value.lastname}`
-    );
-  } else {
-    errorResponse.value = response.data.message;
-  }
-};
-
-getProfile();
-fetchBank();
-// validations rule
-const rules = computed(() => {
-  return {
-    email: {
-      email: helpers.withMessage("Must be a valid email", email),
-    },
-
-    firstname: {
-      stringValidate: helpers.withMessage(
-        "First name can only include alphabets",
-        () => stringValidate(data.value.firstname as string) as any
-      ),
-    },
-    lastname: {
-      stringValidate: helpers.withMessage(
-        "Last name can only include alphabets",
-        () => stringValidate(data.value.lastname as string) as any
-      ),
-    },
-    telephone: {
-      validatePhone: helpers.withMessage("Invalid Phone Number", validatePhone),
-    },
-    account_details: {
-      account_number: {
-        numberValidate: helpers.withMessage(
-          "Account number can only include numbers",
-          () =>
-            numberValidate(
-              data.value.account_details.account_number as number
-            ) as any
-        ),
-      },
-    },
-    // active: {
-    //   numberValidate: helpers.withMessage(
-    //     "Active line can only include numbers",
-    //     () => numberValidate(data.value.active as number) as any
-    //   ),
-    // },
-
-    // group_id: {
-    //   numberValidate: helpers.withMessage(
-    //     "GroupId line can only include numbers",
-    //     () => numberValidate(data.value.group_id as number) as any
-    //   ),
-    // },
-    // grade_id: {
-    //   numberValidate: helpers.withMessage(
-    //     "GradeId line can only include numbers",
-    //     () => numberValidate(data.value.grade_id as number) as any
-    //   ),
-    // },
-
-    // bank: {
-    //   stringValidate: helpers.withMessage(
-    //     "Bank name can only include alphabets",
-    //     () => stringValidate(data.value.account_details.bank as string) as any
-    //   ),
-    // },
+  // Prepare slip data without affecting the table display
+  const tempSlip = {
+    name: `${item.firstname ?? "Unknown"} ${item.lastname ?? ""}`,
+    narration: item.narration,
+    paymentDate: item.executionDate
+      ? dateFormat(item.executionDate)
+      : "--/--/----",
+    grossPay: formatNumber(item.totalGrossPay),
+    bonus: formatNumber(item.totalBonus),
+    deductions: formatNumber(item.totalDeductions),
+    tax: formatNumber(item.totalTaxAmount),
+    netPay: formatNumber(item.totalNetPay),
   };
-});
 
-const v$ = useVuelidate(rules as any, data);
+  // Wait for DOM update, then generate PDF
+  await new Promise((resolve) => setTimeout(resolve, 100)); // Ensure DOM updates
+  exportToPDF(tempSlip, item.payrollId);
+};
 
-// define emits
-defineExpose({
-  saveChanges,
-  disabled,
-  loading,
-  v$,
-});
+// Export to PDF
+const exportToPDF = (tempSlip: any, payrollId: number) => {
+  let element = document.getElementById("element-to-print");
+  if (!element) {
+    console.error("Element not found for PDF generation");
+    generatingPDF.value[payrollId] = false; // Stop loading for this row
+    return;
+  }
 
-const exportToPDF = () => {
-  var element = document.getElementById("element-to-print");
-  var opt = {
-    orientation: "p",
-    unit: "mm",
-    format: "a4",
+  // Make the element visible temporarily for PDF generation
+  // element.classList.remove("hidden");
+
+  // // Update the contents of the hidden element
+  // const pdfName = element.querySelector("#pdf-name");
+  // const pdfNarration = element.querySelector("#pdf-narration");
+  // const pdfPaymentDate = element.querySelector("#pdf-payment-date");
+  // const pdfGrossPay = element.querySelector("#pdf-gross-pay");
+  // const pdfBonus = element.querySelector("#pdf-bonus");
+  // const pdfDeductions = element.querySelector("#pdf-deductions");
+  // const pdfTax = element.querySelector("#pdf-tax");
+  // const pdfNetPay = element.querySelector("#pdf-net-pay");
+
+  // if (pdfName) pdfName.textContent = tempSlip.name;
+  // if (pdfNarration) pdfNarration.textContent = tempSlip.narration;
+  // if (pdfPaymentDate) pdfPaymentDate.textContent = tempSlip.paymentDate;
+  // if (pdfGrossPay) pdfGrossPay.textContent = `₦${tempSlip.grossPay}`;
+  // if (pdfBonus) pdfBonus.textContent = `₦${tempSlip.bonus}`;
+  // if (pdfDeductions) pdfDeductions.textContent = `₦${tempSlip.deductions}`;
+  // if (pdfTax) pdfTax.textContent = `₦${tempSlip.tax}`;
+  // if (pdfNetPay) pdfNetPay.textContent = `₦${tempSlip.netPay}`;
+
+  const opt = {
+    margin: 10,
+    filename: `payslip-${tempSlip.name}-${tempSlip.paymentDate}.pdf`,
+    image: { type: "jpeg", quality: 1.5 },
     putOnlyUsedFonts: true,
     floatPrecision: 16,
-    image: { type: "jpeg", quality: 1.5 },
-    html2canvas: { scale: 4 },
+    html2canvas: { scale: 4 }, // Ensure cross-origin images are rendered
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
   };
 
   html2pdf()
-    .set(opt)
     .from(element)
-    .save(
-      `${
-        responseData.value.data.data.firstname +
-        " " +
-        responseData.value.data.data.lastname +
-        slip.value.narration
-      }-${slip.value.paymentDate}`
-    );
+    .set(opt)
+    .save()
+    .then(() => {
+      // Hide the element again after PDF generation
+      element.classList.add("hidden");
+      generatingPDF.value[payrollId] = false; // Stop loading after PDF is generated
+    })
+    .catch((error: any) => {
+      console.error("Failed to generate PDF:", error);
+      element.classList.add("hidden"); // Hide the element on error
+      generatingPDF.value[payrollId] = false; // Stop loading on error
+    });
 };
-
-const slipInfo = (item: any) => {
-  slip.value = {
-    name:
-      responseData.value.data.data.firstname +
-      " " +
-      responseData.value.data.data.lastname,
-    narration: item.narration,
-    paymentDate: item.payroll
-      ? dateFormat(item.payroll.created_at)
-      : "--/--/---- --:-- --",
-    grossPay: item.meta ? formatNumber(item.meta.salary.gross) : 0,
-    bonus: item.meta ? formatNumber(item.meta.breakdown.bonus) : 0,
-    deductions: item.meta ? formatNumber(item.meta.breakdown.deductions) : 0,
-    tax: item.meta ? formatNumber(item.meta.breakdown.tax) : 0,
-    netPay: item.meta ? formatNumber(item.meta.salary.total) : 0,
-  };
-
-  exportToPDF();
-};
-
-const router = useRouter();
 </script>
+
 <template>
   <div class="space-y-10 overflow-auto scrollbar-hide">
+    <!-- Metrics Grid -->
     <div
       class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6 border-grey border-t"
     >
-      <!-- Card 1 -->
+      <!-- Metrics Cards -->
       <div class="bg-[#F0F2F2] shadow-lg rounded-lg p-6">
         <p class="text-black text-base font-medium">Total Funds Received</p>
-        <p class="text-[#000000AD] text-sm">Total Funds Received</p>
-        <h2 class="text-black text-xl font-bold pt-4">N7,030,000</h2>
+        <h2 class="text-black text-xl font-bold pt-4">
+          ₦ {{ totalFundReceived[0] ?? 0 }}
+        </h2>
       </div>
 
       <!-- Card 2 -->
       <div class="bg-[#F0F2F2] shadow-lg rounded-lg p-6">
         <p class="text-black text-base font-medium">Funds Disbursed</p>
-        <p class="text-[#000000AD] text-sm">Total funds disbursed</p>
-        <h2 class="text-black text-xl font-bold pt-4">N7,030,000</h2>
+        <h2 class="text-black text-xl font-bold pt-4">
+          ₦ {{ totalFundDisbursed[0] ?? 0 }}
+        </h2>
       </div>
 
       <!-- Card 3 -->
       <div class="bg-[#F0F2F2] shadow-lg rounded-lg p-6">
-        <p class="text-black text-base font-medium">Pending Disbursment</p>
-        <p class="text-[#000000AD] text-sm">Total Pending Disbursment</p>
-        <h2 class="text-black text-xl font-bold pt-4">N7,030,000</h2>
+        <p class="text-black text-base font-medium">Pending Disbursement</p>
+        <h2 class="text-black text-xl font-bold pt-4">
+          ₦ {{ pendingDisbursementData[0] ?? 0 }}
+        </h2>
       </div>
 
       <!-- Card 4 -->
       <div class="bg-[#F0F2F2] shadow-lg rounded-lg p-6">
-        <p class="text-black text-base font-medium">Revenue Recieved</p>
-        <p class="text-[#000000AD] text-sm">Total Revenue Recieved</p>
-        <h2 class="text-black text-xl font-bold pt-4">N7,030,000</h2>
+        <p class="text-black text-base font-medium">Revenue Received</p>
+        <h2 class="text-black text-xl font-bold pt-4">
+          ₦ {{ totalRevenueData[0] ?? 0 }}
+        </h2>
       </div>
     </div>
+
+    <!-- Loading Spinner -->
     <spinner
-      v-if="fetchLoading == true"
+      v-if="loading"
       class="flex justify-center items-center lg:h-[400px] h-[300px]"
     />
+
+    <!-- Empty State -->
+    <EmptyState v-else-if="payrollData.length === 0">
+      <template #icon><IUserThree /></template>
+      <template #heading>Payment details</template>
+      <template #desc>No payment found</template>
+    </EmptyState>
+
+    <!-- Payroll Table -->
     <div v-else class="w-full overflow-auto">
-      <!-- <div class="px-5 py-2 flex justify-between">
-        <div class="flex items-center gap-2">
-          <div class="flex space-x-2">
-            <div class="text-sm pt-1 font-semimedium text-black-200">
-              Sort by Disbursement
-            </div>
-            <span class="pt-2">
-              <IIncDec />
-            </span>
-          </div>
-          <div class="flex space-x-2">
-            <div class="text-sm pt-1 font-semimedium text-black-200">
-              Sort by Department
-            </div>
-            <span class="pt-2">
-              <IIncDec />
-            </span>
-          </div>
-          <div class="flex space-x-2">
-            <div class="text-sm pt-1 font-semimedium text-black-200">
-              Sort by Date
-            </div>
-            <span class="pt-2">
-              <IIncDec />
-            </span>
-          </div>
-        </div>
-      </div> -->
-      <EmptyState
-        v-if="!responseData?.data && !responseData?.data?.payments?.length"
-      >
-        <template #icon>
-          <IUserThree />
-        </template>
-        <template #heading> Payment details </template>
-        <template #desc> No payment found </template>
-      </EmptyState>
-      <div v-else class="align-middle inline-block min-w-full">
-        <div class="overflow-hidden sm:rounded-lg">
-          <table class="min-w-full table-fixed">
-            <thead class="text-black-200 text-sm text-left">
-              <tr class="whitespace-nowrap">
-                <th
-                  scope="col"
-                  class="py-4 font-normal text-left items-center space-x-3"
-                >
-                  <span> Payroll </span>
-                </th>
-                <th scope=" col" class="py-4 font-normal text-left">
-                  Payment Date
-                </th>
-                <th scope="col" class="py-4 font-normal text-left">
-                  Gross Pay
-                </th>
-                <th scope="col" class="py-4 font-normal text-left">Bonus</th>
-                <th scope="col" class="py-4 font-normal text-left">
-                  Deductions
-                </th>
-                <th scope="col" class="py-4 font-normal text-left">Tax</th>
-                <th scope="col" class="py-4 font-normal text-left">Net Pay</th>
-                <th scope="col" class="py-4 font-normal text-left">Action</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-grey-200">
-              <tr
-                v-for="(item, index) in payments"
-                :key="index"
-                class="text-black-100"
-              >
-                <td class="py-4 whitespace-nowrap">
-                  <div class="flex items-center space-x-3">
-                    <div class="flex flex-col">
-                      <span class="text-sm font-semimedium">{{
-                        item.narration
-                      }}</span>
-                      <!-- <span class="text-sm font-semimedium">April 2022</span>
-                    <span class="text-xs text-gray-rgba-3">₦800,000/yr</span> -->
-                    </div>
-                  </div>
-                </td>
-                <td class="py-4 whitespace-nowrap">
-                  <div class="text-left flex flex-col">
-                    <span class="text-sm font-semimedium">{{
-                      item.payroll
-                        ? dateFormat(item.payroll.created_at)
+      <div class="overflow-hidden sm:rounded-lg">
+        <table class="min-w-full table-fixed">
+          <thead class="text-black-200 text-sm text-left">
+            <tr class="whitespace-nowrap">
+              <th scope="col" class="py-4 font-normal text-left">
+                Payment Date
+              </th>
+              <th scope="col" class="py-4 font-normal text-left">Gross Pay</th>
+              <th scope="col" class="py-4 font-normal text-left">Bonus</th>
+              <th scope="col" class="py-4 font-normal text-left">Deductions</th>
+              <th scope="col" class="py-4 font-normal text-left">Tax</th>
+              <th scope="col" class="py-4 font-normal text-left">Net Pay</th>
+              <th scope="col" class="py-4 font-normal text-left">Action</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-grey-200">
+            <tr
+              v-for="payroll in payrollData"
+              :key="payroll.payrollId"
+              class="text-black-100"
+            >
+              <td class="py-4 whitespace-nowrap">
+                <div class="text-left flex flex-col">
+                  <span class="text-sm font-semimedium">
+                    {{
+                      payroll.scheduleDate !== "0001-01-01T00:00:00"
+                        ? dateFormat(payroll.scheduleDate)
                         : "--/--/---- --:-- --"
-                    }}</span>
-                    <span class="text-xs text-green">Direct deposit</span>
-                  </div>
-                </td>
-                <td class="py-4 whitespace-nowrap">
-                  <div class="font-normal text-left flex flex-col">
-                    <span class="text-sm font-semimedium"
-                      >₦{{
-                        item.meta ? formatNumber(item.meta.salary.gross) : 0
-                      }}</span
-                    >
-                  </div>
-                </td>
-                <td class="py-4 whitespace-nowrap">
-                  <div class="font-normal text-left flex flex-col">
-                    <span class="text-sm font-semimedium"
-                      >₦{{
-                        item.meta ? formatNumber(item.meta.breakdown.bonus) : 0
-                      }}</span
-                    >
-                    <!-- <span class="text-xs text-gray-rgba-3">Commissions</span> -->
-                  </div>
-                </td>
-                <td class="py-4 text-left whitespace-nowrap">
-                  <div class="font-normal flex flex-col">
-                    <span class="text-sm font-semimedium"
-                      >₦{{
-                        item.meta
-                          ? formatNumber(item.meta.breakdown.deductions)
-                          : 0
-                      }}</span
-                    >
-                    <!-- <span class="text-xs text-gray-rgba-3">Pensions, Health</span> -->
-                  </div>
-                </td>
-                <td class="py-4 text-left whitespace-nowrap">
-                  <div class="font-normal flex flex-col">
-                    <span class="text-sm font-semimedium"
-                      >₦{{
-                        item.meta ? formatNumber(item.meta.breakdown.tax) : 0
-                      }}</span
-                    >
-                    <!-- <span class="text-xs text-gray-rgba-3">PAYEE</span> -->
-                  </div>
-                </td>
-                <td class="py-4 text-left whitespace-nowrap">
-                  <div class="font-normal flex flex-col">
-                    <span class="text-sm font-semimedium"
-                      >₦{{
-                        item.meta ? formatNumber(item.meta.salary.total) : 0
-                      }}</span
-                    >
-                  </div>
-                </td>
-                <td class="py-4 px-8 text-left whitespace-nowrap w-[18%]">
-                  <div class="flex items-center justify-between">
-                    <button
-                      @click="slipInfo(item)"
-                      class="text-[#003b3d] bg-red-light text-sm text-bold px-4+1 py-2 rounded-full"
-                    >
-                      Download Payslip
-                    </button>
-                    <!-- <button>
-                    <IMenuVertical />
-                  </button> -->
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <!-- Pagination -->
-
-      <div class="px-6 mt-20 hidden items-center justify-between">
-        <span class="opacity-50 text-sm font-semimedium whitespace-nowrap"
-          >Showing 1-6 of 30 items</span
-        >
-
-        <div class="flex items-center space-x-2">
-          <span
-            class="text-white bg-[#003b3d] text-sm font-semibold w-8 h-8 flex items-center justify-center rounded-full"
-            >1</span
-          >
-          <span
-            class="text-sm w-8 h-8 flex items-center justify-center rounded-full border opacity-50"
-            >2</span
-          >
-          <span
-            class="text-sm w-8 h-8 flex items-center justify-center rounded-full border opacity-50"
-            >3</span
-          >
-        </div>
+                    }}
+                  </span>
+                  <span class="text-xs text-green">Direct deposit</span>
+                </div>
+              </td>
+              <td class="py-4 whitespace-nowrap">
+                <div class="font-normal text-left flex flex-col">
+                  <span class="text-sm font-semimedium"
+                    >₦{{ formatNumber(payroll.totalGrossPay) || 0 }}</span
+                  >
+                </div>
+              </td>
+              <td class="py-4 whitespace-nowrap">
+                <div class="font-normal text-left flex flex-col">
+                  <span class="text-sm font-semimedium"
+                    >₦{{ formatNumber(payroll.totalBonus) || 0 }}</span
+                  >
+                  <span class="text-xs text-gray-rgba-3">Commissions</span>
+                </div>
+              </td>
+              <td class="py-4 whitespace-nowrap">
+                <div class="font-normal text-left flex flex-col">
+                  <span class="text-sm font-semimedium">
+                    ₦{{ payroll.totalDeductions }}
+                  </span>
+                  <span class="text-xs text-gray-rgba-3">Pensions, Health</span>
+                </div>
+              </td>
+              <td class="py-4 whitespace-nowrap">
+                <div class="font-normal text-left flex flex-col">
+                  <span class="text-sm font-semimedium">
+                    ₦{{ payroll.totalTaxAmount }}
+                  </span>
+                  <span class="text-xs text-gray-rgba-3">PAYEE</span>
+                </div>
+              </td>
+              <td class="py-4 whitespace-nowrap">₦{{ payroll.totalNetPay }}</td>
+              <td class="py-4 whitespace-nowrap">
+                <button
+                  @click="slipInfo(payroll)"
+                  :disabled="generatingPDF[payroll.payrollId]"
+                  class="text-[#003b3d] bg-red-light text-sm font-bold px-4 py-2 rounded-full flex items-center justify-center"
+                >
+                  <span v-if="generatingPDF[payroll.payrollId]" class="mr-2">
+                    <spinner class="w-4 h-4" />
+                  </span>
+                  {{
+                    generatingPDF[payroll.payrollId]
+                      ? "Downloading..."
+                      : "Download Payslip"
+                  }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <div class="hidden">
-        <div class="bg-[#dcf7e6]" id="element-to-print">
-          <div
-            class="grid place-content-center h-[100px] w-full px-[60px] bg-[#ffffff]"
-          >
-            <div class="mx-auto pt-[30px]">
-              <img src="/images/png/logo.png" alt="logo" class="w-[200px]" />
-            </div>
-          </div>
-          <div class="mb-5 text-center bg-[#003b3d] p-2 pb-6">
-            <h3 class="text-white text-[2.5em] uppercase">{{ slip.name }}</h3>
-            <p class="text-md text-white/80 uppercase">{{ slip.narration }}</p>
-            <p class="text-sm text-white/80 uppercase">
-              {{ slip.paymentDate }}
-            </p>
-          </div>
-          <div class="px-[60px] mb-4">
-            <h3 class="text-black-rgba text-2xl font-black">
-              NGN {{ slip.grossPay }}
-            </h3>
-            <span class="text-sm text-gray-rgba-3">Gross salary</span>
-          </div>
-          <div class="divide-grey-200 divide-y px-[70px]">
-            <div class="text-base flex items-center justify-between py-4">
-              <span class="font-semi-medium text-gray-rgba-3">Basic/Net</span>
-              <span class="text-black-100 font-semi-medium"
-                >N{{ slip.netPay }}</span
-              >
-            </div>
-            <div class="text-base flex items-center justify-between py-4">
-              <span class="font-semi-medium text-gray-rgba-3">Bonus</span>
-              <span class="text-black-100 font-semi-medium"
-                >N{{ slip.bonus }}</span
-              >
-            </div>
-            <div class="text-base flex items-center justify-between py-4">
-              <span class="font-semi-medium text-gray-rgba-3">Deductions</span>
-              <span class="text-black-100 font-semi-medium"
-                >N{{ slip.deductions }}</span
-              >
-            </div>
-            <div class="text-base flex items-center justify-between py-4">
-              <span class="font-semi-medium text-gray-rgba-3">Tax</span>
-              <span class="text-black-100 font-semi-medium"
-                >N{{ slip.tax }}</span
-              >
-            </div>
-          </div>
-        </div>
+      <!-- Hidden Element for PDF Generation -->
+      <div id="element-to-print" class="hidden">
+        <h1 class="text-lg font-bold">Payslip</h1>
+        <p>
+          <strong>Name:</strong> <span id="pdf-name">{{ slip.name }}</span>
+        </p>
+        <p>
+          <strong>Narration:</strong>
+          <span id="pdf-narration">{{ slip.narration }}</span>
+        </p>
+        <p>
+          <strong>Payment Date:</strong>
+          <span id="pdf-payment-date">{{ slip.paymentDate }}</span>
+        </p>
+        <p>
+          <strong>Gross Pay:</strong>
+          <span id="pdf-gross-pay">₦{{ slip.grossPay }}</span>
+        </p>
+        <p>
+          <strong>Bonus:</strong> <span id="pdf-bonus">₦{{ slip.bonus }}</span>
+        </p>
+        <p>
+          <strong>Deductions:</strong>
+          <span id="pdf-deductions">₦{{ slip.deductions }}</span>
+        </p>
+        <p>
+          <strong>Tax:</strong> <span id="pdf-tax">₦{{ slip.tax }}</span>
+        </p>
+        <p>
+          <strong>Net Pay:</strong>
+          <span id="pdf-net-pay">₦{{ slip.netPay }}</span>
+        </p>
       </div>
     </div>
   </div>

@@ -27,6 +27,27 @@ class WalletService {
         return err;
       });
   }
+  async getOrganisationPayroll(
+    organisationId: number,
+    pageSize: number,
+    pageNumber: number
+  ): Promise<any> {
+    return await this.request
+      .get("/Transaction/get-organisation-payroll-transaction", {
+        headers: authHeader(),
+        params: {
+          OrganisationId: organisationId,
+          PageSize: pageSize,
+          PageNumber: pageNumber,
+        },
+      })
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
   async getTotalRevenue(): Promise<any> {
     const customRequest = this.createAxiosInstance();
 

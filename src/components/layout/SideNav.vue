@@ -317,7 +317,7 @@ defineExpose({
           </router-link>
         </li> -->
 
-        <li>
+        <!-- <li>
           <router-link to="/dashboard/payroll">
             <div class="side-nav-link">
               <div class="nav-link">
@@ -339,7 +339,7 @@ defineExpose({
               </div>
             </div>
           </router-link>
-        </li>
+        </li> -->
 
         <li>
           <router-link to="/dashboard/health/existing">

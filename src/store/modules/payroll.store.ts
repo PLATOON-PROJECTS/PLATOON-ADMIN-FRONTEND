@@ -102,6 +102,56 @@ const payrollStore = defineStore("payroll", {
       }
     },
 
+    async companyPayrollById(
+      organisationId: number
+      // pageNumber: number,
+      // pageSize: number
+      // createdDate: number
+    ): Promise<any> {
+      try {
+        const response = await payrollService.companyPayrollById(
+          organisationId
+          // pageNumber,
+          // pageSize
+          // createdDate
+        );
+        if (response.data) {
+          return response;
+        } else if (response.response) {
+          return Promise.reject(response.response);
+        } else {
+          return Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return Promise.reject(error);
+      }
+    },
+
+    async employeePayrollById(
+      userId: number
+      // pageNumber: number,
+      // pageSize: number
+      // createdDate: number
+    ): Promise<any> {
+      try {
+        const response = await payrollService.employeePayrollById(
+          userId
+          // pageNumber,
+          // pageSize
+          // createdDate
+        );
+        if (response.data) {
+          return response;
+        } else if (response.response) {
+          return Promise.reject(response.response);
+        } else {
+          return Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return Promise.reject(error);
+      }
+    },
+
     async fetchEmployeePayroll(
       organisationId: number,
       employeeId: number,

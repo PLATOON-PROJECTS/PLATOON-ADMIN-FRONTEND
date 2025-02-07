@@ -18,8 +18,6 @@ import { ComponentPosition as DarkModeButtonPosition } from "../../interface/enu
 import { useBrowserStore } from "../../store";
 import { useRouter } from "vue-router";
 import { request } from "../../composables/request.composable";
-import handleError from "../../composables/handle_error.composable";
-import spinner from "../../components/timer/Spinner.vue";
 import getPeriod from "../../core/helpers/get_period";
 import BarChart from "../../components/BarChart.vue";
 import { getItem } from "../../core/utils/storage.helper";
@@ -477,7 +475,7 @@ fetchEmployees();
           </div>
           <div class="flex gap-4 items-center">
             <div>
-              <h3 class="font-bold text-black-rgba dark:text-white text-xl">
+              <h3 class="font-bold text-black-rgba dark:text-white text-[18px]">
                 ₦
                 {{ totalFundDisbursed[0] ?? 0 }}
               </h3>
@@ -486,7 +484,7 @@ fetchEmployees();
               >
             </div>
             <div>
-              <h3 class="font-bold text-black-rgba dark:text-white text-xl">
+              <h3 class="font-bold text-black-rgba dark:text-white text-[18px]">
                 ₦
                 {{ pendingDisbursementData[0] ?? 0 }}
               </h3>
@@ -497,7 +495,7 @@ fetchEmployees();
           </div>
           <div class="flex gap-4 items-center">
             <div>
-              <h3 class="font-bold text-black-rgba dark:text-white text-xl">
+              <h3 class="font-bold text-black-rgba dark:text-white text-[18px]">
                 ₦
                 {{ totalFundReceived[0] ?? 0 }}
               </h3>
@@ -506,7 +504,7 @@ fetchEmployees();
               >
             </div>
             <div>
-              <h3 class="font-bold text-black-rgba dark:text-white text-xl">
+              <h3 class="font-bold text-black-rgba dark:text-white text-[18px]">
                 ₦
                 {{ totalRevenueData[0] ?? 0 }}
               </h3>

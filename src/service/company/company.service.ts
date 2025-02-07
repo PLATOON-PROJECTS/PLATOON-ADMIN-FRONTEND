@@ -15,11 +15,14 @@ class Company {
     });
   }
 
-  async fetchCompany(pageSize: number, pageNumber: number): Promise<any> {
+  async fetchCompany(
+    pageSize: number = 10,
+    pageNumber: number = 1
+  ): Promise<any> {
     const customRequest = this.createAxiosInstance();
 
     return await customRequest
-      .get("/Organisation/fetch-all-organisation", {
+      .get(`/Organisation/fetch-all-organisation/${pageSize}/${pageNumber}`, {
         headers: authHeader(),
         params: {
           pageSize: pageSize,
@@ -78,6 +81,7 @@ class Company {
         return err;
       });
   }
+
   async create(data: Create): Promise<any> {
     return await this.request
       .post(

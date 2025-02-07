@@ -1,32 +1,12 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { ref, provide, reactive, computed } from "vue";
-import useVuelidate from "@vuelidate/core";
-import { email, helpers, minLength, sameAs } from "@vuelidate/validators";
-import ButtonBlue from "../../../../components/buttons/ButtonBlue.vue";
+import { ref, provide, computed } from "vue";
 import EmptyState from "../../../../components/EmptyState.vue";
-import Grade from "../../../../components/dropdowns/grades.vue";
-import {
-  IEyeOpened,
-  ICaretUpDown,
-  IMenuVertical,
-  IUserThree,
-  IArrowDown,
-} from "../../../../core/icons";
-import SuccessAlert from "../../../../components/alerts/SuccessAlert.vue";
-import { request } from "../../../../composables/request.composable";
-import handleError from "../../../../composables/handle_error.composable";
-import handleSuccess from "../../../../composables/handle_success.composable";
+import { IUserThree } from "../../../../core/icons";
 import spinner from "../../../../components/timer/Spinner.vue";
-import {
-  useEmployeeStore,
-  useUserStore,
-  useWalletStore,
-} from "../../../../store/index";
-import {
-  stringValidate,
-  numberValidate,
-} from "../../../../validations/validate";
+import { useCompanyStore } from "../../../../store/index";
+import { request } from "../../../../composables/request.composable";
+
 import html2pdf from "html2pdf.js";
 
 import { formatNumber, dateFormat } from "../../../../core/helpers/actions";
@@ -35,78 +15,12 @@ import { useRoute } from "vue-router";
 
 // initialize route
 const route = useRoute();
-
-// initialize store
-const employeeStore = useEmployeeStore();
-const userStore = useUserStore();
-const walletStore = useWalletStore();
-
-// variables
-const disabled = ref(true);
-const showBank = ref(false);
+const companyStore = useCompanyStore();
 const loading = ref(false);
+const companyData = ref<any[]>([]); // This will store the fetched company data
 const fetchLoading = ref(false);
-const valid = ref(false);
-
-let data = ref<{
-  firstname: string | null;
-  lastname: string | null;
-  email: string | null;
-  telephone: number | null;
-  active: number | null;
-  group_id: number | null;
-  grade_id: number | null;
-  account_details: {
-    bank: string | null;
-    account_name: string | null;
-    account_number: number | null;
-  };
-}>({
-  firstname: null,
-  lastname: null,
-  email: null,
-  telephone: null,
-  active: 1,
-  group_id: null,
-  grade_id: null,
-  account_details: {
-    bank: null,
-    account_name: null,
-    account_number: null,
-  },
-});
-const grades = ref<any[]>([]);
-const payments: any = ref([
-  {
-    payroll: {
-      created_at: "",
-    },
-    meta: {
-      salary: {
-        gross: 0,
-        total: 0,
-      },
-      breakdown: {
-        tax: 0,
-        bonus: 0,
-        deduction: 0,
-      },
-    },
-  },
-]);
-
-const departmentName = ref("");
-const showDepartment = ref(false);
-const gradeName = ref("");
-const showGrade = ref(false);
-const banks = ref<string[]>([]);
-
-const showSuccess = ref(false);
-
-const errorResponse = ref("");
 const responseData = ref<any>({ data: null, message: "" });
 const slip = ref({
-  name: "",
   narration: "",
   paymentDate: "",
   grossPay: 0,
@@ -116,129 +30,32 @@ const slip = ref({
   netPay: 0,
 });
 
-// provide and inject
-provide("showDepartment", showDepartment);
-provide("selectedDepartment", [data, departmentName]);
-provide("showGrade", showGrade);
-provide("selectedGrade", [data, gradeName]);
-// emits
-const emit = defineEmits<{
-  (e: "setSingleEmployeeName", name: string): void;
-  (e: "doNotEdit", value: boolean): void;
-}>();
-
 // computed
-const employeeId = computed(() => {
-  return route.params.id as string;
-});
-
+const organisationId = Array.isArray(route.params.id)
+  ? route.params.id[0]
+  : route.params.id;
 // methods
 
-const parseBank = (item: any) => {
-  return item.bankName;
-};
-const fetchBank = async () => {
-  const response = await request(walletStore.getBanks());
+const fetchCompanyPayrollById = async () => {
+  loading.value = true;
 
-  // handleError(response, userStore);
-  const successResponse = handleSuccess(response);
+  try {
+    const response = await request(
+      companyStore.companyById(Number(organisationId))
+    );
+    console.log("API Response:", response);
 
-  if (successResponse && typeof successResponse !== "undefined") {
-    // console.log(successResponse.data);
-
-    banks.value = successResponse.data.data;
+    if (response && response.data) {
+      companyData.value = [response.data.data]; // Ensure consistent array structure
+    } else {
+      console.error("No data found in response:", response);
+    }
+  } catch (error) {
+    console.error("Failed to fetch company:", error);
+  } finally {
+    loading.value = false;
   }
 };
-const setGrades = (value: any[]) => {
-  // console.log("set grade fired");
-  gradeName.value = "";
-  grades.value = value;
-  showGrade.value = false;
-};
-
-const onInput = (phone: number, phoneObject: any, input: any) => {
-  if (phoneObject?.formatted) {
-    data.value.telephone = phoneObject.number;
-    valid.value = phoneObject.valid;
-  }
-};
-
-const validatePhone = () => {
-  return valid.value;
-};
-
-// fetchBank();
-// validations rule
-const rules = computed(() => {
-  return {
-    email: {
-      email: helpers.withMessage("Must be a valid email", email),
-    },
-
-    firstname: {
-      stringValidate: helpers.withMessage(
-        "First name can only include alphabets",
-        () => stringValidate(data.value.firstname as string) as any
-      ),
-    },
-    lastname: {
-      stringValidate: helpers.withMessage(
-        "Last name can only include alphabets",
-        () => stringValidate(data.value.lastname as string) as any
-      ),
-    },
-    telephone: {
-      validatePhone: helpers.withMessage("Invalid Phone Number", validatePhone),
-    },
-    account_details: {
-      account_number: {
-        numberValidate: helpers.withMessage(
-          "Account number can only include numbers",
-          () =>
-            numberValidate(
-              data.value.account_details.account_number as number
-            ) as any
-        ),
-      },
-    },
-    // active: {
-    //   numberValidate: helpers.withMessage(
-    //     "Active line can only include numbers",
-    //     () => numberValidate(data.value.active as number) as any
-    //   ),
-    // },
-
-    // group_id: {
-    //   numberValidate: helpers.withMessage(
-    //     "GroupId line can only include numbers",
-    //     () => numberValidate(data.value.group_id as number) as any
-    //   ),
-    // },
-    // grade_id: {
-    //   numberValidate: helpers.withMessage(
-    //     "GradeId line can only include numbers",
-    //     () => numberValidate(data.value.grade_id as number) as any
-    //   ),
-    // },
-
-    // bank: {
-    //   stringValidate: helpers.withMessage(
-    //     "Bank name can only include alphabets",
-    //     () => stringValidate(data.value.account_details.bank as string) as any
-    //   ),
-    // },
-  };
-});
-
-const v$ = useVuelidate(rules as any, data);
-
-// define emits
-defineExpose({
-  // saveChanges,
-  disabled,
-  loading,
-  v$,
-});
 
 const exportToPDF = () => {
   var element = document.getElementById("element-to-print");
@@ -267,10 +84,6 @@ const exportToPDF = () => {
 
 const slipInfo = (item: any) => {
   slip.value = {
-    name:
-      responseData.value.data.data.firstname +
-      " " +
-      responseData.value.data.data.lastname,
     narration: item.narration,
     paymentDate: item.payroll
       ? dateFormat(item.payroll.created_at)
@@ -284,8 +97,6 @@ const slipInfo = (item: any) => {
 
   exportToPDF();
 };
-
-const router = useRouter();
 </script>
 <template>
   <spinner
@@ -326,7 +137,7 @@ const router = useRouter();
           </thead>
           <tbody class="bg-white divide-y divide-grey-200">
             <tr
-              v-for="(item, index) in payments"
+              v-for="(item, index) in companyData"
               :key="index"
               class="text-black-100"
             >
@@ -452,7 +263,7 @@ const router = useRouter();
           </div>
         </div>
         <div class="mb-5 text-center bg-[#003b3d] p-2 pb-6">
-          <h3 class="text-white text-[2.5em] uppercase">{{ slip.name }}</h3>
+          <!-- <h3 class="text-white text-[2.5em] uppercase">{{ slip.name }}</h3> -->
           <p class="text-md text-white/80 uppercase">{{ slip.narration }}</p>
           <p class="text-sm text-white/80 uppercase">{{ slip.paymentDate }}</p>
         </div>

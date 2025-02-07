@@ -58,3 +58,19 @@ export interface OrganisationResponse {
   data: OrganisationData;
   statusCode: number;
 }
+
+interface Payroll {
+  payrollId: number;
+  totalGrossPay: number;
+  totalDeductions: number;
+  totalBonus: number;
+  totalNetPay: number;
+  totalTaxAmount: number;
+  scheduleDate: string;
+  executionDate: string;
+  totalEmployees: number;
+}
+
+interface PayrollResponse {
+  pageItems: Payroll[];
+}
