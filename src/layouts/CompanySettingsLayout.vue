@@ -119,6 +119,11 @@ const DeleteCompany = async (organisationId: string) => {
       // Show success message
       successMessage.value = "Company deleted successfully";
       showSuccess.value = true;
+
+      // Route back to "dashboard/companies" after a short delay
+      setTimeout(() => {
+        router.push("/dashboard/companies");
+      }, 2000);
     } else {
       console.error("Failed to delete company:", response);
     }
