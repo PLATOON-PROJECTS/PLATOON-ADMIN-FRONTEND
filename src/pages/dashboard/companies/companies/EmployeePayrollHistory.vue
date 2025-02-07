@@ -43,7 +43,6 @@ const fetchCompanyPayrollById = async () => {
     const response = await request(
       companyStore.companyById(Number(organisationId))
     );
-    console.log("API Response:", response);
 
     if (response && response.data) {
       companyData.value = [response.data.data]; // Ensure consistent array structure

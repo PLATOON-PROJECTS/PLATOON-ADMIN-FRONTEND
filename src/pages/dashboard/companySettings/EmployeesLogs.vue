@@ -98,7 +98,6 @@ const fetchTotalEmployeeCount = async () => {
     const response = await request(
       employeeStore.getEmployeeCount(Number(organisationId))
     );
-    console.log("count", response);
 
     if (response?.data) {
       totalEmployeeCount.value = [response.data.data];
@@ -118,7 +117,6 @@ const fetchTotalDepartmentCount = async () => {
     const response = await request(
       groupStore.totalDepartment(Number(organisationId))
     );
-    console.log("count", response);
 
     if (response?.data) {
       totalDepartmentCount.value = [response.data.data];
@@ -225,7 +223,6 @@ const fetchEmployees = async (page = 1) => {
     employeeStore.index(Number(organisationId), 10, page),
     loading
   );
-  console.log("myres", response);
 
   const successResponse = handleSuccess(response);
 

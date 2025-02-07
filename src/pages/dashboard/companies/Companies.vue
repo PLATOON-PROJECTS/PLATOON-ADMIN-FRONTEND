@@ -28,7 +28,6 @@ export default defineComponent({
       loading.value = true;
       try {
         const response = await companyStore.fetchCompany(pageSize, page);
-        console.log("API Response:", response);
 
         if (response && Array.isArray(response.pageItems)) {
           companies.value = response.pageItems;

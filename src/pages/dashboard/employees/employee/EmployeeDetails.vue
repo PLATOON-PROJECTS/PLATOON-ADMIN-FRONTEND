@@ -108,8 +108,6 @@ const fetchEmployeeById = async () => {
       employeeStore.getEmployeeById(Number(organisationId), Number(employeeId))
     );
 
-    console.log("my res", response);
-
     if (response && response.data) {
       employeeData.value = [response.data.data]; // Ensure consistent array structure
     } else {
