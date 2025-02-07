@@ -21,6 +21,9 @@ const TaxSettingsLayout = () => import("../layouts/TaxSettingsLayout.vue");
 // Not found page
 const NotFoundPage = () => import("../pages/PageNotFound.vue");
 
+const ViewEmployeeSalaryBreakDown = () =>
+  import("../pages/dashboard/employees/employee/EmployeeSalaryBreakDown.vue");
+
 // Auth Pages
 const LoginPage = () => import("../pages/auth/Login.vue");
 const SignupPage = () => import("../pages/auth/Signup.vue");
@@ -62,8 +65,7 @@ const ViewEmployeeLayout = () => import("../layouts/ViewEmployeeLayout.vue");
 
 const ViewEmployeeDetails = () =>
   import("../pages/dashboard/employees/employee/EmployeeDetails.vue");
-const ViewEmployeeSalaryBreakDown = () =>
-  import("../pages/dashboard/employees/employee/EmployeeSalaryBreakDown.vue");
+
 const ViewEmployeePayrollHistory = () =>
   import("../pages/dashboard/employees/employee/EmployeePayrollHistory.vue");
 

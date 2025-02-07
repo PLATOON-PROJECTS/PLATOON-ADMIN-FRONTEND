@@ -156,6 +156,24 @@ class Employee {
         return err;
       });
   }
+
+  async getEmployeeCount(organisationId: number): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .get(`/Employee/employee-count/${organisationId}`, {
+        headers: authhHeader(),
+        // params: {
+        //   OrganisationId: organisationId,
+        // },
+      })
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
   async employeesInDepartment(id: string): Promise<any> {
     return await this.request
       .get(`/employee?department=${id}`, {

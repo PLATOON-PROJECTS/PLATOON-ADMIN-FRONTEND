@@ -533,6 +533,22 @@ class Payroll {
         return err;
       });
   }
+
+  async getSalaryBreakdown(employeeId: number): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .get(`/salary-breakdown/${employeeId}`, {
+        headers: authHeader(),
+      })
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
+
   async updateSettings(data: UpdateSettings): Promise<any> {
     return await this.request
       .put(

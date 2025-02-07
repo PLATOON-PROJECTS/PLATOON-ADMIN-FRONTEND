@@ -463,9 +463,9 @@ fetchEmployees();
                 class="text-base text-black-rgba dark:text-white font-medium"
                 >Funds</span
               >
-              <span class="text-sm text-black-rgba-100 font-semimedium"
+              <!-- <span class="text-sm text-black-rgba-100 font-semimedium"
                 >Total number of employees</span
-              >
+              > -->
             </div>
             <div
               class="bg-grey-100 dark:bg-grey-dark p-3 rounded-full h-12 w-12 flex items-center justify-center"

@@ -55,6 +55,21 @@ const employeeStore = defineStore("employee", {
         return await Promise.reject(error);
       }
     },
+
+    async getEmployeeCount(organisationId: number): Promise<any> {
+      try {
+        const response = await employeeService.getEmployeeCount(organisationId);
+        if (response.data) {
+          return await Promise.resolve(response);
+        } else if (response.response) {
+          return await Promise.reject(response.response);
+        } else {
+          return await Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return await Promise.reject(error);
+      }
+    },
     async download(): Promise<any> {
       try {
         const response = await employeeService.download();

@@ -56,6 +56,8 @@ const pageSize = ref(10); // Make sure this is set to the page size used in the 
 const totalItems = ref(0);
 
 // provide and inject
+const totalEmployeeCount = ref<any>({ data: {}, message: "" });
+const totalDepartmentCount = ref<any>({ data: {}, message: "" });
 provide("showDepartment", showDepartment);
 provide("selectedDepartment", [data, departmentName]);
 const render = inject<any>("render");
@@ -89,6 +91,46 @@ const formatDate = (dateString: string) => {
 
   return `${formattedDate} ${formattedTime}`;
 };
+
+const fetchTotalEmployeeCount = async () => {
+  loading.value = true;
+  try {
+    const response = await request(
+      employeeStore.getEmployeeCount(Number(organisationId))
+    );
+    console.log("count", response);
+
+    if (response?.data) {
+      totalEmployeeCount.value = [response.data.data];
+    }
+  } catch (error) {
+    console.error("Failed to fetch total funds disbursed:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+fetchTotalEmployeeCount();
+
+const fetchTotalDepartmentCount = async () => {
+  loading.value = true;
+  try {
+    const response = await request(
+      groupStore.totalDepartment(Number(organisationId))
+    );
+    console.log("count", response);
+
+    if (response?.data) {
+      totalDepartmentCount.value = [response.data.data];
+    }
+  } catch (error) {
+    console.error("Failed to fetch total funds disbursed:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+fetchTotalDepartmentCount();
 
 const capitalizeName = (name: string) => {
   if (!name) return "";
@@ -337,7 +379,9 @@ watch(showDepartment, (newValue, oldValue) => {
             <p class="text-[#000000AD] text-sm">
               All employees, active and inactive
             </p>
-            <h2 class="text-black text-xl font-bold pt-4">56</h2>
+            <h2 class="text-black text-xl font-bold pt-4">
+              {{ totalEmployeeCount[0] ?? 0 }}
+            </h2>
           </div>
 
           <!-- Card 2 -->
@@ -346,14 +390,16 @@ watch(showDepartment, (newValue, oldValue) => {
             <p class="text-[#000000AD] text-sm">
               Employees yet to accept invite
             </p>
-            <h2 class="text-black text-xl font-bold pt-4">5</h2>
+            <h2 class="text-black text-xl font-bold pt-4">0</h2>
           </div>
 
           <!-- Card 3 -->
           <div class="bg-[#F0F2F2] shadow-lg rounded-lg p-6">
             <p class="text-black text-base font-medium">Departments</p>
             <p class="text-[#000000AD] text-sm">Dapartments xyz xyz xyz</p>
-            <h2 class="text-black text-xl font-bold pt-4">7</h2>
+            <h2 class="text-black text-xl font-bold pt-4">
+              {{ totalDepartmentCount[0] ?? 0 }}
+            </h2>
           </div>
         </div>
 
@@ -361,7 +407,7 @@ watch(showDepartment, (newValue, oldValue) => {
         <div
           class="align-middle inline-block min-w-full border border-grey rounded-lg"
         >
-          <div class="px-5 py-2 flex justify-between">
+          <!-- <div class="px-5 py-2 flex justify-between">
             <div class="flex items-center gap-2">
               <div class="flex space-x-2">
                 <div class="text-sm pt-1 font-semimedium text-black-200">
@@ -388,7 +434,7 @@ watch(showDepartment, (newValue, oldValue) => {
                 </span>
               </div>
             </div>
-          </div>
+          </div> -->
           <fieldset class="overflow-hidden sm:rounded-lg">
             <table class="min-w-full table-fixed">
               <thead

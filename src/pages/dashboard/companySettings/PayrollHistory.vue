@@ -201,6 +201,15 @@ const exportToPDF = (tempSlip: any, payrollId: number) => {
       generatingPDF.value[payrollId] = false; // Stop loading on error
     });
 };
+
+function formatDate(dateString: string | number | Date) {
+  if (!dateString) return "--/--";
+
+  const date = new Date(dateString);
+  const options = { year: "numeric" as const, month: "long" as const }; // Format to "Month Year"
+
+  return date.toLocaleDateString("en-US", options);
+}
 </script>
 
 <template>
@@ -283,11 +292,25 @@ const exportToPDF = (tempSlip: any, payrollId: number) => {
                   <span class="text-sm font-semimedium">
                     {{
                       payroll.scheduleDate !== "0001-01-01T00:00:00"
-                        ? dateFormat(payroll.scheduleDate)
+                        ? formatDate(payroll.scheduleDate)
                         : "--/--/---- --:-- --"
                     }}
                   </span>
-                  <span class="text-xs text-green">Direct deposit</span>
+                  <span class="text-xs text-gray-rgba-3"
+                    >₦{{ formatNumber(payroll.totalBonus) || 0 }}</span
+                  >
+                </div>
+              </td>
+              <td class="py-4 whitespace-nowrap">
+                <div class="text-left flex flex-col">
+                  <span class="text-sm font-semimedium">
+                    {{
+                      payroll.scheduleDate !== "0001-01-01T00:00:00"
+                        ? dateFormat(payroll.executionDate)
+                        : "--/--/---- --:-- --"
+                    }}
+                  </span>
+                  <span class="text-xs text-gray-rgba-3">Direct deposit</span>
                 </div>
               </td>
               <td class="py-4 whitespace-nowrap">
@@ -326,7 +349,7 @@ const exportToPDF = (tempSlip: any, payrollId: number) => {
                 <button
                   @click="slipInfo(payroll)"
                   :disabled="generatingPDF[payroll.payrollId]"
-                  class="text-[#003b3d] bg-red-light text-sm font-bold px-4 py-2 rounded-full flex items-center justify-center"
+                  class="text-[#003b3d] bg-red-light text-sm px-4 py-2 rounded-full flex items-center justify-center"
                 >
                   <span v-if="generatingPDF[payroll.payrollId]" class="mr-2">
                     <spinner class="w-4 h-4" />

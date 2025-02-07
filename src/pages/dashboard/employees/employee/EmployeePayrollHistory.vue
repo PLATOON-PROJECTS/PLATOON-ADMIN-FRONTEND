@@ -164,6 +164,7 @@ const exportToPDF = (tempSlip: any, payrollId: number) => {
         <table class="min-w-full table-fixed">
           <thead class="text-black-200 text-sm text-left">
             <tr class="whitespace-nowrap">
+              <th scope="col" class="py-4 font-normal text-left">Date</th>
               <th scope="col" class="py-4 font-normal text-left">
                 Payment Date
               </th>
@@ -183,6 +184,9 @@ const exportToPDF = (tempSlip: any, payrollId: number) => {
             >
               <td class="py-4 whitespace-nowrap">
                 {{ dateFormat(payroll.scheduleDate) }}
+              </td>
+              <td class="py-4 whitespace-nowrap">
+                {{ dateFormat(payroll.executionDate) }}
               </td>
               <td class="py-4 whitespace-nowrap">
                 ₦{{ payroll.totalGrossPay }}

@@ -37,6 +37,22 @@ const payrollStore = defineStore("payroll", {
         return await Promise.reject(error);
       }
     },
+
+    async getSalaryBreakdown(employeeId: number): Promise<any> {
+      try {
+        const response = await payrollService.getSalaryBreakdown(employeeId);
+        if (response.data) {
+          return Promise.resolve(response);
+        } else if (response.response) {
+          return Promise.reject(response.response);
+        } else {
+          return Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return Promise.reject(error);
+      }
+    },
+
     async deleteMany(data: string[]): Promise<any> {
       try {
         const response = await payrollService.deleteMany(data);
