@@ -280,6 +280,17 @@ const gotoExternalRouteOnTab = (route: string) => {
         >Forgot password?</a
       >
     </div>
+    <div class="mt-20 pb-20">
+      <p>
+        New to Platoon?
+        <router-link
+          to="/signup"
+          class="text-[#003b3d] underline underline-offset-4 font-semimedium"
+        >
+          Create account</router-link
+        >
+      </p>
+    </div>
 
     <!-- <div class="mt-20 pb-20">
       <p>

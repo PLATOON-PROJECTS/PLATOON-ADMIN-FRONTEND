@@ -25,6 +25,20 @@ class UserService {
         return err;
       });
   }
+
+  async fetchAdmin(id: number): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+    return await customRequest
+      .get(`Admin/fetch/${id}`, {
+        headers: authhHeader(),
+      })
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
   // async getUsers(): Promise<any> {
   //   return await this.request
   //     .get("/users", {

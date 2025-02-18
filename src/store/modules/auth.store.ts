@@ -43,28 +43,26 @@ const authStore = defineStore("auth", {
 
         if (response && response.data && response.data.data.token) {
           const token = response.data.data.token;
-          const userId = response.data.data.id;
+          const id = response.data.data.id;
 
           storeItem(import.meta.env.VITE_ACCESSTOKEN, { rsa: token });
 
           // Fetch additional user details
-          const userDetailsResponse = await userService.show(userId);
+          const userDetailsResponse = await userService.fetchAdmin(id);
+          console.log("userDetailsResponse", userDetailsResponse);
 
           // Handle the user details response
           if (userDetailsResponse && userDetailsResponse.data) {
             // Store user details in local storage or state
             const userData = JSON.stringify({
               customerInfo: {
-                firstName:
-                  userDetailsResponse.data.data.organisation.user.firstname,
-                lastName:
-                  userDetailsResponse.data.data.organisation.user.lastname,
-                email: userDetailsResponse.data.data.organisation.user.email,
-                phone: userDetailsResponse.data.data.organisation.user.phone,
+                firstName: userDetailsResponse.data.data.firstname,
+                lastName: userDetailsResponse.data.data.lastname,
+                email: userDetailsResponse.data.data.email,
+                phone: userDetailsResponse.data.data.phone,
+                id: userDetailsResponse.data.data.id,
+
                 // wallet: userDetailsResponse.data.data.organisation.wallet.balance,
-                organisationName:
-                  userDetailsResponse.data.data.organisation.organisationName,
-                organisationId: userDetailsResponse.data.data.organisation.id,
               },
             });
 
@@ -198,7 +196,7 @@ const authStore = defineStore("auth", {
         return await Promise.reject(error);
       }
     },
-    async userResetPassword(data: ResetPassword): Promise<any> {
+    async resetPassword(data: ResetPassword): Promise<any> {
       try {
         const response = await authService.resetPassword(data);
 

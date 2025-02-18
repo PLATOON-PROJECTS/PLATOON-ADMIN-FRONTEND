@@ -56,6 +56,31 @@ const userStore = defineStore("user", {
         return await Promise.reject(error);
       }
     },
+    async fetchAdmin(id: number): Promise<any> {
+      try {
+        const response = await userService.fetchAdmin(id);
+        if (response && response.data && response.data.data) {
+          const data = JSON.stringify({
+            customerInfo: {
+              firstName: response.data.data.organisation.user.firstname,
+              lastName: response.data.data.organisation.user.lastname,
+              email: response.data.data.organisation.user.email,
+              phone: response.data.data.organisation.user.email,
+              // wallet: response.data.data.organisation.wallet.balance,
+              id: response.data.data.organisation.id,
+            },
+          });
+          storeItem(import.meta.env.VITE_USERDETAILS, data);
+          return await Promise.resolve(response);
+        } else if (response.response) {
+          return await Promise.reject(response.response);
+        } else {
+          return await Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return await Promise.reject(error);
+      }
+    },
     async verify(verify: string): Promise<any> {
       try {
         const response = await userService.verify(verify);

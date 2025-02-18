@@ -71,44 +71,44 @@ const initials = computed(() => {
 });
 
 // methods
-const fetchCompany = async () => {
-  loading.value = true;
-  const response = await request(companyStore.index(), loading);
+// const fetchCompany = async () => {
+//   loading.value = true;
+//   const response = await request(companyStore.index(), loading);
 
-  const successResponse = handleSuccess(response);
+//   const successResponse = handleSuccess(response);
 
-  if (successResponse && typeof successResponse !== "undefined") {
-    companies.value = successResponse.data.data;
-    // console.log(successResponse.data.data)
-    logged_in_company.value = successResponse.data.data.find(
-      (element: any) => element.is_default == true
-    );
-    // always make the defualt company appear first
-    companies.value.sort((a, b) => {
-      return b.is_default - a.is_default;
-    });
-  }
-};
+//   if (successResponse && typeof successResponse !== "undefined") {
+//     companies.value = successResponse.data.data;
+//     // console.log(successResponse.data.data)
+//     logged_in_company.value = successResponse.data.data.find(
+//       (element: any) => element.is_default == true
+//     );
+//     // always make the defualt company appear first
+//     companies.value.sort((a, b) => {
+//       return b.is_default - a.is_default;
+//     });
+//   }
+// };
 // fetchCompany();
 
-const switchCompany = async (id: string, name: string) => {
-  loading.value = true;
-  const response = await request(companyStore.switch(id), loading);
-  handleError(response, userStore);
-  const successResponse = handleSuccess(response, showSuccess);
+// const switchCompany = async (id: string, name: string) => {
+//   loading.value = true;
+//   const response = await request(companyStore.switch(id), loading);
+//   handleError(response, userStore);
+//   const successResponse = handleSuccess(response, showSuccess);
 
-  if (successResponse && typeof successResponse !== "undefined") {
-    responseData.value.message = response.data.message;
-    fetchCompany();
-    render.value = true;
-    logged_in_company.value = successResponse.data.data.find(
-      (element: any) => element.is_default == true
-    );
-  }
-};
+//   if (successResponse && typeof successResponse !== "undefined") {
+//     responseData.value.message = response.data.message;
+//     fetchCompany();
+//     render.value = true;
+//     logged_in_company.value = successResponse.data.data.find(
+//       (element: any) => element.is_default == true
+//     );
+//   }
+// };
 
 defineExpose({
-  fetchCompany,
+  // fetchCompany,
   loading,
   request,
   handleSuccess,
@@ -167,9 +167,9 @@ defineExpose({
             <span class="text-green bg-green-rgba py-0.5-1 text-xs uppercase"
               >Admin</span
             >
-            <span @click="showDropDown = !showDropDown" class="cursor-pointer">
+            <!-- <span @click="showDropDown = !showDropDown" class="cursor-pointer">
               <IArrowDown />
-            </span>
+            </span> -->
           </div>
           <div class="flex items-center justify-between">
             <span class="text-[12px] text-black/40">{{
@@ -181,14 +181,14 @@ defineExpose({
       <!-- drop down -->
 
       <div class="absolute w-full">
-        <general
+        <!-- <general
           v-if="showDropDown == true"
           class="max-h-80 h-auto overflow-auto scrollbar-hide"
         >
           <spinner v-if="loading == true" class="flex justify-center" />
 
-          <div v-else>
-            <div class="space-y-7" v-if="companies[0]">
+          <div v-else> -->
+        <!-- <div class="space-y-7" v-if="companies[0]">
               <div
                 v-for="company in companies"
                 :key="company"
@@ -214,10 +214,10 @@ defineExpose({
               >
                 + Add new Company
               </p>
-            </div>
+            </div> -->
 
-            <!--  -->
-            <EmptyState v-else class="h-auto">
+        <!--  -->
+        <!-- <EmptyState v-else class="h-auto">
               <template #icon>
                 <ILinkBreak />
               </template>
@@ -236,9 +236,9 @@ defineExpose({
                   Create Company
                 </button>
               </template>
-            </EmptyState>
-          </div>
-        </general>
+            </EmptyState> -->
+        <!-- </div>
+        </general> -->
       </div>
     </div>
     <div class="mt-11">

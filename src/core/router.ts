@@ -209,7 +209,7 @@ const routes = [
         meta: { title: "Change Password", public: true },
       },
       {
-        path: "/Auth/VerifyLink",
+        path: "/reset-password",
         component: ResetPassword,
         name: "auth.reset",
         meta: { title: "Reset Password", public: true },
