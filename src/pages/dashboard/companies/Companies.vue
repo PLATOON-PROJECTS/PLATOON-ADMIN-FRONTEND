@@ -1,6 +1,6 @@
 <script>
 import { defineComponent, onMounted, ref, computed } from "vue";
-import { useCompanyStore } from "../../../store/index";
+import { useCompanyStore, useEmployeeStore } from "../../../store/index";
 import { useRouter } from "vue-router";
 import EmptyState from "../../../components/EmptyState.vue";
 import { ICaretUpDown, IUserThree } from "../../../core/icons";
@@ -9,9 +9,13 @@ export default defineComponent({
   name: "CompanyTable",
   components: {
     ICaretUpDown,
+    EmptyState,
+    IUserThree,
   },
   setup() {
     const companyStore = useCompanyStore();
+    const employeeStore = useEmployeeStore();
+    const totalEmployeeCount = ref({}); // Fix: Initialize as empty object
     const companies = ref([]);
     const loading = ref(false);
     const router = useRouter();
@@ -20,20 +24,25 @@ export default defineComponent({
     const pageSize = 10;
     const totalItems = ref(0);
 
-    // Reactive variable for filter type
-    const filterType = ref("all"); // 'all', 'active', or 'inactive'
-    const showFilterDropdown = ref(false); // To toggle dropdown visibility
+    const filterType = ref("all"); // 'all', 'active', 'inactive'
+    const showFilterDropdown = ref(false);
 
     const fetchCompanies = async (page = 1) => {
       loading.value = true;
       try {
         const response = await companyStore.fetchCompany(pageSize, page);
+        console.log(response);
 
         if (response && Array.isArray(response.pageItems)) {
           companies.value = response.pageItems;
           currentPage.value = response.currentPage || 1;
           totalPages.value = response.numberOfPages || 1;
-          totalItems.value = response.totalItems || 0; // Adjusted to use totalItems from response
+          totalItems.value = response.totalItems || 0;
+
+          // Fetch employee count for each company
+          response.pageItems.forEach((company) =>
+            fetchTotalEmployeeCount(company.id)
+          );
         } else {
           console.warn("Unexpected API response structure:", response);
           companies.value = [];
@@ -46,14 +55,13 @@ export default defineComponent({
       }
     };
 
-    // Computed property to filter companies
+    // Compute filtered companies
     const filteredCompanies = computed(() => {
-      if (filterType.value === "active") {
-        return companies.value.filter((company) => company.isActive);
-      } else if (filterType.value === "inactive") {
-        return companies.value.filter((company) => !company.isActive);
-      }
-      return companies.value; // Show all companies
+      return (companies.value || []).filter((company) => {
+        if (filterType.value === "active") return company.isActive;
+        if (filterType.value === "inactive") return !company.isActive;
+        return true; // 'all' case
+      });
     });
 
     const formatDate = (dateString) => {
@@ -62,9 +70,7 @@ export default defineComponent({
       return date.toLocaleDateString();
     };
 
-    const isEmpty = computed(
-      () => !filteredCompanies.value || filteredCompanies.value.length === 0
-    );
+    const isEmpty = computed(() => filteredCompanies.value.length === 0);
 
     const startItem = computed(() => (currentPage.value - 1) * pageSize + 1);
     const endItem = computed(() =>
@@ -79,13 +85,29 @@ export default defineComponent({
     };
 
     const toggleFilterDropdown = () => {
-      showFilterDropdown.value = !showFilterDropdown.value; // Toggle dropdown visibility
+      showFilterDropdown.value = !showFilterDropdown.value;
     };
 
     const setFilterType = (type) => {
       filterType.value = type;
-      showFilterDropdown.value = false; // Close dropdown after selection
-      fetchCompanies(currentPage.value); // Fetch companies again with the new filter
+      showFilterDropdown.value = false;
+      fetchCompanies(currentPage.value);
+    };
+
+    const fetchTotalEmployeeCount = async (organisationId) => {
+      try {
+        const response = await employeeStore.getEmployeeCount(
+          Number(organisationId)
+        );
+        if (response?.data) {
+          totalEmployeeCount.value[organisationId] = response.data.data;
+        }
+      } catch (error) {
+        console.error(
+          `Failed to fetch employee count for company ${organisationId}:`,
+          error
+        );
+      }
     };
 
     onMounted(() => {
@@ -108,6 +130,7 @@ export default defineComponent({
       showFilterDropdown,
       filterType,
       router,
+      totalEmployeeCount,
     };
   },
 });
@@ -129,13 +152,15 @@ export default defineComponent({
             class="flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-lg text-sm text-[#306651]"
             @click="toggleFilterDropdown"
           >
-            <span>{{
-              filterType === "all"
-                ? "All Companies"
-                : filterType === "active"
-                ? "Active Companies"
-                : "Inactive Companies"
-            }}</span>
+            <span>
+              {{
+                filterType === "all"
+                  ? "All Companies"
+                  : filterType === "active"
+                  ? "Active Companies"
+                  : "Inactive Companies"
+              }}
+            </span>
             <ICaretUpDown class="w-4 h-4" />
           </button>
 
@@ -145,19 +170,19 @@ export default defineComponent({
             class="absolute left-0 mt-2 w-48 bg-white border border-grey-200 rounded-lg shadow-lg z-10"
           >
             <button
-              class="w-full text-left px-4 py-2 text-grey-300 hover:bg-gray-100"
+              class="w-full text-left px-4 py-2 hover:bg-gray-100"
               @click="setFilterType('all')"
             >
               All Companies
             </button>
             <button
-              class="w-full text-left px-4 py-2 text-grey-300 hover:bg-gray-100"
+              class="w-full text-left px-4 py-2 hover:bg-gray-100"
               @click="setFilterType('active')"
             >
               Active Companies
             </button>
             <button
-              class="w-full text-left px-4 py-2 text-grey-300 hover:bg-gray-100"
+              class="w-full text-left px-4 py-2 hover:bg-gray-100"
               @click="setFilterType('inactive')"
             >
               Inactive Companies
@@ -184,99 +209,62 @@ export default defineComponent({
 
       <!-- Company Table -->
       <div v-else class="py-6">
-        <div class="align-middle inline-block min-w-full">
-          <fieldset class="overflow-hidden sm:rounded-lg">
-            <table class="min-w-full table-fixed">
-              <thead class="text-black-200 text-sm text-left">
-                <tr>
-                  <th scope="col" class="py-4 font-normal text-left">Name</th>
-                  <th scope="col" class="py-4 font-normal text-left">
-                    Date added
-                  </th>
-                  <th scope="col" class="py-4 font-normal text-left">
-                    No of employees
-                  </th>
-                  <th scope="col" class="py-4 font-normal text-left">Admin</th>
-                  <th scope="col" class="py-4 font-normal text-left">Action</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-grey-200">
-                <tr
-                  v-for="company in filteredCompanies"
-                  :key="company.id"
-                  class="text-black-100"
+        <table class="min-w-full table-fixed">
+          <thead class="text-black-200 text-sm text-left">
+            <tr>
+              <th class="py-4 font-normal text-left">Name</th>
+              <th class="py-4 font-normal text-left">Date added</th>
+              <th class="py-4 font-normal text-left">No of employees</th>
+              <th class="py-4 font-normal text-left">Admin</th>
+              <th class="py-4 font-normal text-left">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="company in filteredCompanies" :key="company.id">
+              <td class="py-4">{{ company.name }}</td>
+              <td class="py-4">{{ formatDate(company.dateAdded) }}</td>
+              <td class="py-4">{{ totalEmployeeCount[company.id] ?? 0 }}</td>
+              <td class="py-4">
+                {{ company.admin?.firstname || "--" }}
+                {{ company.admin?.lastname || "--" }} <br />
+                <span class="text-xs">{{ company.admin?.email || "N/A" }}</span>
+              </td>
+              <td class="py-4">
+                <button
+                  @click="
+                    router.push(
+                      `/dashboard/company-settings/${company.id}/company-information`
+                    )
+                  "
+                  class="text-[#003b3d] bg-red-light px-4 py-2 rounded-full"
                 >
-                  <td class="py-4 whitespace-nowrap">{{ company.name }}</td>
-                  <td class="py-4 whitespace-nowrap">
-                    <div class="text-left flex flex-col">
-                      <span class="text-sm font-semimedium">{{
-                        formatDate(company.dateAdded)
-                      }}</span>
-                      <span class="text-xs text-green">{{
-                        company.isActive ? "Active" : "Inactive"
-                      }}</span>
-                    </div>
-                  </td>
-                  <td class="py-4 whitespace-nowrap">
-                    <div class="font-normal text-left flex flex-col">
-                      <span class="text-sm font-semimedium">{{
-                        company.employeeCount || 0
-                      }}</span>
-                      <span class="text-xs text-gray-rgba-3">Employee</span>
-                    </div>
-                  </td>
-                  <td class="py-4 whitespace-nowrap">
-                    <div class="text-left flex flex-col">
-                      <span class="text-sm font-semimedium">
-                        {{ company.admin.firstname || "--" }}
-                        {{ company.admin.lastname || "--" }}
-                      </span>
-                      <span class="text-xs text-green">{{
-                        company.admin.email || "N/A"
-                      }}</span>
-                    </div>
-                  </td>
-                  <td class="py-4 text-left whitespace-nowrap w-[18%]">
-                    <div class="flex items-center justify-between">
-                      <button
-                        @click="
-                          router.push(
-                            `/dashboard/company-settings/${company.id}/company-information`
-                          )
-                        "
-                        class="text-[#003b3d] bg-red-light text-sm text-bold px-4 py-2 rounded-full"
-                      >
-                        View Company
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </fieldset>
-        </div>
+                  View Company
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Pagination -->
+      <div class="px-6 mt-8 flex items-center justify-between">
+        <span class="opacity-50 text-sm font-semimedium">
+          Showing {{ startItem }}-{{ endItem }} of {{ totalItems }} items
+        </span>
 
-        <!-- Pagination -->
-        <div class="px-6 mt-8 flex items-center justify-between">
-          <span class="opacity-50 text-sm font-semimedium">
-            Showing {{ startItem }}-{{ endItem }} of {{ totalItems }} items
-          </span>
-
-          <div class="flex items-center space-x-2">
-            <button
-              v-for="page in totalPages"
-              :key="page"
-              @click="goToPage(page)"
-              :class="{
-                'text-white bg-[#003b3d] text-sm font-semibold w-8 h-8 flex items-center justify-center rounded-full':
-                  currentPage === page,
-                'text-sm w-8 h-8 flex items-center justify-center rounded-full border opacity-50':
-                  currentPage !== page,
-              }"
-            >
-              {{ page }}
-            </button>
-          </div>
+        <div class="flex items-center space-x-2">
+          <button
+            v-for="page in totalPages"
+            :key="page"
+            @click="goToPage(page)"
+            :class="{
+              'text-white bg-[#003b3d] text-sm font-semibold w-8 h-8 flex items-center justify-center rounded-full':
+                currentPage === page,
+              'text-sm w-8 h-8 flex items-center justify-center rounded-full border opacity-50':
+                currentPage !== page,
+            }"
+          >
+            {{ page }}
+          </button>
         </div>
       </div>
     </div>
