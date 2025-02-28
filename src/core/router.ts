@@ -140,6 +140,16 @@ const AccessManagementPage = () =>
   import("../pages/dashboard/manageUsers/AccessManagement.vue");
 const EmployeePage = () =>
   import("../pages/dashboard/manageUsers/Employee.vue");
+const ManageUsersPayrollPage = () =>
+  import("../pages/dashboard/manageUsers/ManageUsersPayroll.vue");
+const ManageUsersPensionPage = () =>
+  import("../pages/dashboard/manageUsers/ManageUsersPension.vue");
+const ManageUsersTaxPage = () =>
+  import("../pages/dashboard/manageUsers/ManageUsersTax.vue");
+const ManageUsersSettingsPage = () =>
+  import("../pages/dashboard/manageUsers/ManageUsersSettings.vue");
+const ManageUsersPage = () =>
+  import("../pages/dashboard/manageUsers/ManageUsers.vue");
 const ApproverAccessPage = () =>
   import("../pages/dashboard/manageUsers/ApproverAccess.vue");
 
@@ -733,6 +743,46 @@ const routes = [
             component: EmployeePage,
             meta: {
               title: "Company - Manage - Employee - Dashboard",
+            },
+          },
+          {
+            path: "payroll",
+            name: "dashboard.manage.permission.payroll",
+            component: ManageUsersPayrollPage,
+            meta: {
+              title: "Company - Manage - payroll - Dashboard",
+            },
+          },
+          {
+            path: "pension",
+            name: "dashboard.manage.permission.pension",
+            component: ManageUsersPensionPage,
+            meta: {
+              title: "Company - Manage - pension - Dashboard",
+            },
+          },
+          {
+            path: "tax",
+            name: "dashboard.manage.permission.tax",
+            component: ManageUsersTaxPage,
+            meta: {
+              title: "Company - Manage - tax - Dashboard",
+            },
+          },
+          {
+            path: "manage-user",
+            name: "dashboard.manage.permission.user",
+            component: ManageUsersPage,
+            meta: {
+              title: "Company - Manage - user - Dashboard",
+            },
+          },
+          {
+            path: "company-settings",
+            name: "dashboard.manage.permission.settings",
+            component: ManageUsersSettingsPage,
+            meta: {
+              title: "Company - Manage - settings - Dashboard",
             },
           },
         ],

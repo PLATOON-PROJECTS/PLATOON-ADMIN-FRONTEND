@@ -97,22 +97,6 @@ class UserService {
       .catch((err) => err);
   }
 
-  async assignRole(requestBody: {
-    userId: number;
-    roleId: number;
-  }): Promise<any> {
-    const customRequest = this.createAxiosInstance();
-    return await customRequest
-      .post("/Role/assign-role", requestBody, {
-        headers: authhHeader(),
-      })
-      .then((res) => res)
-      .catch((err) => {
-        console.error("Error assigning role:", err);
-        throw err;
-      });
-  }
-
   async updateRole(userId: number, roleId: number): Promise<any> {
     const customRequest = this.createAxiosInstance();
     return await customRequest
@@ -140,10 +124,17 @@ class UserService {
   }
 
   async create(data: Create): Promise<any> {
-    return await this.request
+    const customRequest = this.createAxiosInstance();
+    return await customRequest
       .post(
-        "/users",
-        { ...data },
+        "/Admin/Register",
+        {
+          email: data.email,
+          firstname: data.firstname,
+          lastname: data.lastname,
+          countryCode: data.countryCode,
+          phoneNumber: data.phoneNumber,
+        },
         {
           headers: authHeader(),
         }
@@ -155,6 +146,23 @@ class UserService {
         return err;
       });
   }
+
+  async assignRole(requestBody: {
+    userId: number;
+    roleId: number;
+  }): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+    return await customRequest
+      .post("/Role/assign-role", requestBody, {
+        headers: authhHeader(),
+      })
+      .then((res) => res)
+      .catch((err) => {
+        console.error("Error assigning role:", err);
+        throw err;
+      });
+  }
+
   async verify(verify: string): Promise<any> {
     return await this.request
       .post(`/verify/${verify}`, {
