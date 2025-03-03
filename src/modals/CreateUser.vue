@@ -96,8 +96,6 @@ const handleCreate = async () => {
     countryCode: data.value.countryCode,
     phoneNumber: Number(data.value.phoneNumber),
   };
-
-  console.log("Data to be sent:", formData);
   loading.value = true;
 
   try {
@@ -109,8 +107,6 @@ const handleCreate = async () => {
     }
 
     const response = await request(userStore.create(formData), loading);
-    console.log("Response from API:", response);
-
     // Check if response is valid
     if (!response || !response.data) {
       console.error("Unexpected response structure:", response);
@@ -184,8 +180,6 @@ const assignRole = async () => {
     return;
   }
 
-  console.log("Created User:", createdUser.data);
-
   const selectedRoleData = roles.value.find(
     (role) => role.name === selectedRole.value
   );
@@ -197,22 +191,16 @@ const assignRole = async () => {
     return;
   }
 
-  console.log("Selected Role:", selectedRoleData);
-
   const requestBody = {
     userId: createdUser.data.data,
     roleId: selectedRoleData.id,
   };
-
-  console.log("Assigning Role Request:", requestBody);
 
   try {
     const response = await userStore.assignRole(
       requestBody.userId,
       requestBody.roleId
     );
-
-    console.log("Assign Role Response:", response);
 
     if (response && response.succeeded) {
       showSuccess.value = true;
