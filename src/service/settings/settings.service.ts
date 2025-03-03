@@ -8,7 +8,7 @@ class SettingsService {
 
   private createAxiosInstance() {
     return axios.create({
-      baseURL: "https://platoon-backend-1.onrender.com/api",
+      baseURL: import.meta.env.VITE_PLATOON_BASEURL2,
       headers: authhHeader(),
     });
   }

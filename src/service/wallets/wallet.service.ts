@@ -10,7 +10,7 @@ class WalletService {
 
   private createAxiosInstance() {
     return axios.create({
-      baseURL: "https://platoon-backend-1.onrender.com/api", // Set your custom base URL here
+      baseURL: import.meta.env.VITE_PLATOON_BASEURL2, // Set your custom base URL here
       headers: authhHeader(), //
     });
   }

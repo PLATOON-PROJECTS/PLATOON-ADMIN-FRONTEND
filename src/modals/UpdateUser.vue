@@ -41,9 +41,14 @@ const fetchRoles = async () => {
   loading.value = true;
   try {
     const response = await userStore.fetchRoles();
-    roles.value = response;
-    loading.value = false;
+    roles.value = response.filter(
+      (role: { name: string }) =>
+        role.name !== "OrganisationSuperAdmin" &&
+        role.name !== "OrganisationAdmin"
+    );
   } catch (error) {
+    console.error("Error fetching roles:", error);
+  } finally {
     loading.value = false;
   }
 };

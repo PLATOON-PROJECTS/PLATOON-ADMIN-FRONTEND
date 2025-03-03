@@ -9,7 +9,7 @@ class Group {
 
   private createAxiosInstance() {
     return axios.create({
-      baseURL: "https://platoon-backend.onrender.com/api",
+      baseURL: import.meta.env.VITE_PLATOON_BASEURL,
       headers: authhHeader(),
     });
   }

@@ -8,7 +8,7 @@ class UserService {
   constructor(private readonly request: Axios) {}
   private createAxiosInstance() {
     return axios.create({
-      baseURL: "https://platoon-backend.onrender.com/api", // custom base URL here
+      baseURL: import.meta.env.VITE_PLATOON_BASEURL, // custom base URL here
       headers: authhHeader(),
     });
   }

@@ -10,7 +10,7 @@ class Company {
 
   private createAxiosInstance() {
     return axios.create({
-      baseURL: "https://platoon-backend.onrender.com/api", // Set your custom base URL here
+      baseURL: import.meta.env.VITE_PLATOON_BASEURL, // Set your custom base URL here
       headers: authhHeader(), // Include any headers you need
     });
   }
