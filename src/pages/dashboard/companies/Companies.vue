@@ -138,7 +138,7 @@ export default defineComponent({
 
 <template>
   <div
-    class="p-8 flex flex-col gap-8 rounded-t-lg divide-y divide-grey-200 overflow-auto scrollbar-hide w-full"
+    class="p-8 flex flex-col gap-8 rounded-t-lg overflow-auto scrollbar-hide w-full"
   >
     <div class="bg-greey flex justify-between flex-col">
       <p class="font-bold text-2xl">Companies</p>
@@ -218,7 +218,7 @@ export default defineComponent({
                 <th scope="col" class="py-3 text-left font-medium">
                   Date Added
                 </th>
-                <th scope="col" class="py-3 text-left font-medium">
+                <th scope="col" class="py-3 text-center font-medium">
                   No of Employees
                 </th>
                 <th scope="col" class="py-3 text-left font-medium">Admin</th>
@@ -248,7 +248,7 @@ export default defineComponent({
                   </div>
                 </td>
                 <td class="py-4 whitespace-nowrap">
-                  <div class="font-normal text-left flex flex-col">
+                  <div class="font-normal text-center flex flex-col">
                     <span class="text-sm font-semimedium">
                       {{ totalEmployeeCount[company.id] ?? 0 }}
                     </span>
