@@ -163,7 +163,7 @@ export default defineComponent({
     </EmptyState>
 
     <!-- Company Table -->
-    <div v-else class="py-6 bg-white rounded-t-xl">
+    <div v-else class="py-6 bg-white rounded-t-xl flex flex-col">
       <div class="relative border-b border-grey-200 pb-4">
         <button
           class="flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-[#306651]"
@@ -286,28 +286,28 @@ export default defineComponent({
           </table>
         </div>
       </div>
-    </div>
 
-    <!-- Pagination -->
-    <div class="px-6 mt-8 flex items-center justify-between">
-      <span class="opacity-50 text-sm font-semimedium">
-        Showing {{ startItem }}-{{ endItem }} of {{ totalItems }} items
-      </span>
+      <!-- Pagination -->
+      <div class="px-6 mt-12 flex items-center justify-between">
+        <span class="opacity-50 text-sm font-semimedium">
+          Showing {{ startItem }}-{{ endItem }} of {{ totalItems }} items
+        </span>
 
-      <div class="flex items-center space-x-2">
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          @click="goToPage(page)"
-          :class="{
-            'text-white bg-[#003b3d] text-sm font-semibold w-8 h-8 flex items-center justify-center rounded-full':
-              currentPage === page,
-            'text-sm w-8 h-8 flex items-center justify-center rounded-full border opacity-50':
-              currentPage !== page,
-          }"
-        >
-          {{ page }}
-        </button>
+        <div class="flex items-center space-x-2">
+          <button
+            v-for="page in totalPages"
+            :key="page"
+            @click="goToPage(page)"
+            :class="{
+              'text-white bg-[#003b3d] text-sm font-semibold w-8 h-8 flex items-center justify-center rounded-full':
+                currentPage === page,
+              'text-sm w-8 h-8 flex items-center justify-center rounded-full border opacity-50':
+                currentPage !== page,
+            }"
+          >
+            {{ page }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
