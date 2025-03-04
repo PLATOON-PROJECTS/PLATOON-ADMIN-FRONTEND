@@ -230,7 +230,7 @@ export default defineComponent({
               <tr
                 v-for="company in filteredCompanies"
                 :key="company.id"
-                class="text-gray-700"
+                class="text-black-100"
               >
                 <td class="py-4 whitespace-nowrap">
                   <span class="text-sm font-semimedium">{{
