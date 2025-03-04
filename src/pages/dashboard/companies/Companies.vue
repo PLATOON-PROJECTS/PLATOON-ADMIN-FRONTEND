@@ -138,135 +138,178 @@ export default defineComponent({
 
 <template>
   <div
-    class="bg-white rounded-t-lg divide-y divide-grey-200 overflow-auto scrollbar-hide w-full"
+    class="p-8 flex flex-col gap-8 rounded-t-lg divide-y divide-grey-200 overflow-auto scrollbar-hide w-full"
   >
-    <div class="p-8 bg-transparent">
-      <div class="flex justify-between flex-col border-b border-grey-200">
-        <div>
-          <p class="font-bold text-2xl">Companies</p>
-        </div>
+    <div class="bg-greey flex justify-between flex-col">
+      <p class="font-bold text-2xl">Companies</p>
 
-        <!-- Filter Button -->
-        <div class="relative">
-          <button
-            class="flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-lg text-sm text-[#306651]"
-            @click="toggleFilterDropdown"
-          >
-            <span>
-              {{
-                filterType === "all"
-                  ? "All Companies"
-                  : filterType === "active"
-                  ? "Active Companies"
-                  : "Inactive Companies"
-              }}
-            </span>
-            <ICaretUpDown class="w-4 h-4" />
-          </button>
+      <!-- Filter Button -->
+    </div>
 
-          <!-- Dropdown Menu -->
-          <div
-            v-if="showFilterDropdown"
-            class="absolute left-0 mt-2 w-48 bg-white border border-grey-200 rounded-lg shadow-lg z-10"
-          >
-            <button
-              class="w-full text-left px-4 py-2 hover:bg-gray-100"
-              @click="setFilterType('all')"
-            >
-              All Companies
-            </button>
-            <button
-              class="w-full text-left px-4 py-2 hover:bg-gray-100"
-              @click="setFilterType('active')"
-            >
-              Active Companies
-            </button>
-            <button
-              class="w-full text-left px-4 py-2 hover:bg-gray-100"
-              @click="setFilterType('inactive')"
-            >
-              Inactive Companies
-            </button>
-          </div>
-        </div>
-      </div>
+    <!-- Loader -->
+    <div v-if="loading" class="flex justify-center items-center py-8">
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"
+      ></div>
+    </div>
 
-      <!-- Loader -->
-      <div v-if="loading" class="flex justify-center items-center py-8">
+    <!-- Empty State -->
+    <EmptyState v-else-if="isEmpty">
+      <template #icon>
+        <IUserThree />
+      </template>
+      <template #heading> Companies </template>
+      <template #desc> No company available </template>
+    </EmptyState>
+
+    <!-- Company Table -->
+    <div v-else class="py-6 bg-white rounded-t-xl">
+      <div class="relative border-b border-grey-200 pb-4">
+        <button
+          class="flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-[#306651]"
+          @click="toggleFilterDropdown"
+        >
+          <span>
+            {{
+              filterType === "all"
+                ? "All Companies"
+                : filterType === "active"
+                ? "Active Companies"
+                : "Inactive Companies"
+            }}
+          </span>
+          <ICaretUpDown class="w-4 h-4" />
+        </button>
+
+        <!-- Dropdown Menu -->
         <div
-          class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"
-        ></div>
-      </div>
-
-      <!-- Empty State -->
-      <EmptyState v-else-if="isEmpty">
-        <template #icon>
-          <IUserThree />
-        </template>
-        <template #heading> Companies </template>
-        <template #desc> No company available </template>
-      </EmptyState>
-
-      <!-- Company Table -->
-      <div v-else class="py-6">
-        <table class="min-w-full table-fixed">
-          <thead class="text-black-200 text-sm text-left">
-            <tr>
-              <th class="py-4 font-normal text-left">Name</th>
-              <th class="py-4 font-normal text-left">Date added</th>
-              <th class="py-4 font-normal text-left">No of employees</th>
-              <th class="py-4 font-normal text-left">Admin</th>
-              <th class="py-4 font-normal text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="company in filteredCompanies" :key="company.id">
-              <td class="py-4">{{ company.name }}</td>
-              <td class="py-4">{{ formatDate(company.dateAdded) }}</td>
-              <td class="py-4">{{ totalEmployeeCount[company.id] ?? 0 }}</td>
-              <td class="py-4">
-                {{ company.admin?.firstname || "--" }}
-                {{ company.admin?.lastname || "--" }} <br />
-                <span class="text-xs">{{ company.admin?.email || "N/A" }}</span>
-              </td>
-              <td class="py-4">
-                <button
-                  @click="
-                    router.push(
-                      `/dashboard/company-settings/${company.id}/company-information`
-                    )
-                  "
-                  class="text-[#003b3d] bg-red-light px-4 py-2 rounded-full"
-                >
-                  View Company
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <!-- Pagination -->
-      <div class="px-6 mt-8 flex items-center justify-between">
-        <span class="opacity-50 text-sm font-semimedium">
-          Showing {{ startItem }}-{{ endItem }} of {{ totalItems }} items
-        </span>
-
-        <div class="flex items-center space-x-2">
+          v-if="showFilterDropdown"
+          class="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10"
+        >
           <button
-            v-for="page in totalPages"
-            :key="page"
-            @click="goToPage(page)"
-            :class="{
-              'text-white bg-[#003b3d] text-sm font-semibold w-8 h-8 flex items-center justify-center rounded-full':
-                currentPage === page,
-              'text-sm w-8 h-8 flex items-center justify-center rounded-full border opacity-50':
-                currentPage !== page,
-            }"
+            class="w-full text-left px-4 py-2 hover:bg-gray-100"
+            @click="setFilterType('all')"
           >
-            {{ page }}
+            All Companies
+          </button>
+          <button
+            class="w-full text-left px-4 py-2 hover:bg-gray-100"
+            @click="setFilterType('active')"
+          >
+            Active Companies
+          </button>
+          <button
+            class="w-full text-left px-4 py-2 hover:bg-gray-100"
+            @click="setFilterType('inactive')"
+          >
+            Inactive Companies
           </button>
         </div>
+      </div>
+
+      <div class="align-middle inline-block min-w-full overflow-x-auto">
+        <div class="overflow-hidden sm:rounded-lg">
+          <table class="min-w-full border-collapse">
+            <thead class="text-black-200 text-sm text-left">
+              <tr>
+                <th scope="col" class="py-3 px-4 text-left font-medium">
+                  Name
+                </th>
+                <th scope="col" class="py-3 text-left font-medium">
+                  Date Added
+                </th>
+                <th scope="col" class="py-3 text-left font-medium">
+                  No of Employees
+                </th>
+                <th scope="col" class="py-3 text-left font-medium">Admin</th>
+                <th scope="col" class="py-3 text-left font-medium">Action</th>
+              </tr>
+            </thead>
+
+            <tbody class="bg-white divide-y divide-grey-200">
+              <tr
+                v-for="company in filteredCompanies"
+                :key="company.id"
+                class="text-gray-700"
+              >
+                <td class="py-4 whitespace-nowrap">
+                  <span class="text-sm font-semimedium">{{
+                    company.name
+                  }}</span>
+                </td>
+                <td class="py-4 whitespace-nowrap">
+                  <div class="text-left flex flex-col">
+                    <span class="text-sm font-semimedium">
+                      {{ formatDate(company.dateAdded) }}
+                    </span>
+                    <span class="text-xs text-green">{{
+                      company.isActive ? "Active" : "Inactive"
+                    }}</span>
+                  </div>
+                </td>
+                <td class="py-4 whitespace-nowrap">
+                  <div class="font-normal text-left flex flex-col">
+                    <span class="text-sm font-semimedium">
+                      {{ totalEmployeeCount[company.id] ?? 0 }}
+                    </span>
+                  </div>
+                </td>
+                <td class="py-4 w-[25%]">
+                  <div class="flex items-center space-x-3 flex-shrink-0">
+                    <div class="flex flex-col">
+                      <span class="text-sm font-semimedium">
+                        {{ company.admin?.firstname || "--" }}
+                        {{ company.admin?.lastname || "--" }}
+                      </span>
+                      <span class="text-xs text-gray-rgba-3 flex">
+                        {{ company.admin?.email || "N/A" }}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 text-left whitespace-nowrap w-[18%]">
+                  <div class="flex items-center justify-between">
+                    <button
+                      @click="
+                        router.push(
+                          `/dashboard/company-settings/${company.id}/company-information`
+                        )
+                      "
+                      class="text-[#003b3d] bg-red-light text-sm text-bold px-4+1 py-2 rounded-full"
+                    >
+                      View Company
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="px-6 mt-8 flex items-center justify-between">
+      <span class="opacity-50 text-sm font-semimedium">
+        Showing {{ startItem }}-{{ endItem }} of {{ totalItems }} items
+      </span>
+
+      <div class="flex items-center space-x-2">
+        <button
+          v-for="page in totalPages"
+          :key="page"
+          @click="goToPage(page)"
+          :class="{
+            'text-white bg-[#003b3d] text-sm font-semibold w-8 h-8 flex items-center justify-center rounded-full':
+              currentPage === page,
+            'text-sm w-8 h-8 flex items-center justify-center rounded-full border opacity-50':
+              currentPage !== page,
+          }"
+        >
+          {{ page }}
+        </button>
       </div>
     </div>
   </div>
 </template>
+<style scoped></style>
