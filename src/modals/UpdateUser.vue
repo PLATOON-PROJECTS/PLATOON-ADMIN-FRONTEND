@@ -81,6 +81,7 @@ const saveChanges = async () => {
         localStorage.removeItem("selectedUserId");
         openUpdateUser.value = false;
         props.fetchUsers();
+        window.location.reload(); // Reload the page on success
       } catch (error) {
         console.error("Error updating role:", error);
       }

@@ -1,5 +1,11 @@
 <script lang="ts" setup>
-import { ISearch, IGridMenu, IQuestionMark, ILogo, IUserGear, } from "../../core/icons";
+import {
+  ISearch,
+  IGridMenu,
+  IQuestionMark,
+  ILogo,
+  IUserGear,
+} from "../../core/icons";
 import { ComponentPosition } from "../../interface/enums.interface";
 import Notification from "../Notification.vue";
 import DarkModeToggle from "../DarkModeToggle.vue";
@@ -13,12 +19,12 @@ import DarkModeToggle from "../DarkModeToggle.vue";
       <ILogo :color="'#222222'" />
     </a>
     <div class="lg:flex hidden items-center space-x-6">
-      <span>
+      <!-- <span>
         <ISearch />
-      </span>
+      </span> -->
       <input
         type="search"
-        class="focus:outline-none placeholder:text-black-200 placeholder:text-sm"
+        class="focus:outline-none placeholder:text-black-200 placeholder:text-sm hidden"
         placeholder="Search employee, actions etc."
       />
     </div>
