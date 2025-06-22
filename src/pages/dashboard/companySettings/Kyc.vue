@@ -59,7 +59,7 @@
           <div>
             <p class="text-sm text-[#A6A6A6] mb-2 font-medium">Phone Number</p>
             <p class="text-base text-[#444444] font-medium">
-              +234 800 000 0000
+              +234 800 000 0001
             </p>
           </div>
           <div>
