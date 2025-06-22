@@ -1,590 +1,313 @@
-<script lang="ts" setup>
-import confirmAlert from "../../../components/alerts/ConfirmAlert.vue";
-import Departments from "../../../components/dropdowns/department.vue";
-import { FCheckBoxComp, FRadioBox } from "../../../core/form";
-import successAlert from "../../../components/alerts/SuccessAlert.vue";
-import { ref, inject, provide, watch } from "vue";
-import spinner from "../../../components/timer/Spinner.vue";
-import { ICaretUpDown, IMenuVertical, IUserThree } from "../../../core/icons";
-import CalenderInterface from "../../../layouts/CalenderLayout.vue";
-import EmptyState from "../../../components/EmptyState.vue";
+<script>
+import { defineComponent, onMounted, ref, computed } from "vue";
+import { useCompanyStore, useEmployeeStore } from "../../../store/index";
 import { useRouter } from "vue-router";
-import { request } from "../../../composables/request.composable";
-import handleError from "../../../composables/handle_error.composable";
-import handleSuccess from "../../../composables/handle_success.composable";
-import { useEmployeeStore, useUserStore } from "../../../store/index";
-import cache from "../../../composables/swr_cache";
-import { useGroupStore } from "../../../store/index";
-import { getItem } from "../../../core/utils/storage.helper";
-import Pagination from "../../../components/Pagination.vue";
+import EmptyState from "../../../components/EmptyState.vue";
+import { ICaretUpDown, IUserThree } from "../../../core/icons";
 
-const router = useRouter();
+export default defineComponent({
+  name: "CompanyTable",
+  components: {
+    ICaretUpDown,
+    EmptyState,
+    IUserThree,
+  },
+  setup() {
+    const companyStore = useCompanyStore();
+    const employeeStore = useEmployeeStore();
+    const totalEmployeeCount = ref({}); // Fix: Initialize as empty object
+    const companies = ref([]);
+    const loading = ref(false);
+    const router = useRouter();
+    const currentPage = ref(1);
+    const totalPages = ref(1);
+    const pageSize = 10;
+    const totalItems = ref(0);
 
-// initialize store
-const employeeStore = useEmployeeStore();
-const userStore = useUserStore();
-const groupStore = useGroupStore();
-// variables
-const departmentName = ref("");
-const confirmType = ref("");
-const downloading = ref(false);
-const showDepartment = ref(false);
-const data = ref({ department: "" });
-const chossenDepartment = "";
-const openCalender = ref(false);
-const deleteEmployeesId = ref<string[]>([]);
-const showSuccess = ref(false);
-const deleteEmployeeId = ref<any>();
-const loading = ref(false);
-const confirmMessage = ref({ message: "" });
-const deleting = ref(false);
-const showConfirm = ref(false);
-const isEmptyTable = ref(false);
-const responseData = ref<any>({ data: [], message: "" });
-const departmentState = ref(true);
-const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
-const currentPage = ref(1);
-const totalPages = ref(1);
-const pageSize = ref(10); // Make sure this is set to the page size used in the API
-const totalItems = ref(0);
+    const filterType = ref("all"); // 'all', 'active', 'inactive'
+    const showFilterDropdown = ref(false);
 
-// provide and inject
-provide("showDepartment", showDepartment);
-provide("selectedDepartment", [data, departmentName]);
-const render = inject<any>("render");
-const emit = defineEmits([
-  "refetchInvite",
-  "showInviteEmployee",
-  "emptyDepartment",
-]);
-const departmentValues = ref();
-const parsedUserInfo =
-  typeof userInfo.value === "string"
-    ? JSON.parse(userInfo.value)
-    : userInfo.value;
-const organisationId = parsedUserInfo?.customerInfo?.organisationId;
-// methods
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
+    const fetchCompanies = async (page = 1) => {
+      loading.value = true;
+      try {
+        const response = await companyStore.fetchCompany(pageSize, page);
+        console.log(response);
 
-  const formattedDate = date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+        if (response && Array.isArray(response.pageItems)) {
+          companies.value = response.pageItems;
+          currentPage.value = response.currentPage || 1;
+          totalPages.value = response.numberOfPages || 1;
+          totalItems.value = response.totalItems || 0;
 
-  const formattedTime = date.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+          // Fetch employee count for each company
+          response.pageItems.forEach((company) =>
+            fetchTotalEmployeeCount(company.id)
+          );
+        } else {
+          console.warn("Unexpected API response structure:", response);
+          companies.value = [];
+        }
+      } catch (error) {
+        console.error("Error fetching companies:", error);
+        companies.value = [];
+      } finally {
+        loading.value = false;
+      }
+    };
 
-  return `${formattedDate} ${formattedTime}`;
-};
-
-const capitalizeName = (name: string) => {
-  if (!name) return "";
-  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-};
-
-const download = () => {
-  confirmType.value = "download";
-  confirmMessage.value.message =
-    "Employee  data will be downloaded to your local storage";
-
-  showConfirm.value = true;
-};
-
-const confirmDownload = async () => {
-  downloading.value = true;
-
-  const response = await request(employeeStore.download(), downloading);
-
-  handleError(response, userStore);
-  const successResponse = handleSuccess(response, showSuccess);
-
-  if (successResponse && typeof successResponse !== "undefined") {
-    // console.log(successResponse.data);
-    // console.log('---')
-    successResponse.message = "Employee data download began successfully";
-    responseData.value.message = successResponse.message;
-
-    // console.log(successResponse.data.data);
-    // console.log('---')
-
-    const link = document.createElement("a");
-    link.setAttribute("href", successResponse.data.data.link);
-
-    link.setAttribute("download", "platoon_employee_record.txt");
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-};
-
-const checkState = (id: any) => {
-  return deleteEmployeesId.value.includes(id) ? true : false;
-};
-const handleEmployee = (id: any) => {
-  if (deleteEmployeesId.value.includes(id)) {
-    deleteEmployeesId.value = deleteEmployeesId.value.filter((value: any) => {
-      return value !== id;
+    // Compute filtered companies
+    const filteredCompanies = computed(() => {
+      return (companies.value || []).filter((company) => {
+        if (filterType.value === "active") return company.isActive;
+        if (filterType.value === "inactive") return !company.isActive;
+        return true; // 'all' case
+      });
     });
-  } else {
-    deleteEmployeesId.value.push(id);
-  }
-};
-const addAllEmployeeForDelete = () => {
-  if (deleteEmployeesId.value[0]) {
-    deleteEmployeesId.value.length = 0;
-  } else {
-    responseData.value.data.forEach((value: any) => {
-      deleteEmployeesId.value.push(value.id);
-    });
-  }
-};
-const fetchEmployeeByDepartment = async () => {
-  loading.value = true;
-  const response = await request(
-    employeeStore.employeesInDepartment(data.value.department),
-    loading
-  );
 
-  handleError(response, userStore);
-  const successResponse = handleSuccess(response);
+    const formatDate = (dateString) => {
+      if (!dateString) return "N/A";
+      const date = new Date(dateString);
+      return date.toLocaleDateString();
+    };
 
-  if (successResponse && typeof successResponse !== "undefined") {
-    responseData.value.data.length = 0;
-    responseData.value.data = successResponse.data.data;
-    // console.log(successResponse.data);
-  }
-  data.value.department = "";
-};
-const fetchEmployees = async (page = 1) => {
-  loading.value = true;
+    const isEmpty = computed(() => filteredCompanies.value.length === 0);
 
-  // console.log("fetching employeee");
-  const totalEmployeeCached = cache("total_employees");
-  console.log("##########", totalEmployeeCached);
-
-  if (typeof totalEmployeeCached !== "undefined") {
-    loading.value = false;
-    responseData.value.data = totalEmployeeCached;
-  }
-  console.log("ertyuio", responseData.value.data);
-  const response = await request(
-    employeeStore.index(organisationId, 10, page),
-    loading
-  );
-  // console.log(loading.value);
-
-  const successResponse = handleSuccess(response);
-
-  if (successResponse && typeof successResponse !== "undefined") {
-    cache("total_employees", successResponse.data.data.pageItems);
-    responseData.value.data = successResponse.data.data.pageItems;
-    currentPage.value = successResponse.data.data.currentPage;
-    totalPages.value = successResponse.data.data.numberOfPages;
-    totalItems.value = successResponse.data.data.pageSize * totalPages.value;
-    // console.log(successResponse.data);
-  }
-};
-
-const deleteManyEmployees = async () => {
-  if (deleteEmployeesId.value[0]) {
-    deleting.value = true;
-
-    const response = await request(
-      employeeStore.deleteMany(deleteEmployeesId.value),
-      deleting
+    const startItem = computed(() => (currentPage.value - 1) * pageSize + 1);
+    const endItem = computed(() =>
+      Math.min(currentPage.value * pageSize, totalItems.value)
     );
 
-    handleError(response, userStore);
-    const successResponse = handleSuccess(response, showSuccess);
+    const goToPage = (page) => {
+      if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page;
+        fetchCompanies(currentPage.value);
+      }
+    };
 
-    if (successResponse && typeof successResponse !== "undefined") {
-      responseData.value.data = responseData.value.data.filter((data: any) => {
-        return !deleteEmployeesId.value.includes(data.id) && data.id;
-      });
-      responseData.value.message = "Employee(s) deleted succesfully";
-      deleteEmployeesId.value.length = 0;
-      render.value = true;
-    }
-  }
-};
+    const toggleFilterDropdown = () => {
+      showFilterDropdown.value = !showFilterDropdown.value;
+    };
 
-const getDepartments = async (page = 1) => {
-  const cachedData = cache("departments");
+    const setFilterType = (type) => {
+      filterType.value = type;
+      showFilterDropdown.value = false;
+      fetchCompanies(currentPage.value);
+    };
 
-  if (typeof cachedData !== "undefined" && cachedData.length) {
-    departmentValues.value = cachedData;
-  }
+    const fetchTotalEmployeeCount = async (organisationId) => {
+      try {
+        const response = await employeeStore.getEmployeeCount(
+          Number(organisationId)
+        );
+        if (response?.data) {
+          totalEmployeeCount.value[organisationId] = response.data.data;
+        }
+      } catch (error) {
+        console.error(
+          `Failed to fetch employee count for company ${organisationId}:`,
+          error
+        );
+      }
+    };
 
-  const response = await request(groupStore.index(organisationId, 10, page));
+    onMounted(() => {
+      fetchCompanies(currentPage.value);
+    });
 
-  // handleError(response, userStore);
-  const successResponse = handleSuccess(response);
-  // console.log('----gg');
-
-  if (successResponse && typeof successResponse !== "undefined") {
-    // console.log(successResponse.data);
-
-    departmentValues.value = successResponse.data.data.pageItems;
-
-    cache("departments", successResponse.data.data.pageItems);
-    // console.log(departmentValues.value);
-    // console.log('+++++');
-  } else {
-    emit("emptyDepartment", false);
-    departmentValues.value = "You do not have any departments at the moment";
-  }
-};
-
-getDepartments();
-
-// const deleteEmployee = async (id: any) => {
-//   deleting.value = true;
-
-//   const response = await request(employeeStore.delete(id), deleting);
-
-//   handleError(response, userStore);
-//   const successResponse = handleSuccess(response, showSuccess);
-
-//   if (successResponse && typeof successResponse !== "undefined") {
-//     responseData.value.data = responseData.value.data.filter((data: any) => {
-//       return data.id !== id;
-//     });
-//   }
-//   deleteEmployeeId.value = null;
-// };
-
-const confirmRemoveEmployees = () => {
-  confirmType.value = "delete";
-  confirmMessage.value.message = `Do you really  want to delete multiple employees(${deleteEmployeesId.value.length})?  `;
-  showConfirm.value = true;
-};
-
-const openEmployee = () => {
-  if (departmentValues.value && departmentValues.value.length) {
-    departmentState.value = true;
-    emit("showInviteEmployee");
-  } else {
-    departmentState.value = false;
-  }
-};
-
-fetchEmployees(currentPage.value);
-const updatePage = (page: number) => {
-  fetchEmployees(page);
-};
-
-// emit
-// const emit = defineEmits<{ (e: "refetchInvite"): void }>();
-
-// watchers
-watch(showDepartment, (newValue, oldValue) => {
-  if (newValue !== oldValue && data.value.department != "") {
-    fetchEmployeeByDepartment();
-  }
+    return {
+      loading,
+      formatDate,
+      isEmpty,
+      currentPage,
+      totalPages,
+      totalItems,
+      startItem,
+      endItem,
+      goToPage,
+      filteredCompanies,
+      setFilterType,
+      toggleFilterDropdown,
+      showFilterDropdown,
+      filterType,
+      router,
+      totalEmployeeCount,
+    };
+  },
 });
 </script>
+
 <template>
-  <!-- Table -->
   <div
-    class="bg-white rounded-t-lg divide-y divide-grey-200 overflow-auto scrollbar-hide w-full"
+    class="p-8 flex flex-col gap-8 rounded-t-lg overflow-auto scrollbar-hide w-full"
   >
-    <confirmAlert
-      :showConfirm="showConfirm"
-      @closeConfirm="showConfirm = false"
-      v-if="showConfirm == true"
-    >
-      <template #title> Delete</template>
-      <!-- <template #confirm>
-        <span
-          @click="
-            [
-              confirmType === 'delete'
-                ? deleteManyEmployees()
-                : confirmDownload(),
-              (showConfirm = false),
-            ]
-          "
+    <div class="bg-greey flex justify-between flex-col">
+      <p class="font-bold text-2xl">Companies</p>
+
+      <!-- Filter Button -->
+    </div>
+
+    <!-- Loader -->
+    <div v-if="loading" class="flex justify-center items-center py-8">
+      <div
+        class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"
+      ></div>
+    </div>
+
+    <!-- Empty State -->
+    <EmptyState v-else-if="isEmpty">
+      <template #icon>
+        <IUserThree />
+      </template>
+      <template #heading> Companies </template>
+      <template #desc> No company available </template>
+    </EmptyState>
+
+    <!-- Company Table -->
+    <div v-else class="py-6 bg-white rounded-t-xl flex flex-col">
+      <div class="relative border-b border-grey-200 pb-4">
+        <button
+          class="flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-[#306651]"
+          @click="toggleFilterDropdown"
         >
-          CONFIRM</span
-        ></template -->
-      >
-      <template #message> {{ confirmMessage.message }}</template>
-    </confirmAlert>
+          <span>
+            {{
+              filterType === "all"
+                ? "All Companies"
+                : filterType === "active"
+                ? "Active Companies"
+                : "Inactive Companies"
+            }}
+          </span>
+          <ICaretUpDown class="w-4 h-4" />
+        </button>
 
-    <successAlert
-      :showSuccess="showSuccess"
-      @closeSuccess="showSuccess = false"
-      v-if="showSuccess == true"
-    >
-      <template #otherMessage>CLOSE</template>
-      {{ responseData.message }}</successAlert
-    >
-
-    <spinner
-      v-if="loading == true"
-      class="flex justify-center items-center lg:h-[400px] h-[300px]"
-    />
-
-    <div v-else class="p-8 bg-transparent">
-      <div>
-        <p class="font-bold text-2xl">Companies</p>
-      </div>
-
-      <div class="flex items-center justify-between w-full">
-        <div class="flex items-center space-x-6 p-6 flex-shrink-0">
-          <!-- <div class="flex items-center space-x-2 cursor-pointer">
-            <span class="text-sm text-black-200 flex" @click="fetchEmployees"
-              >All Employees</span
-            >
-            <span>
-              <ICaretUpDown />
-            </span>
-          </div> -->
-          <!--  -->
-          <div class="flex relative items-center space-x-2 cursor-pointer">
-            <span
-              @click="showDepartment = !showDepartment"
-              class="text-sm text-[#306651]"
-              >{{
-                departmentName === "" ? "Active Companies" : departmentName
-              }}</span
-            >
-            <span>
-              <ICaretUpDown @click="showDepartment = !showDepartment" />
-            </span>
-
-            <div
-              class="absolute z-50 max-h-56 right-0 shadow-lg scrollbar-hide overflow-auto top-5 w-full"
-              v-if="showDepartment == true"
-            >
-              <div>
-                <component :is="Departments"></component>
-              </div>
-            </div>
-          </div>
-          <!--  -->
-          <!-- <div class="relative cursor-pointer">
-            <div class="flex items-center space-x-2">
-              <span
-                class="text-sm text-black-200"
-                @click="openCalender = !openCalender"
-                >Sort by Date</span
-              >
-              <span>
-                <ICaretUpDown />
-              </span>
-            </div>
-            <CalenderInterface
-              v-if="openCalender == true"
-              class="absolute top-[30px] w-full"
-            />
-          </div> -->
-        </div>
-
-        <!-- buttons -->
-      </div>
-      <!--  -->
-
-      <div class="py-6">
-        <div class="align-middle inline-block min-w-full">
-          <fieldset class="overflow-hidden sm:rounded-lg">
-            <table class="min-w-full table-fixed">
-              <thead
-                class="text-black-200 text-sm text-left"
-                v-if="responseData && responseData.data[0]"
-              >
-                <tr>
-                  <th
-                    scope="col"
-                    class="py-4 font-normal text-left flex items-center space-x-3 flex-shrink-0"
-                  >
-                    <!-- <CheckBox customClasses="indeterminate-check" /> -->
-
-                    <div class="space-x-2 flex items-center">
-                      <span>
-                        <FCheckBoxComp
-                          :value="
-                            deleteEmployeesId.length ===
-                            responseData.data.length
-                              ? true
-                              : false
-                          "
-                          name="employees"
-                          @click="addAllEmployeeForDelete()"
-                      /></span>
-
-                      <span>Name</span>
-                    </div>
-                  </th>
-                  <th scope=" col" class="py-4 font-normal text-left">
-                    Date added
-                  </th>
-                  <th scope="col" class="py-4 font-normal text-left">
-                    No of employees
-                  </th>
-                  <th scope="col" class="py-4 font-normal text-left">Admin.</th>
-                  <th scope="col" class="py-4 font-normal text-left">Action</th>
-                </tr>
-              </thead>
-              <tbody
-                class="bg-white divide-y divide-grey-200"
-                v-if="responseData && responseData.data[0]"
-              >
-                <tr
-                  v-for="user in responseData.data"
-                  :key="user.id"
-                  class="text-black-100"
-                >
-                  <td
-                    class="py-4 whitespace-nowrap flex items-center space-x-3 flex-shrink-0"
-                  >
-                    <FCheckBoxComp
-                      :value="checkState(user.id)"
-                      @click="handleEmployee(user.id)"
-                    />
-                    <div class="font-normal text-left flex flex-col">
-                      <span class="text-sm font-semimedium">{{
-                        user.department && user.department !== null
-                          ? user.department.departmentName
-                          : "---"
-                      }}</span>
-                      <span class="text-xs text-gray-rgba-3">{{
-                        user.department && user.department !== null
-                          ? user.department.supportingName
-                          : "---"
-                      }}</span>
-                    </div>
-                  </td>
-                  <td class="py-4 whitespace-nowrap">
-                    <div class="text-left flex flex-col">
-                      <span class="text-sm font-semimedium">{{
-                        formatDate(user.createdAt)
-                      }}</span>
-                      <span class="text-xs text-green">{{
-                        user.isActive ? "Active" : "Inactive"
-                      }}</span>
-                    </div>
-                  </td>
-                  <td class="py-4 whitespace-nowrap">
-                    <div class="font-normal text-left flex flex-col">
-                      <!-- <span class="text-sm font-semimedium">{{
-                        user.phone.number ? user.phone.number : ""
-                      }}</span> -->
-                      <span class="text-sm font-semimedium"> 0 </span>
-                      <!-- <span class="text-xs text-gray-rgba-3">Mobile</span> -->
-                    </div>
-                  </td>
-
-                  <td class="py-4 w-[25%]">
-                    <div class="flex items-center space-x-3 flex-shrink-0">
-                      <div class="flex flex-col">
-                        <span class="text-sm font-semimedium"
-                          >{{ capitalizeName(user.firstName) }}
-                          {{ capitalizeName(user.lastName) }}</span
-                        >
-                        <span class="text-xs text-gray-rgba-3 flex">{{
-                          user.email
-                        }}</span>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td class="py-4 text-left whitespace-nowrap w-[18%]">
-                    <div class="flex items-center justify-between">
-                      <button
-                        @click="
-                          router.push(
-                            '/dashboard/company-settings/company-information'
-                          )
-                        "
-                        class="text-[#003b3d] bg-red-light text-sm text-bold px-4+1 py-2 rounded-full"
-                      >
-                        View Company
-                      </button>
-                      <button>
-                        <IMenuVertical />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-              <!-- empty state below -->
-              <tbody v-else class="w-full">
-                <tr class="w-full no-hover">
-                  <EmptyState>
-                    <template #icon>
-                      <IUserThree />
-                    </template>
-                    <template #heading> Employees </template>
-                    <template #desc>
-                      All employees will be displayed here. Click on the “invite
-                      employee” <br />
-                      to start managing employees
-                    </template>
-                    <template #actions>
-                      <button
-                        v-if="departmentState"
-                        @click="openEmployee()"
-                        class="bg-[#003b3d] text-white px-4+1 py-2.5+1 rounded-full text-sm"
-                      >
-                        + Invite Employees
-                      </button>
-                      <button
-                        v-else
-                        @click="
-                          router.push({
-                            name: 'dashboard.employees.departments',
-                          })
-                        "
-                        class="bg-[#4a7e6a]/70 text-white px-4+1 py-2.5+1 rounded-full text-sm capitalize"
-                      >
-                        Your department is empty, please create new department.
-                      </button>
-                    </template>
-                  </EmptyState>
-                </tr>
-              </tbody>
-            </table>
-          </fieldset>
-        </div>
-        <!-- Pagination -->
-
-        <!-- <div
-          v-if="responseData && responseData.data[0]"
-          class="px-6 mt-8 hidden items-center justify-between whitespace-nowrap lg:space-x-0 space-x-3"
+        <!-- Dropdown Menu -->
+        <div
+          v-if="showFilterDropdown"
+          class="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10"
         >
-          <span class="opacity-50 text-sm font-semimedium"
-            >Showing 1-6 of 30 items</span
+          <button
+            class="w-full text-left px-4 py-2 hover:bg-gray-100"
+            @click="setFilterType('all')"
           >
+            All Companies
+          </button>
+          <button
+            class="w-full text-left px-4 py-2 hover:bg-gray-100"
+            @click="setFilterType('active')"
+          >
+            Active Companies
+          </button>
+          <button
+            class="w-full text-left px-4 py-2 hover:bg-gray-100"
+            @click="setFilterType('inactive')"
+          >
+            Inactive Companies
+          </button>
+        </div>
+      </div>
 
-          <div class="flex items-center space-x-2">
-            <span
-              class="text-white bg-[#003b3d] text-sm font-semibold w-8 h-8 flex items-center justify-center rounded-full"
-              >1</span
-            >
-            <span
-              class="text-sm w-8 h-8 flex items-center justify-center rounded-full border opacity-50"
-              >2</span
-            >
-            <span
-              class="text-sm w-8 h-8 flex items-center justify-center rounded-full border opacity-50"
-              >3</span
-            >
-          </div>
-        </div> -->
-        <Pagination
-          :currentPage="currentPage"
-          :totalPages="totalPages"
-          :pageSize="pageSize"
-          :totalItems="totalItems"
-          @updatePage="updatePage"
-        />
+      <div class="align-middle inline-block min-w-full overflow-x-auto">
+        <div class="overflow-hidden sm:rounded-lg">
+          <table class="min-w-full border-collapse">
+            <thead class="text-black-200 text-sm text-left">
+              <tr>
+                <th scope="col" class="py-3 px-4 text-left font-medium">
+                  Name
+                </th>
+                <th scope="col" class="py-3 text-left font-medium">
+                  Date Added
+                </th>
+                <th scope="col" class="py-3 text-center font-medium">
+                  No of Employees
+                </th>
+                <th scope="col" class="py-3 text-left font-medium">Admin</th>
+                <th scope="col" class="py-3 text-left font-medium">Action</th>
+              </tr>
+            </thead>
+
+            <tbody class="bg-white divide-y divide-grey-200">
+              <tr
+                v-for="company in filteredCompanies"
+                :key="company.id"
+                class="text-black-100"
+              >
+                <td class="py-4 whitespace-nowrap">
+                  <span class="text-sm font-semimedium">{{
+                    company.name
+                  }}</span>
+                </td>
+                <td class="py-4 whitespace-nowrap">
+                  <div class="text-left flex flex-col">
+                    <span class="text-sm font-semimedium">
+                      {{ formatDate(company.dateAdded) }}
+                    </span>
+                    <span class="text-xs text-green">{{
+                      company.isActive ? "Active" : "Inactive"
+                    }}</span>
+                  </div>
+                </td>
+                <td class="py-4 whitespace-nowrap">
+                  <div class="font-normal text-center flex flex-col">
+                    <span class="text-sm font-semimedium">
+                      {{ totalEmployeeCount[company.id] ?? 0 }}
+                    </span>
+                  </div>
+                </td>
+                <td class="py-4 w-[25%]">
+                  <div class="flex items-center space-x-3 flex-shrink-0">
+                    <div class="flex flex-col">
+                      <span class="text-sm font-semimedium">
+                        {{ company.admin?.firstname || "--" }}
+                        {{ company.admin?.lastname || "--" }}
+                      </span>
+                      <span class="text-xs text-gray-rgba-3 flex">
+                        {{ company.admin?.email || "N/A" }}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 text-left whitespace-nowrap w-[18%]">
+                  <div class="flex items-center justify-between">
+                    <button
+                      @click="
+                        router.push(
+                          `/dashboard/company-settings/${company.id}/company-information`
+                        )
+                      "
+                      class="text-[#003b3d] bg-red-light text-sm text-bold px-4+1 py-2 rounded-full"
+                    >
+                      View Company
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="px-6 mt-12 flex items-center justify-between">
+        <span class="opacity-50 text-sm font-semimedium">
+          Showing {{ startItem }}-{{ endItem }} of {{ totalItems }} items
+        </span>
+
+        <div class="flex items-center space-x-2">
+          <button
+            v-for="page in totalPages"
+            :key="page"
+            @click="goToPage(page)"
+            :class="{
+              'text-white bg-[#003b3d] text-sm font-semibold w-8 h-8 flex items-center justify-center rounded-full':
+                currentPage === page,
+              'text-sm w-8 h-8 flex items-center justify-center rounded-full border opacity-50':
+                currentPage !== page,
+            }"
+          >
+            {{ page }}
+          </button>
+        </div>
       </div>
     </div>
   </div>

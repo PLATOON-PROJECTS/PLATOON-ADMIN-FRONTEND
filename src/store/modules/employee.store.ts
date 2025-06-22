@@ -1,20 +1,64 @@
-import { defineStore } from 'pinia';
-import employeeService from '../../service/employee/employee.service';
+import { defineStore } from "pinia";
+import employeeService from "../../service/employee/employee.service";
 import {
   Create,
   Update,
   Bonus,
   Deduction,
-} from '../../service/employee/interface/employee.interface';
-import { Create as InvitationCreateInterface } from '../../service/employee/invitation/interface/invitation.interface';
-import invitationService from '../../service/employee/invitation/invitation.service';
+} from "../../service/employee/interface/employee.interface";
+import { Create as InvitationCreateInterface } from "../../service/employee/invitation/interface/invitation.interface";
+import invitationService from "../../service/employee/invitation/invitation.service";
 interface State {}
-const employeeStore = defineStore('employee', {
+const employeeStore = defineStore("employee", {
   state: (): State => ({}),
   actions: {
-    async index(organisationId: number, pageSize: number, pageNumber: number): Promise<any> {
+    async index(
+      organisationId: number,
+      pageSize: number,
+      pageNumber: number
+    ): Promise<any> {
       try {
-        const response = await employeeService.index(organisationId, pageSize, pageNumber);
+        const response = await employeeService.index(
+          organisationId,
+          pageSize,
+          pageNumber
+        );
+        if (response.data) {
+          return await Promise.resolve(response);
+        } else if (response.response) {
+          return await Promise.reject(response.response);
+        } else {
+          return await Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return await Promise.reject(error);
+      }
+    },
+
+    async getEmployeeById(
+      organisationId: number,
+      employeeId: number
+    ): Promise<any> {
+      try {
+        const response = await employeeService.getEmployeeById(
+          organisationId,
+          employeeId
+        );
+        if (response.data) {
+          return await Promise.resolve(response);
+        } else if (response.response) {
+          return await Promise.reject(response.response);
+        } else {
+          return await Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return await Promise.reject(error);
+      }
+    },
+
+    async getEmployeeCount(organisationId: number): Promise<any> {
+      try {
+        const response = await employeeService.getEmployeeCount(organisationId);
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -45,11 +89,11 @@ const employeeStore = defineStore('employee', {
       try {
         const response = await employeeService.generateCsvTemplate();
         if (response.data) {
-          const blob = new Blob([response.data], { type: 'text/csv' });
+          const blob = new Blob([response.data], { type: "text/csv" });
           const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
+          const link = document.createElement("a");
           link.href = url;
-          link.setAttribute('download', 'Employee_Template.csv');
+          link.setAttribute("download", "Employee_Template.csv");
           document.body.appendChild(link);
           link.click();
           link.remove();
@@ -59,27 +103,31 @@ const employeeStore = defineStore('employee', {
           throw response.message;
         }
       } catch (error: any) {
-        console.error('Error downloading CSV template:', error);
+        console.error("Error downloading CSV template:", error);
       }
-    }, 
+    },
 
-    async importCsvFile(payload: { file: File; organisationId: number }): Promise<any> {
+    async importCsvFile(payload: {
+      file: File;
+      organisationId: number;
+    }): Promise<any> {
       try {
         const formData = new FormData();
-        formData.append('csvfile', payload.file);
-        formData.append('OrganisationId', payload.organisationId.toString()); 
-    
-        const response = await employeeService.uploadCsv(formData);
-        return response; 
-      } catch (error) {
-        console.error('Error importing CSV file:', error);
-        throw error; 
-      }
-    },    
-    async previewCsvFile(data:any): Promise<any> {
+        formData.append("csvfile", payload.file);
+        formData.append("OrganisationId", payload.organisationId.toString());
 
+        const response = await employeeService.uploadCsv(formData);
+        return response;
+      } catch (error) {
+        console.error("Error importing CSV file:", error);
+        throw error;
+      }
+    },
+    async previewCsvFile(data: any): Promise<any> {
       try {
-        const response = await employeeService.previewCsv("data:@file/csv;base64,77u/"+data);
+        const response = await employeeService.previewCsv(
+          "data:@file/csv;base64,77u/" + data
+        );
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -91,10 +139,11 @@ const employeeStore = defineStore('employee', {
         return await Promise.reject(error);
       }
     },
-    async importCsvFilee(data:any): Promise<any> {
-
+    async importCsvFilee(data: any): Promise<any> {
       try {
-        const response = await employeeService.importCsv("data:@file/csv;base64,77u/"+data);
+        const response = await employeeService.importCsv(
+          "data:@file/csv;base64,77u/" + data
+        );
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -266,9 +315,15 @@ const employeeStore = defineStore('employee', {
         return await Promise.reject(error);
       }
     },
-    async deleteEmployee(employeeId: string, organisationId: number): Promise<any> {
+    async deleteEmployee(
+      employeeId: string,
+      organisationId: number
+    ): Promise<any> {
       try {
-        const response = await employeeService.deleteEmployee(employeeId, organisationId);
+        const response = await employeeService.deleteEmployee(
+          employeeId,
+          organisationId
+        );
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -308,7 +363,10 @@ const employeeStore = defineStore('employee', {
         return await Promise.reject(error);
       }
     },
-    async pendingInvitationIndex(pageSize: number, pageNumber: number): Promise<any> {
+    async pendingInvitationIndex(
+      pageSize: number,
+      pageNumber: number
+    ): Promise<any> {
       try {
         const response = await invitationService.allIndex(pageSize, pageNumber);
         if (response.data) {

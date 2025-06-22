@@ -17,7 +17,11 @@ const router = useRouter();
           class="flex justify-between whitespace-nowrap overflow-auto scrollbar-hide lg:space-x-0 space-x-3"
         >
           <div class="flex space-x-4">
-            <IArrowLeftTail />
+            <button
+              @click="router.push('/dashboard/manage-users/access-management')"
+            >
+              <IArrowLeftTail />
+            </button>
             <div class="space-y-1">
               <h3 class="font-bold text-2xl">Approver access</h3>
               <p class="text-black-200 font-semimedium text-sm">

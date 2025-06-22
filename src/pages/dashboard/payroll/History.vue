@@ -97,8 +97,6 @@ const getCurrentMonthPayrollId = () => {
     );
   });
 
-  console.log("ressss:", allPayrolls);
-
   // Return the payroll ID of the first matching payroll or null
   return payrolls.length > 0 ? payrolls[0].payrollId : null;
 };
@@ -131,12 +129,12 @@ const handlePayroll = (id: any) => {
   }
 };
 const addAllPayrollsForDelete = () => {
-  if (deletePayrollsId.value[0]) {
-    deletePayrollsId.value.length = 0;
+  if (deletePayrollsId.value.length === responseData.value.data.length) {
+    deletePayrollsId.value = []; // Clear selection
   } else {
-    responseData.value.forEach((value: any) => {
-      deletePayrollsId.value.push(value.id);
-    });
+    deletePayrollsId.value = responseData.value.data.map(
+      (pay: { payrollId: any }) => pay.payrollId
+    ); // Select all
   }
 };
 
@@ -246,7 +244,6 @@ const fetchPayroll = async (page = 1) => {
     // @ts-ignore comment above the problematic line
     // const sorted = responseData.value.sort(function(a, b){return b.id - a.id})
     // console.log(responseData.value, sorted);
-    console.log("********", responseData.value.data);
   }
 };
 // fetchPayroll();
@@ -283,13 +280,11 @@ const fetchAllPayrolls = async () => {
     }
   } while (page <= totalPages);
 
-  console.log("Total Payrolls Fetched:", allPayrolls.length);
   responseDataa.value.data = allPayrolls;
   loading.value = false;
 
   // Call the function here after fetching all payrolls
   const payrollId = getCurrentMonthPayrollId();
-  console.log("Payroll ID:", payrollId);
 };
 
 // const navigateToCreateNew = () => {
@@ -344,11 +339,13 @@ const fetchAllPayrolls = async () => {
           <div class="flex space-x-6">
             <div class="relative cursor-pointer">
               <div class="flex space-x-2 text-blue">
-                <span
+                <button
                   @click="sortByMonth()"
                   class="text-sm pt-1 font-semimedium whitespace-nowrap"
-                  >Filter by Date</span
                 >
+                  Filter by Date
+                </button>
+
                 <span class="pt-2">
                   <IIncDecBlue />
                 </span>
@@ -402,11 +399,8 @@ const fetchAllPayrolls = async () => {
               <span class="pt-2">
                 <FCheckBoxComp
                   :value="
-                    responseData &&
-                    responseData.data &&
-                    deletePayrollsId.length === responseData.length
-                      ? true
-                      : false
+                    deletePayrollsId.length === responseData.data.length &&
+                    responseData.data.length > 0
                   "
                   name="payrolls"
                   @click="addAllPayrollsForDelete()"
@@ -416,6 +410,7 @@ const fetchAllPayrolls = async () => {
                 >Select All</span
               >
             </div>
+
             <div class="align-middle inline-block min-w-full">
               <div class="overflow-hidden sm:rounded-lg">
                 <table class="min-w-full table-fixed">

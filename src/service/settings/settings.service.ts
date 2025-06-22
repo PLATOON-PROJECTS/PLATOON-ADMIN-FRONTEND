@@ -1,14 +1,21 @@
 import { http } from "../../core/utils/http";
 import authHeader from "../../core/utils/auth.header.js";
-import { Axios } from "axios";
-import { Update } from "./interface/settings.interface";
+import axios, { Axios } from "axios";
+import authhHeader from "../../core/utils/authh.header";
 
 class SettingsService {
   constructor(private readonly request: Axios) {}
 
+  private createAxiosInstance() {
+    return axios.create({
+      baseURL: import.meta.env.VITE_PLATOON_BASEURL2,
+      headers: authhHeader(),
+    });
+  }
+
   async index(): Promise<any> {
     return await this.request
-      .get("/settings", {
+      .get("/ProcessingFee/fetch", {
         headers: authHeader(),
       })
       .then((res) => {
@@ -18,20 +25,28 @@ class SettingsService {
         return err;
       });
   }
-  async update(data: Update): Promise<any> {
-    return await this.request
+
+  async update(amount: number): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+    return await customRequest
       .put(
-        "/settings",
-        { ...data },
+        `/ProcessingFee/set/${amount}`,
+        { amount },
         {
           headers: authHeader(),
         }
       )
       .then((res) => {
-        return res;
+        return res.data;
       })
       .catch((err) => {
-        return err;
+        console.error(
+          "Error updating payroll fee:",
+          err.response || err.message || err
+        );
+        return err.response
+          ? err.response.data
+          : { succeeded: false, message: "An error occurred" };
       });
   }
 }

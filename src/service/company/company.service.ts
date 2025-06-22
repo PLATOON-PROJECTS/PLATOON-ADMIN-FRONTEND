@@ -1,14 +1,47 @@
 import { http } from "../../core/utils/http";
 import authHeader from "../../core/utils/auth.header.js";
-import { Axios } from "axios";
+import axios, { Axios } from "axios";
 import { Create, Update } from "./interface/company.interface";
+import authhHeader from "../../core/utils/authh.header";
 
 class Company {
+  [x: string]: any;
   constructor(private readonly request: Axios) {}
 
-  async index(): Promise<any> {
-    return await this.request
-      .get("/companies", {
+  private createAxiosInstance() {
+    return axios.create({
+      baseURL: import.meta.env.VITE_PLATOON_BASEURL, // Set your custom base URL here
+      headers: authhHeader(), // Include any headers you need
+    });
+  }
+
+  async fetchCompany(
+    pageSize: number = 10,
+    pageNumber: number = 1
+  ): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .get(`/Organisation/fetch-all-organisation/${pageSize}/${pageNumber}`, {
+        headers: authHeader(),
+        params: {
+          pageSize: pageSize,
+          pageNumber: pageNumber,
+        },
+      })
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
+
+  async companyCount(): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .get("/Organisation/total-organisation-count", {
         headers: authHeader(),
       })
       .then((res) => {
@@ -18,6 +51,7 @@ class Company {
         return err;
       });
   }
+
   async switch(id: string): Promise<any> {
     return await this.request
       .get(`/companies/${id}/switch`, {
@@ -30,10 +64,15 @@ class Company {
         return err;
       });
   }
-  async show(id: string): Promise<any> {
-    return await this.request
-      .get(`/companies/${id}`, {
+  async companyById(organisationId: number): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .get(`/Organisation/fetch-organisation-by-id`, {
         headers: authHeader(),
+        params: {
+          OrganisationId: organisationId,
+        },
       })
       .then((res) => {
         return res;
@@ -42,6 +81,7 @@ class Company {
         return err;
       });
   }
+
   async create(data: Create): Promise<any> {
     return await this.request
       .post(
@@ -74,9 +114,41 @@ class Company {
         return err;
       });
   }
-  async delete(id: string): Promise<any> {
-    return await this.request
-      .delete(`/companies/${id}`, {
+  async delete(organisationId: string): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .delete(`Organisation/delete/${organisationId}`, {
+        headers: authHeader(),
+      })
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
+
+  async suspend(organisationId: string): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .put(`Organisation/Deactivate/${organisationId}`, {
+        headers: authHeader(),
+      })
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        return err;
+      });
+  }
+
+  async removeSuspension(organisationId: string): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .put(`Organisation/Activate/${organisationId}`, {
         headers: authHeader(),
       })
       .then((res) => {

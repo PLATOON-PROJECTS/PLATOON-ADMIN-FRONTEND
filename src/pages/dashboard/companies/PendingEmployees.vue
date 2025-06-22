@@ -30,14 +30,12 @@ const successMessage = ref("");
 const copied = ref(false);
 const currentPage = ref(1);
 const totalPages = ref(1);
-const pageSize = ref(10);  // Make sure this is set to the page size used in the API
+const pageSize = ref(10); // Make sure this is set to the page size used in the API
 const totalItems = ref(0);
-
 
 // emit
 // const emit = defineEmits<{ (e: "refetchEmployee"): void }>();
-const emit = defineEmits(['refetchEmployee', 'showInviteEmployee']) 
-
+const emit = defineEmits(["refetchEmployee", "showInviteEmployee"]);
 
 // // methods
 // const fetchEmployees = async () => {
@@ -47,7 +45,7 @@ const emit = defineEmits(['refetchEmployee', 'showInviteEmployee'])
 //   // console.log(totalPendingEmployeeCached);
 
 //   if (typeof totalPendingEmployeeCached !== "undefined") {
-    
+
 //     responseData.value.data = totalPendingEmployeeCached;
 //     loading.value = false;
 //   }
@@ -66,7 +64,7 @@ const emit = defineEmits(['refetchEmployee', 'showInviteEmployee'])
 // };
 
 const capitalizeName = (name: string) => {
-  if (!name) return '';
+  if (!name) return "";
   return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 };
 
@@ -77,14 +75,14 @@ const fetchAllEmployees = async (page = 1) => {
   // console.log(totalPendingEmployeeCached);
 
   if (typeof totalPendingEmployeeAllCached !== "undefined") {
-    
     responseData.value.data = totalPendingEmployeeAllCached;
     loading.value = false;
   }
 
-  const response = await request(employeeStore.pendingInvitationIndex(10, page), loading);
-
-  console.log("........",  responseData.value.data);
+  const response = await request(
+    employeeStore.pendingInvitationIndex(10, page),
+    loading
+  );
 
   const successResponse = handleSuccess(response);
 
@@ -92,15 +90,14 @@ const fetchAllEmployees = async (page = 1) => {
     responseData.value.data = successResponse.data.data.pageItems;
     currentPage.value = successResponse.data.data.currentPage;
     totalPages.value = successResponse.data.data.numberOfPages;
-    totalItems.value = successResponse.data.data.pageSize * totalPages.value; 
+    totalItems.value = successResponse.data.data.pageSize * totalPages.value;
     cache("total_pending_all_employees", successResponse.data.data.pageItems);
-    console.log("Pending TABLE",successResponse.data);
   }
 };
 fetchAllEmployees(currentPage.value);
 const updatePage = (page: number) => {
   fetchAllEmployees(page);
-}
+};
 // fetchEmployees();
 
 const removeEmployee = async (id: string) => {
@@ -126,14 +123,10 @@ const confirmRemoveEmployee = (id: string) => {
   showConfirm.value = true;
 };
 
-const copyLink = (link:string) => {
+const copyLink = (link: string) => {
   copied.value = true;
-  navigator.clipboard.writeText(
-    link
-      ? link
-      : ''
-  );
-}
+  navigator.clipboard.writeText(link ? link : "");
+};
 </script>
 <template>
   <!-- Table -->
@@ -246,7 +239,8 @@ const copyLink = (link:string) => {
                       <FCheckBoxComp />
                       <div class="flex flex-col">
                         <span class="text-sm font-semimedium"
-                          >{{ capitalizeName(employee.firstName) }} {{ capitalizeName(employee.lastName) }}
+                          >{{ capitalizeName(employee.firstName) }}
+                          {{ capitalizeName(employee.lastName) }}
                         </span>
                         <span class="text-xs text-gray-rgba-3"
                           >{{ employee.email }}
@@ -284,7 +278,9 @@ const copyLink = (link:string) => {
                         employee.department ? employee.department.name : "---"
                       }}</span>
                       <span class="text-xs text-gray-rgba-3">{{
-                        employee.department ? employee.department.supportingName : "---"
+                        employee.department
+                          ? employee.department.supportingName
+                          : "---"
                       }}</span>
                     </div>
                   </td>
@@ -294,18 +290,20 @@ const copyLink = (link:string) => {
                         employee.grade ? employee.grade.name : "---"
                       }}</span>
                       <span class="text-xs text-gray-rgba-3">{{
-                        employee.employmentType ? employee.employmentType : "---"
+                        employee.employmentType
+                          ? employee.employmentType
+                          : "---"
                       }}</span>
                     </div>
                   </td>
                   <td class="py-4 px-0 text-left whitespace-nowrap w-[18%]">
                     <div class="flex items-center justify-between">
                       <button
-                        @click="copyLink(employee.link)" 
+                        @click="copyLink(employee.link)"
                         :disabled="true"
                         class="text-green bg-red-light text-sm text-bold px-4+1 py-2 rounded-full"
                       >
-                        {{ !copied ? 'Copy Invite Link' : 'Copied' }}
+                        {{ !copied ? "Copy Invite Link" : "Copied" }}
                       </button>
                       <button
                         @click="confirmRemoveEmployee(employee.id)"
@@ -373,14 +371,13 @@ const copyLink = (link:string) => {
             >
           </div>
         </div> -->
-        <Pagination 
-        :currentPage="currentPage" 
-        :totalPages="totalPages"
-        :pageSize="pageSize"
-        :totalItems="totalItems"
-        @updatePage="updatePage"
+        <Pagination
+          :currentPage="currentPage"
+          :totalPages="totalPages"
+          :pageSize="pageSize"
+          :totalItems="totalItems"
+          @updatePage="updatePage"
         />
-
       </div>
     </div>
   </div>

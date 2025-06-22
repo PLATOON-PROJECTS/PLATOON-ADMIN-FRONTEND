@@ -39,13 +39,13 @@ const successMessage = ref("");
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
 const currentPage = ref(1);
 const totalPages = ref(1);
-const pageSize = ref(10);  // Make sure this is set to the page size used in the API
+const pageSize = ref(10); // Make sure this is set to the page size used in the API
 const totalItems = ref(0);
 
 // emit
-const emit = defineEmits<{ 
+const emit = defineEmits<{
   (e: "refetchDepartment"): void;
-  (e: "showCreateDepartment"): void;  
+  (e: "showCreateDepartment"): void;
   (e: "updateId", id: string): void;
 }>();
 
@@ -58,12 +58,13 @@ const showOptions = (id: string) => {
     element?.classList.replace("block", "hidden");
   }
 };
-const parsedUserInfo = typeof userInfo.value === 'string' ? JSON.parse(userInfo.value) : userInfo.value;
+const parsedUserInfo =
+  typeof userInfo.value === "string"
+    ? JSON.parse(userInfo.value)
+    : userInfo.value;
 
 // Access the organisationId safely
 const organisationId = parsedUserInfo?.customerInfo?.organisationId;
-
-console.log("Organisation ID:", organisationId);
 
 // const fetchGroups = async () => {
 //   loading.value = true;
@@ -94,43 +95,53 @@ const fetchGroups = async (page = 1) => {
     loading.value = false;
   }
 
-  const response = await request(groupStore.index(organisationId, 10, page), loading);
+  const response = await request(
+    groupStore.index(organisationId, 10, page),
+    loading
+  );
   const successResponse = handleSuccess(response);
 
   if (successResponse && typeof successResponse !== "undefined") {
-
-    responseData.value = successResponse.data; 
+    responseData.value = successResponse.data;
     // responseData.value.data = successResponse.data.data.pageItems;
     currentPage.value = successResponse.data.data.currentPage;
     totalPages.value = successResponse.data.data.numberOfPages;
     totalItems.value = successResponse.data.data.pageSize * totalPages.value;
-    console.log("Updated responseData:", responseData.value);
 
-    await Promise.all(responseData.value.data.pageItems.map(async (department: any) => {
-      const organisationId = department.organisationId;
-      const departmentId = department.id;
+    await Promise.all(
+      responseData.value.data.pageItems.map(async (department: any) => {
+        const organisationId = department.organisationId;
+        const departmentId = department.id;
 
-      try {
-        const employeeCountResponse = await groupStore.fetchEmployeesCount(organisationId, departmentId);
-        const activeEmployeeCountResponse = await groupStore.fetchActiveEmployeesCount(organisationId, departmentId);
+        try {
+          const employeeCountResponse = await groupStore.fetchEmployeesCount(
+            organisationId,
+            departmentId
+          );
+          const activeEmployeeCountResponse =
+            await groupStore.fetchActiveEmployeesCount(
+              organisationId,
+              departmentId
+            );
 
-        // Assuming the response has a structure like { data: { count: number } }
-        department.employeeCount = employeeCountResponse.data;
-        department.activeEmployeeCount = activeEmployeeCountResponse.data;
-      } catch (error) {
-        console.error(`Error fetching counts for department ${departmentId}:`, error);
-      }
-    }));
-
-    console.log("Updated department data with employee counts:", responseData.value.data.pageItems);
+          // Assuming the response has a structure like { data: { count: number } }
+          department.employeeCount = employeeCountResponse.data;
+          department.activeEmployeeCount = activeEmployeeCountResponse.data;
+        } catch (error) {
+          console.error(
+            `Error fetching counts for department ${departmentId}:`,
+            error
+          );
+        }
+      })
+    );
   }
 };
-
 
 fetchGroups(currentPage.value);
 const updatePage = (page: number) => {
   fetchGroups(page);
-}
+};
 
 const removeGroup = async () => {
   deleting.value = true;
@@ -304,56 +315,120 @@ const confirmRemoveGroup = () => {
                         <span class="text-sm font-semimedium">
                           {{ department.name }}</span
                         >
-                        <span class="text-xs text-gray-rgba-3">{{department.supportingName}}</span>
+                        <span class="text-xs text-gray-rgba-3">{{
+                          department.supportingName
+                        }}</span>
                       </div>
                     </div>
                   </td>
                   <td class="py-4 whitespace-nowrap">
                     <div class="text-left flex flex-col">
                       <span class="text-sm font-semimedium"></span>
-                      <span class="text-sm font-semimedium">{{ department.employeeCount }}</span>
-                      <span class="text-xs">{{ department.activeEmployeeCount }} active</span>
+                      <span class="text-sm font-semimedium">{{
+                        department.employeeCount
+                      }}</span>
+                      <span class="text-xs"
+                        >{{ department.activeEmployeeCount }} active</span
+                      >
                     </div>
                   </td>
                   <td class="py-4 whitespace-nowrap">
                     <div class="font-normal text-left flex flex-col">
-                      <span :class="department.settings?.tax ? 'text-green bg-green-rgba' : 'text-red bg-red-rgba'" class="text-xs font-semimedium p-1 rounded-full text-center max-w-[60px]">
+                      <span
+                        :class="
+                          department.settings?.tax
+                            ? 'text-green bg-green-rgba'
+                            : 'text-red bg-red-rgba'
+                        "
+                        class="text-xs font-semimedium p-1 rounded-full text-center max-w-[60px]"
+                      >
                         {{ department.settings?.tax ? "Enabled" : "Disabled" }}
                       </span>
                     </div>
                   </td>
                   <td class="py-4 whitespace-nowrap">
                     <div class="font-normal text-left flex flex-col">
-                      <span :class="department.settings?.pension ? 'text-green bg-green-rgba' : 'text-red bg-red-rgba'" class="text-xs font-semimedium p-1 rounded-full text-center max-w-[60px]">
-                        {{ department.settings?.pension ? "Enabled" : "Disabled" }}
+                      <span
+                        :class="
+                          department.settings?.pension
+                            ? 'text-green bg-green-rgba'
+                            : 'text-red bg-red-rgba'
+                        "
+                        class="text-xs font-semimedium p-1 rounded-full text-center max-w-[60px]"
+                      >
+                        {{
+                          department.settings?.pension ? "Enabled" : "Disabled"
+                        }}
                       </span>
                     </div>
                   </td>
                   <td class="py-4 whitespace-nowrap">
                     <div class="font-normal text-left flex flex-col">
-                      <span :class="department.settings?.healthAccess ? 'text-green bg-green-rgba' : 'text-red bg-red-rgba'" class="text-xs font-semimedium p-1 rounded-full text-center max-w-[60px]">
-                        {{ department.settings?.healthAccess ? "Enabled" : "Disabled" }}
+                      <span
+                        :class="
+                          department.settings?.healthAccess
+                            ? 'text-green bg-green-rgba'
+                            : 'text-red bg-red-rgba'
+                        "
+                        class="text-xs font-semimedium p-1 rounded-full text-center max-w-[60px]"
+                      >
+                        {{
+                          department.settings?.healthAccess
+                            ? "Enabled"
+                            : "Disabled"
+                        }}
                       </span>
                     </div>
                   </td>
                   <td class="py-4 whitespace-nowrap">
                     <div class="font-normal text-left flex flex-col">
-                      <span :class="department.settings?.taxRemit ? 'text-green bg-green-rgba' : 'text-red bg-red-rgba'" class="text-xs font-semimedium p-1 rounded-full text-center max-w-[60px]">
-                        {{ department.settings?.taxRemit ? "Enabled" : "Disabled" }}
+                      <span
+                        :class="
+                          department.settings?.taxRemit
+                            ? 'text-green bg-green-rgba'
+                            : 'text-red bg-red-rgba'
+                        "
+                        class="text-xs font-semimedium p-1 rounded-full text-center max-w-[60px]"
+                      >
+                        {{
+                          department.settings?.taxRemit ? "Enabled" : "Disabled"
+                        }}
                       </span>
                     </div>
                   </td>
                   <td class="py-4 whitespace-nowrap">
                     <div class="font-normal text-left flex flex-col">
-                      <span :class="department.settings?.pensionRemit ? 'text-green bg-green-rgba' : 'text-red bg-red-rgba'" class="text-xs font-semimedium p-1 rounded-full text-center max-w-[60px]">
-                        {{ department.settings?.pensionRemit ? "Enabled" : "Disabled" }}
+                      <span
+                        :class="
+                          department.settings?.pensionRemit
+                            ? 'text-green bg-green-rgba'
+                            : 'text-red bg-red-rgba'
+                        "
+                        class="text-xs font-semimedium p-1 rounded-full text-center max-w-[60px]"
+                      >
+                        {{
+                          department.settings?.pensionRemit
+                            ? "Enabled"
+                            : "Disabled"
+                        }}
                       </span>
                     </div>
                   </td>
                   <td class="py-4 whitespace-nowrap">
                     <div class="font-normal text-left flex flex-col">
-                      <span :class="department.settings?.salaryBreakdown ? 'text-green bg-green-rgba' : 'text-red bg-red-rgba'" class="text-xs font-semimedium p-1 rounded-full text-center max-w-[60px]">
-                        {{ department.settings?.salaryBreakdown ? "Enabled" : "Disabled" }}
+                      <span
+                        :class="
+                          department.settings?.salaryBreakdown
+                            ? 'text-green bg-green-rgba'
+                            : 'text-red bg-red-rgba'
+                        "
+                        class="text-xs font-semimedium p-1 rounded-full text-center max-w-[60px]"
+                      >
+                        {{
+                          department.settings?.salaryBreakdown
+                            ? "Enabled"
+                            : "Disabled"
+                        }}
                       </span>
                     </div>
                   </td>
@@ -372,19 +447,18 @@ const confirmRemoveGroup = () => {
                       </button>
 
                       <button
-                          :disabled="true"
-                          @click="
-                              [
-                                $emit('showCreateDepartment'),
-                                $emit('updateId', department.id),
-                                showOptions(department.id + 'options'),
-                              ]
-                            "
+                        :disabled="true"
+                        @click="
+                          [
+                            $emit('showCreateDepartment'),
+                            $emit('updateId', department.id),
+                            showOptions(department.id + 'options'),
+                          ]
+                        "
                         class="text-[#003b3d] bg-red-light text-sm text-bold px-4+1 py-2 rounded-full"
                       >
                         Edit
                       </button>
-
 
                       <!-- <div class="relative w-full space-x-2">
                         <div
@@ -467,12 +541,12 @@ const confirmRemoveGroup = () => {
           </div>
         </div> -->
 
-        <Pagination 
-        :currentPage="currentPage" 
-        :totalPages="totalPages"
-        :pageSize="pageSize"
-        :totalItems="totalItems"
-        @updatePage="updatePage"
+        <Pagination
+          :currentPage="currentPage"
+          :totalPages="totalPages"
+          :pageSize="pageSize"
+          :totalItems="totalItems"
+          @updatePage="updatePage"
         />
       </div>
     </div>

@@ -44,7 +44,12 @@ const openUpdateUser = ref(false);
 const { start, goToStep, finish } = useVOnboarding(wrapper);
 const onboardingSm = useVOnboarding(smWrapper);
 const sideNav = ref<any>();
-const isOnboarded = ref(localStorage.getItem('onBoarded') && JSON.parse(localStorage.getItem('onBoarded') ?? '')?.onboarded == true ? true : false)
+const isOnboarded = ref(
+  localStorage.getItem("onBoarded") &&
+    JSON.parse(localStorage.getItem("onBoarded") ?? "")?.onboarded == true
+    ? true
+    : false
+);
 
 const steps = [
   {
@@ -172,10 +177,9 @@ const forceRerender = async () => {
 
 const logout = async () => {
   try {
-    const response = await request(authStore.logoutUser()); 
+    const response = await request(authStore.logoutUser());
     if (response && response.status === 200) {
-      console.log("Logout successful:", response);
-           window.location.href = "/login";
+      window.location.href = "/login";
     } else {
       console.error("Logout failed:", response);
     }

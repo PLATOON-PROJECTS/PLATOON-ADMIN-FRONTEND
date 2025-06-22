@@ -3,7 +3,10 @@ import { ref, provide, watch, onMounted, nextTick, reactive } from "vue";
 import successAlert from "../../../components/alerts/SuccessAlert.vue";
 import spinner from "../../../components/timer/Spinner.vue";
 
-import { Create, EmployeePayroll } from "../../../service/payroll/interface/payroll.interface";
+import {
+  Create,
+  EmployeePayroll,
+} from "../../../service/payroll/interface/payroll.interface";
 import {
   IIncDec,
   IMenuVertical,
@@ -60,7 +63,7 @@ const employeeId = ref("");
 const employeeAmount = ref(0);
 const dataObj = ref<any>({});
 const responseData = ref<any>({ data: [], message: "" });
-const employeeMap = ref<Record<string, string>>({}); 
+const employeeMap = ref<Record<string, string>>({});
 const successMessage = ref("Action successful");
 const showDropDown = ref(false);
 const grandTotal = ref({
@@ -69,19 +72,22 @@ const grandTotal = ref({
   deductions: 0,
   taxAmount: 0,
   netPay: 0,
-})
+});
 
 const dataObjj = reactive({
-    employees: []
+  employees: [],
 });
 
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
 const currentPage = ref(1);
 const totalPages = ref(1);
-const pageSize = ref(10); 
+const pageSize = ref(10);
 const totalItems = ref(0);
 
-const parsedUserInfo = typeof userInfo.value === 'string' ? JSON.parse(userInfo.value) : userInfo.value;
+const parsedUserInfo =
+  typeof userInfo.value === "string"
+    ? JSON.parse(userInfo.value)
+    : userInfo.value;
 const organisationId = parsedUserInfo?.customerInfo?.organisationId;
 
 // const savingDraft = ref(false);
@@ -132,9 +138,9 @@ provide("employeeMap", employeeMap);
 //   }
 // };
 
-const formatNumber = (number:number) => {
+const formatNumber = (number: number) => {
   return number.toLocaleString();
-}
+};
 const fetchEmployees = async (page = 1) => {
   loading.value = true;
 
@@ -144,41 +150,54 @@ const fetchEmployees = async (page = 1) => {
     responseData.value.data = totalEmployeeCached;
   }
 
-  const response = await request(employeeStore.index(organisationId, 10, page), loading);
+  const response = await request(
+    employeeStore.index(organisationId, 10, page),
+    loading
+  );
   const successResponse = handleSuccess(response);
 
   if (successResponse) {
     const employees = successResponse.data.data.pageItems;
     responseData.value.data = employees;
-    console.log("$$$$$", employees)
 
-    employees.forEach((employee: { firstName: any; lastName: any; id: string | number; }) => {
-      const fullName = `${employee.firstName} ${employee.lastName}`;
-      employeeMap.value[employee.id] = fullName;
-      console.log("", fullName)
-      console.log("Mapped Employee:", employee.id, fullName);
-    });
+    employees.forEach(
+      (employee: { firstName: any; lastName: any; id: string | number }) => {
+        const fullName = `${employee.firstName} ${employee.lastName}`;
+        employeeMap.value[employee.id] = fullName;
+      }
+    );
 
     cache("total_employees", employees);
     currentPage.value = successResponse.data.data.currentPage;
     totalPages.value = successResponse.data.data.numberOfPages;
-    totalItems.value = responseData.value.data.length; 
-    return employees; 
+    totalItems.value = responseData.value.data.length;
+    return employees;
   }
 };
-
 
 const handleSaveAndContinue = async () => {
   saving.value = true;
 
   try {
-    const employeesSalary = responseData.value.data.map((employee: { id: any; bonus: any; deduction: any; taxAmount: any; netPay: any; }) => ({
-      employeeId: employee.id,
-      bonus: JSON.parse(JSON.stringify(employee.bonus || { amount: 0, reason: "" })),
-      deduction: JSON.parse(JSON.stringify(employee.deduction || { amount: 0, reason: "" })),
-      taxAmount: employee.taxAmount || 0,
-      netPay: employee.netPay || 0,
-    }));
+    const employeesSalary = responseData.value.data.map(
+      (employee: {
+        id: any;
+        bonus: any;
+        deduction: any;
+        taxAmount: any;
+        netPay: any;
+      }) => ({
+        employeeId: employee.id,
+        bonus: JSON.parse(
+          JSON.stringify(employee.bonus || { amount: 0, reason: "" })
+        ),
+        deduction: JSON.parse(
+          JSON.stringify(employee.deduction || { amount: 0, reason: "" })
+        ),
+        taxAmount: employee.taxAmount || 0,
+        netPay: employee.netPay || 0,
+      })
+    );
 
     const payload = {
       organisationId,
@@ -187,18 +206,18 @@ const handleSaveAndContinue = async () => {
       scheduledMonth: new Date().toISOString(),
     };
 
-    console.log("Payload being sent:", JSON.stringify(payload));
-
     const response = await payrollStore.createPayroll(payload);
 
     if (response.succeeded) {
-      const payrollId = response.data.payrollId; 
-      console.log("----", payrollId)
-      localStorage.setItem("payrollTableData", JSON.stringify(responseData.value.data));
+      const payrollId = response.data.payrollId;
+      localStorage.setItem(
+        "payrollTableData",
+        JSON.stringify(responseData.value.data)
+      );
       // showSuccess.value = true;
       // successMessage.value = "Payroll created successfully!";
       // router.push({ name: "PreviewNewPayroll", query: { payrollId } });
-      router.push({ name: 'dashboard.payroll.confirm', query: { payrollId } });
+      router.push({ name: "dashboard.payroll.confirm", query: { payrollId } });
     } else {
       throw new Error(response.message);
     }
@@ -220,13 +239,25 @@ const handleSaveToDraft = async () => {
   saving.value = true;
 
   try {
-    const employeesSalary = responseData.value.data.map((employee: { id: any; bonus: any; deduction: any; taxAmount: any; netPay: any; }) => ({
-      employeeId: employee.id,
-      bonus: JSON.parse(JSON.stringify(employee.bonus || { amount: 0, reason: "" })),
-      deduction: JSON.parse(JSON.stringify(employee.deduction || { amount: 0, reason: "" })),
-      taxAmount: employee.taxAmount || 0,
-      netPay: employee.netPay || 0,
-    }));
+    const employeesSalary = responseData.value.data.map(
+      (employee: {
+        id: any;
+        bonus: any;
+        deduction: any;
+        taxAmount: any;
+        netPay: any;
+      }) => ({
+        employeeId: employee.id,
+        bonus: JSON.parse(
+          JSON.stringify(employee.bonus || { amount: 0, reason: "" })
+        ),
+        deduction: JSON.parse(
+          JSON.stringify(employee.deduction || { amount: 0, reason: "" })
+        ),
+        taxAmount: employee.taxAmount || 0,
+        netPay: employee.netPay || 0,
+      })
+    );
 
     const payload = {
       organisationId,
@@ -235,15 +266,15 @@ const handleSaveToDraft = async () => {
       scheduledMonth: new Date().toISOString(),
     };
 
-    console.log("Payload being sent:", JSON.stringify(payload));
-
     const response = await payrollStore.savePayrollToDraft(payload);
 
     if (response.succeeded) {
-      localStorage.setItem("payrollTableData", JSON.stringify(responseData.value.data));
+      localStorage.setItem(
+        "payrollTableData",
+        JSON.stringify(responseData.value.data)
+      );
       showSuccess.value = true;
       successMessage.value = "Payroll saved to draft successfully!";
-      console.log("Paaaay", response);
       // Optionally, show a success message or navigate to another page
     } else {
       throw new Error(response.message);
@@ -255,34 +286,41 @@ const handleSaveToDraft = async () => {
   }
 };
 
-
-const selectedEmployee = ref({ id: null, bonus: 0, deduction: 0, taxAmount: 0, netPay: 0 });
+const selectedEmployee = ref({
+  id: null,
+  bonus: 0,
+  deduction: 0,
+  taxAmount: 0,
+  netPay: 0,
+});
 
 const handleBonusSave = (bonusData: { amount: number; reason: string }) => {
-  console.log("Bonus Data Received:", bonusData);
-  const employee = responseData.value.data.find((e: { id: null }) => e.id === selectedEmployee.value.id);
+  const employee = responseData.value.data.find(
+    (e: { id: null }) => e.id === selectedEmployee.value.id
+  );
   if (employee) {
-    employee.bonus = { ...bonusData }; 
+    employee.bonus = { ...bonusData };
   }
   showBonus.value = false;
 };
 
-const handleDeductionSave = (deductionData: { amount: number; reason: string }) => {
-  console.log("Deduction Data Received:", deductionData);
-  const employee = responseData.value.data.find((e: { id: null }) => e.id === selectedEmployee.value.id);
+const handleDeductionSave = (deductionData: {
+  amount: number;
+  reason: string;
+}) => {
+  const employee = responseData.value.data.find(
+    (e: { id: null }) => e.id === selectedEmployee.value.id
+  );
   if (employee) {
-    employee.deduction = { ...deductionData }; 
-   
+    employee.deduction = { ...deductionData };
   }
   showDeduction.value = false;
 };
 
 const handleTaxSave = (taxData: { amount: number }) => {
-  console.log("Tax Data Received:", taxData);
   const employee = responseData.value.data.find(
     (e: { id: null }) => e.id === selectedEmployee.value.id
   );
-  console.log("Taxxxx:", taxData.amount);
 
   if (employee) {
     employee.taxAmount = taxData.amount;
@@ -291,16 +329,14 @@ const handleTaxSave = (taxData: { amount: number }) => {
 };
 
 const handleNetSave = (netPayData: { amount: number }) => {
-  console.log("NetPay Data Received:", netPayData);
   const employee = responseData.value.data.find(
     (e: { id: null }) => e.id === selectedEmployee.value.id
   );
   if (employee) {
-    employee.netPay = netPayData.amount; 
+    employee.netPay = netPayData.amount;
   }
   showNetPay.value = false;
 };
-
 
 onMounted(() => {
   loadSavedData();
@@ -309,39 +345,39 @@ onMounted(() => {
   }
 });
 // fetchEmployees();
-
-
 </script>
 <template>
-  <div class="bg-white h-full rounded-t-lg py-6 space-y-5 overflow-auto scrollbar-hide">
+  <div
+    class="bg-white h-full rounded-t-lg py-6 space-y-5 overflow-auto scrollbar-hide"
+  >
     <!-- modals -->
     <AddBonus
-    v-if="showBonus"
-    :employeeId="selectedEmployee.id"
-    :employeeAmount="selectedEmployee.bonus"
-    @save_bonus="handleBonusSave"
-    @close_bonus="showBonus = false"
+      v-if="showBonus"
+      :employeeId="selectedEmployee.id"
+      :employeeAmount="selectedEmployee.bonus"
+      @save_bonus="handleBonusSave"
+      @close_bonus="showBonus = false"
     />
     <AddDeduction
-    v-if="showDeduction"
-    :employeeId="selectedEmployee.id"
-    :employeeAmount="selectedEmployee.deduction"
-    @save_deduction="handleDeductionSave"
-    @close_deduction="showDeduction = false"
+      v-if="showDeduction"
+      :employeeId="selectedEmployee.id"
+      :employeeAmount="selectedEmployee.deduction"
+      @save_deduction="handleDeductionSave"
+      @close_deduction="showDeduction = false"
     />
     <AddTax
-    v-if="showTax"
-    :employeeId="selectedEmployee.id"
-    :employeeAmount="selectedEmployee.taxAmount"
-    @save_tax="handleTaxSave"
-    @close_tax="showTax = false"
+      v-if="showTax"
+      :employeeId="selectedEmployee.id"
+      :employeeAmount="selectedEmployee.taxAmount"
+      @save_tax="handleTaxSave"
+      @close_tax="showTax = false"
     />
     <AddNetPay
-    v-if="showNetPay"
-    :employeeId="selectedEmployee.id"
-    :employeeAmount="selectedEmployee.netPay"
-    @save_net="handleNetSave"
-    @close_net="showNetPay = false"
+      v-if="showNetPay"
+      :employeeId="selectedEmployee.id"
+      :employeeAmount="selectedEmployee.netPay"
+      @save_net="handleNetSave"
+      @close_net="showNetPay = false"
     />
     <!-- successAlert -->
     <successAlert
@@ -377,7 +413,9 @@ onMounted(() => {
               @click="showDepartment = !showDepartment"
               class="text-sm pt-1 font-semimedium text-black-200 whitespace-nowrap cursor-pointer"
             >
-              {{ departmentName === "" ? "Sort by Department" : departmentName }}</span
+              {{
+                departmentName === "" ? "Sort by Department" : departmentName
+              }}</span
             >
             <span class="pt-2">
               <IIncDec @click="showDepartment = !showDepartment" />
@@ -407,11 +445,12 @@ onMounted(() => {
             <div class="align-middle inline-block min-w-full">
               <div class="overflow-hidden sm:rounded-lg">
                 <table id="data-table" class="min-w-full table-fixed">
-                  <thead
-                    class="text-black-200 text-sm text-left"
-                  >
+                  <thead class="text-black-200 text-sm text-left">
                     <tr>
-                      <th scope="col" class="py-4 text-left flex items-center space-x-3">
+                      <th
+                        scope="col"
+                        class="py-4 text-left flex items-center space-x-3"
+                      >
                         <span> Name </span>
                       </th>
                       <th scope="col" class="py-4 text-left whitespace-nowrap">
@@ -433,22 +472,32 @@ onMounted(() => {
                   </thead>
                   <tbody class="bg-white divide-y divide-grey-200">
                     <tr
-                      v-for="(employee, index) in responseData && responseData.data"
+                      v-for="(employee, index) in responseData &&
+                      responseData.data"
                       :key="employee.id"
                       class="text-black-100"
                     >
                       <td class="py-4 whitespace-nowrap">
                         <div class="flex items-center space-x-3">
                           <div class="flex flex-col">
-                            <span class="text-sm font-semimedium">{{ employee.firstName }} {{ employee.lastName }}</span>
-                            <span class="text-xs text-gray-rgba-3">₦{{ employee.grades.grossPay }}/yr</span>
+                            <span class="text-sm font-semimedium"
+                              >{{ employee.firstName }}
+                              {{ employee.lastName }}</span
+                            >
+                            <span class="text-xs text-gray-rgba-3"
+                              >₦{{ employee.grades.grossPay }}/yr</span
+                            >
                           </div>
                         </div>
                       </td>
                       <td class="py-4 whitespace-nowrap">
                         <div class="text-left flex flex-col">
-                          <span class="text-sm font-semimedium"> ₦{{ employee.grades.grossPay }}  </span>
-                          <span class="text-xs text-gray-rgba-3">Direct deposit</span>
+                          <span class="text-sm font-semimedium">
+                            ₦{{ employee.grades.grossPay }}
+                          </span>
+                          <span class="text-xs text-gray-rgba-3"
+                            >Direct deposit</span
+                          >
                         </div>
                       </td>
                       <td class="py-4 whitespace-nowrap">
@@ -465,11 +514,13 @@ onMounted(() => {
                             <span class="text-sm font-semimedium">
                               ₦{{ employee.bonus ? employee.bonus.amount : 0 }}
                             </span>
-                            <span class="text-xs text-gray-rgba-3">Commisions</span>
+                            <span class="text-xs text-gray-rgba-3"
+                              >Commisions</span
+                            >
                           </div>
                         </div>
                       </td>
-                    
+
                       <td class="py-4 flex whitespace-nowrap">
                         <div class="flex space-x-2">
                           <ITablePencil
@@ -482,9 +533,15 @@ onMounted(() => {
                           />
                           <div class="font-normal text-left flex flex-col">
                             <span class="text-sm font-semimedium">
-                              ₦{{ employee.deduction ? employee.deduction.amount : 0 }}
+                              ₦{{
+                                employee.deduction
+                                  ? employee.deduction.amount
+                                  : 0
+                              }}
                             </span>
-                            <span class="text-xs text-gray-rgba-3">Pensions, Health</span>
+                            <span class="text-xs text-gray-rgba-3"
+                              >Pensions, Health</span
+                            >
                           </div>
                         </div>
                       </td>
@@ -497,16 +554,18 @@ onMounted(() => {
                                 (selectedEmployee.id = employee.id),
                               ]
                             "
-                            />
+                          />
                           <div class="font-normal flex flex-col">
-                            <span class="text-sm font-semimedium">  ₦{{ employee.taxAmount || 0 }} </span>
+                            <span class="text-sm font-semimedium">
+                              ₦{{ employee.taxAmount || 0 }}
+                            </span>
                             <span class="text-xs text-gray-rgba-3">LAGIT</span>
                           </div>
                         </div>
                       </td>
                       <td class="py-4 text-left whitespace-nowrap">
                         <div class="flex space-x-2">
-                          <ITablePencil 
+                          <ITablePencil
                             @click="
                               [
                                 (showNetPay = true),
@@ -516,8 +575,12 @@ onMounted(() => {
                           />
                           <div class="flex w-full justify-between">
                             <div class="text-left flex flex-col">
-                              <span class="text-sm font-semimedium"> ₦{{ employee.netPay || 0 }} </span>
-                              <span class="text-xs text-gray-rgba-3">Direct deposit</span>
+                              <span class="text-sm font-semimedium">
+                                ₦{{ employee.netPay || 0 }}
+                              </span>
+                              <span class="text-xs text-gray-rgba-3"
+                                >Direct deposit</span
+                              >
                             </div>
                           </div>
                         </div>

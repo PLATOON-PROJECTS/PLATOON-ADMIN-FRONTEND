@@ -21,7 +21,6 @@ const manageUser = ref<any>();
 // };
 
 const fetchUsers = () => {
-  console.log("Fetch users method called");
   if (manageUser.value && typeof manageUser.value.fetchUsers === "function") {
     manageUser.value.fetchUsers();
   } else {

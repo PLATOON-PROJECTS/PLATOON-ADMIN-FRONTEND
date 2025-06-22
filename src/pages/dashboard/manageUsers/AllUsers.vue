@@ -35,6 +35,7 @@ const showConfirm = ref(false);
 const loading = ref(false);
 const responseData = ref<any>({ data: [], message: "" });
 const successMessage = ref("Action successful");
+const render = inject<any>("render");
 
 // methods
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
@@ -62,6 +63,8 @@ const fetchUsers = async (page: number) => {
       pageSize.value,
       page
     );
+    console.log(response);
+
     if (response.data) {
       console.log("========", response.data.data.pageItems);
       responseData.value.data = response.data.data.pageItems;
@@ -83,20 +86,23 @@ const removeUser = async (id: string) => {
   try {
     const response = await userStore.deleteUser(id);
     if (response) {
-      responseData.value = responseData.value.filter(
+      console.log("Delete User Response:", response);
+      responseData.value.data = responseData.value.data.filter(
         (data: any) => data.id !== id
       );
+      showSuccess.value = true;
       successMessage.value = `User was successfully deleted`;
+      render.value = true;
     }
   } catch (error) {
-    handleError(error, "Error deleting user");
+    console.error(error, "Error deleting user");
   } finally {
     loading.value = false;
   }
 };
 
 const confirmRemoveUser = (id: string) => {
-  confirmMessage.value.message = `Do you really want to delete this user `;
+  confirmMessage.value.message = `Do you really want to delete this user?`;
   confirmMessage.value.id = id;
   showConfirm.value = true;
 };

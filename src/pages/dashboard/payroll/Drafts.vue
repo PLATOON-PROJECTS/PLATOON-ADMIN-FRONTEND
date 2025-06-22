@@ -15,7 +15,7 @@ import { request } from "../../../composables/request.composable";
 import handleError from "../../../composables/handle_error.composable";
 import handleSuccess from "../../../composables/handle_success.composable";
 import { usePayrollStore, useUserStore } from "../../../store/index";
-import {currency} from '../../../core/utils/currencyType'
+import { currency } from "../../../core/utils/currencyType";
 import { getItem } from "../../../core/utils/storage.helper";
 import Pagination from "../../../components/Pagination.vue";
 
@@ -29,7 +29,7 @@ const userStore = useUserStore();
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
 const currentPage = ref(1);
 const totalPages = ref(1);
-const pageSize = ref(10); 
+const pageSize = ref(10);
 const totalItems = ref(0);
 const departmentName = ref("");
 const deleteDraftsId = ref<number[]>([]);
@@ -53,9 +53,11 @@ const group = ref();
 //   employees: [],
 // });
 
-const parsedUserInfo = typeof userInfo.value === 'string' ? JSON.parse(userInfo.value) : userInfo.value;
+const parsedUserInfo =
+  typeof userInfo.value === "string"
+    ? JSON.parse(userInfo.value)
+    : userInfo.value;
 const organisationId = parsedUserInfo?.customerInfo?.organisationId;
-
 
 const responseData = ref<any>({
   data: [],
@@ -103,7 +105,6 @@ const addAllDraftsForDelete = () => {
 //     handleError(response, userStore);
 //     const successResponse = handleSuccess(response, showSuccess);
 //     showSuccess.value=true
-   
 
 //     if (successResponse && typeof successResponse !== "undefined") {
 //       responseData.value.data = responseData.value.data.filter((data: any) => {
@@ -118,28 +119,30 @@ const addAllDraftsForDelete = () => {
 
 const deleteSingleDraftedPayroll = async () => {
   if (deleteDraftsId.value[0]) {
-  deleting.value = true;
-  try {
-    const response = await payrollStore.deleteDraftedPayroll(deleteDraftsId.value[0]);
-    if (response.succeeded) {
-      console.log("OOOO", response)
-      showSuccess.value = true;
-      successMessage.value = "Drafted payroll deleted successfully.";
-      responseData.value.data = responseData.value.data.filter((data: any) => {
-          return !deleteDraftsId.value.includes(data.id) && data.id;
-        });
+    deleting.value = true;
+    try {
+      const response = await payrollStore.deleteDraftedPayroll(
+        deleteDraftsId.value[0]
+      );
+      if (response.succeeded) {
+        showSuccess.value = true;
+        successMessage.value = "Drafted payroll deleted successfully.";
+        responseData.value.data = responseData.value.data.filter(
+          (data: any) => {
+            return !deleteDraftsId.value.includes(data.id) && data.id;
+          }
+        );
         deleteDraftsId.value = [];
         render.value = true;
-      // await fetchDraftedPayroll();
+        // await fetchDraftedPayroll();
+      }
+    } catch (error) {
+      handleError(error, "Failed to delete drafted payroll");
+    } finally {
+      deleting.value = false;
     }
-  } catch (error) {
-    handleError(error, "Failed to delete drafted payroll");
-  } finally {
-    deleting.value = false;
-  }
   }
 };
-
 
 // const deleteManyDrafts = async () => {
 //   if (deleteDraftsId.value[0]) {
@@ -198,11 +201,11 @@ const confirmRemoveDrafts = () => {
 const getMonthFromDate = (dateString: string) => {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) {
-    return ""; 
+    return "";
   }
-  
-  const options: Intl.DateTimeFormatOptions = { month: 'long' };
-  return date.toLocaleString('default', options);
+
+  const options: Intl.DateTimeFormatOptions = { month: "long" };
+  return date.toLocaleString("default", options);
 };
 
 const fetchDraftedPayroll = async (page = 1) => {
@@ -217,8 +220,6 @@ const fetchDraftedPayroll = async (page = 1) => {
     const response = await payrollStore.getOrganisationDraftedPayroll(params);
 
     if (response.data) {
-      console.log("========", response.data.pageItems)
-      console.log("======______===", response.data)
       responseData.value.data = response.data.pageItems;
       currentPage.value = response.data.currentPage;
       totalPages.value = response.data.numberOfPages;
@@ -235,7 +236,7 @@ const fetchDraftedPayroll = async (page = 1) => {
 fetchDraftedPayroll(currentPage.value);
 const updatePage = (page: number) => {
   fetchDraftedPayroll(page);
-}
+};
 
 // Drafts();
 </script>
@@ -330,7 +331,10 @@ const updatePage = (page: number) => {
                   class="flex justify-center items-center lg:h-[400px] h-[300px]"
                 />
                 <table v-else class="min-w-full table-fixed">
-                  <thead  v-if="responseData.data[0]" class="text-black-200 font-semimedium text-sm text-left">
+                  <thead
+                    v-if="responseData.data[0]"
+                    class="text-black-200 font-semimedium text-sm text-left"
+                  >
                     <tr>
                       <th
                         scope="col"
@@ -361,7 +365,7 @@ const updatePage = (page: number) => {
                     class="bg-white divide-y divide-grey-200"
                   >
                     <tr
-                    v-for="(data, index) in responseData && responseData.data"
+                      v-for="(data, index) in responseData && responseData.data"
                       :key="data.draftedPayrollId"
                       class="text-black-100"
                     >
@@ -374,10 +378,20 @@ const updatePage = (page: number) => {
 
                           <div class="flex flex-col">
                             <span class="text-sm font-semimedium"
-                              >{{ getMonthFromDate(data?.fetchOrganisationPayrollResponse?.scheduledDate) }} Salary Payment</span
+                              >{{
+                                getMonthFromDate(
+                                  data?.fetchOrganisationPayrollResponse
+                                    ?.scheduledDate
+                                )
+                              }}
+                              Salary Payment</span
                             >
                             <span class="text-xs text-gray-rgba-3"
-                              >{{ data?.fetchOrganisationPayrollResponse?.totalEmployees }} Employees</span
+                              >{{
+                                data?.fetchOrganisationPayrollResponse
+                                  ?.totalEmployees
+                              }}
+                              Employees</span
                             >
                           </div>
                         </div>
@@ -385,17 +399,41 @@ const updatePage = (page: number) => {
                       <td class="py-4 whitespace-nowrap">
                         <div class="text-left flex flex-col">
                           <span class="text-sm font-semimedium"
-                            >₦{{ data?.fetchOrganisationPayrollResponse?.totalGrossPay ? currency(data.fetchOrganisationPayrollResponse?.totalGrossPay) : "0" }}</span
+                            >₦{{
+                              data?.fetchOrganisationPayrollResponse
+                                ?.totalGrossPay
+                                ? currency(
+                                    data.fetchOrganisationPayrollResponse
+                                      ?.totalGrossPay
+                                  )
+                                : "0"
+                            }}</span
                           >
                           <span class="text-xs text-gray-rgba-3"
-                            >Net: ₦{{ data?.fetchOrganisationPayrollResponse?.totalNetPay ? currency(data.fetchOrganisationPayrollResponse?.totalNetPay) : "0" }}
+                            >Net: ₦{{
+                              data?.fetchOrganisationPayrollResponse
+                                ?.totalNetPay
+                                ? currency(
+                                    data.fetchOrganisationPayrollResponse
+                                      ?.totalNetPay
+                                  )
+                                : "0"
+                            }}
                           </span>
                         </div>
                       </td>
                       <td class="py-4 whitespace-nowrap">
                         <div class="font-normal text-left flex flex-col">
                           <span class="text-sm font-semimedium"
-                            >₦ {{ data?.fetchOrganisationPayrollResponse?.totalBonus ? currency(data.fetchOrganisationPayrollResponse?.totalBonus) : "0" }}</span
+                            >₦
+                            {{
+                              data?.fetchOrganisationPayrollResponse?.totalBonus
+                                ? currency(
+                                    data.fetchOrganisationPayrollResponse
+                                      ?.totalBonus
+                                  )
+                                : "0"
+                            }}</span
                           >
                           <span class="text-xs text-gray-rgba-3"
                             >Commisions</span
@@ -405,7 +443,16 @@ const updatePage = (page: number) => {
                       <td class="py-4 flex whitespace-nowrap">
                         <div class="font-normal text-left flex flex-col">
                           <span class="text-sm font-semimedium"
-                            >₦ {{ data?.fetchOrganisationPayrollResponse?.totalDeductions ? currency(data.fetchOrganisationPayrollResponse?.totalDeductions) : "0" }}</span
+                            >₦
+                            {{
+                              data?.fetchOrganisationPayrollResponse
+                                ?.totalDeductions
+                                ? currency(
+                                    data.fetchOrganisationPayrollResponse
+                                      ?.totalDeductions
+                                  )
+                                : "0"
+                            }}</span
                           >
                           <span class="text-xs text-gray-rgba-3"
                             >Pensions, Health</span
@@ -415,7 +462,16 @@ const updatePage = (page: number) => {
                       <td class="py-4 items-center text-left whitespace-nowrap">
                         <div class="font-normal flex flex-col">
                           <span class="text-sm font-semimedium"
-                            >₦ {{ data?.fetchOrganisationPayrollResponse?.totalTaxAmount ? currency(data.fetchOrganisationPayrollResponse?.totalTaxAmount) : "0" }}</span
+                            >₦
+                            {{
+                              data?.fetchOrganisationPayrollResponse
+                                ?.totalTaxAmount
+                                ? currency(
+                                    data.fetchOrganisationPayrollResponse
+                                      ?.totalTaxAmount
+                                  )
+                                : "0"
+                            }}</span
                           >
                           <span class="text-xs text-gray-rgba-3">LAGIT</span>
                         </div>
@@ -466,12 +522,12 @@ const updatePage = (page: number) => {
           </div>
         </div>
         <!-- end of table -->
-        <Pagination 
-        :currentPage="currentPage" 
-        :totalPages="totalPages"
-        :pageSize="pageSize"
-        :totalItems="totalItems"
-        @updatePage="updatePage"
+        <Pagination
+          :currentPage="currentPage"
+          :totalPages="totalPages"
+          :pageSize="pageSize"
+          :totalItems="totalItems"
+          @updatePage="updatePage"
         />
       </div>
     </div>

@@ -21,6 +21,9 @@ const TaxSettingsLayout = () => import("../layouts/TaxSettingsLayout.vue");
 // Not found page
 const NotFoundPage = () => import("../pages/PageNotFound.vue");
 
+const ViewEmployeeSalaryBreakDown = () =>
+  import("../pages/dashboard/employees/employee/EmployeeSalaryBreakDown.vue");
+
 // Auth Pages
 const LoginPage = () => import("../pages/auth/Login.vue");
 const SignupPage = () => import("../pages/auth/Signup.vue");
@@ -39,13 +42,13 @@ const CompaniesPage = () =>
   import("../pages/dashboard/companies/Companies.vue");
 
 //employees
-const EmployeesPage = () =>
-  import("../pages/dashboard/employees/Employees.vue");
+// const EmployeesPage = () =>
+//   import("../pages/dashboard/employees/Employees.vue");
 
-const PendingEmployeePage = () =>
-  import("../pages/dashboard/employees/PendingEmployees.vue");
-const EmployeeDepartmentPage = () =>
-  import("../pages/dashboard/employees/Departments.vue");
+// const PendingEmployeePage = () =>
+//   import("../pages/dashboard/employees/PendingEmployees.vue");
+// const EmployeeDepartmentPage = () =>
+//   import("../pages/dashboard/employees/Departments.vue");
 
 // departments
 const DepartmentEmployees = () =>
@@ -62,8 +65,7 @@ const ViewEmployeeLayout = () => import("../layouts/ViewEmployeeLayout.vue");
 
 const ViewEmployeeDetails = () =>
   import("../pages/dashboard/employees/employee/EmployeeDetails.vue");
-const ViewEmployeeSalaryBreakDown = () =>
-  import("../pages/dashboard/employees/employee/EmployeeSalaryBreakDown.vue");
+
 const ViewEmployeePayrollHistory = () =>
   import("../pages/dashboard/employees/employee/EmployeePayrollHistory.vue");
 
@@ -101,6 +103,9 @@ const HealthHistoryPage = () => import("../pages/dashboard/health/History.vue");
 // const HealthSettingsPage = () =>
 //   import("../pages/dashboard/health/Settings.vue");
 
+//subscriptions
+const SubscriptionPage = () =>
+  import("../pages/dashboard/subscription/Subscription.vue");
 // pension
 const ExcludedPensionPage = () =>
   import("../pages/dashboard/pension/ExcludedPension.vue");
@@ -126,6 +131,11 @@ const EmployeesLogsPage = () =>
   import("../pages/dashboard/companySettings/EmployeesLogs.vue");
 const CompanyInformationPage = () =>
   import("../pages/dashboard/companySettings/CompanyInformation.vue");
+const SubsidiariesPage = () =>
+  import("../pages/dashboard/companySettings/Subsidiaries.vue");
+const KycPage = () => import("../pages/dashboard/companySettings/kyc.vue");
+const SubscriptionSettingPage = () =>
+  import("../pages/dashboard/companySettings/Subscription.vue");
 const ContactInformationPage = () =>
   import("../pages/dashboard/companySettings/ContactInformation.vue");
 const DeleteCompanyPage = () =>
@@ -138,6 +148,16 @@ const AccessManagementPage = () =>
   import("../pages/dashboard/manageUsers/AccessManagement.vue");
 const EmployeePage = () =>
   import("../pages/dashboard/manageUsers/Employee.vue");
+const ManageUsersPayrollPage = () =>
+  import("../pages/dashboard/manageUsers/ManageUsersPayroll.vue");
+const ManageUsersPensionPage = () =>
+  import("../pages/dashboard/manageUsers/ManageUsersPension.vue");
+const ManageUsersTaxPage = () =>
+  import("../pages/dashboard/manageUsers/ManageUsersTax.vue");
+const ManageUsersSettingsPage = () =>
+  import("../pages/dashboard/manageUsers/ManageUsersSettings.vue");
+const ManageUsersPage = () =>
+  import("../pages/dashboard/manageUsers/ManageUsers.vue");
 const ApproverAccessPage = () =>
   import("../pages/dashboard/manageUsers/ApproverAccess.vue");
 
@@ -207,7 +227,7 @@ const routes = [
         meta: { title: "Change Password", public: true },
       },
       {
-        path: "/Auth/VerifyLink",
+        path: "/reset-password",
         component: ResetPassword,
         name: "auth.reset",
         meta: { title: "Reset Password", public: true },
@@ -287,6 +307,14 @@ const routes = [
         },
       },
       {
+        path: "subscription",
+        name: "dashboard.subscription",
+        component: SubscriptionPage,
+        meta: {
+          title: "Companies - Dashboard",
+        },
+      },
+      {
         path: "myprofile",
         name: "dashboard.myprofile",
         component: ProfilePage,
@@ -302,82 +330,82 @@ const routes = [
           title: "Settings - Dashboard",
         },
       },
+      // {
+      //   path: "employees",
+      //   name: "dashboard.employees",
+      //   component: EmployeeLayout,
+      //   meta: {
+      //     title: "Employees - Dashboard",
+      //   },
+      //   children: [
+      //     {
+      //       path: "",
+      //       name: "dashboard.employees.all",
+      //       component: EmployeesPage,
+      //       meta: {
+      //         title: "Employees - Dashboard",
+      //         showEmployeeCards: true,
+      //       },
+      //     },
+      //     {
+      //       path: "pending",
+      //       name: "dashboard.employees.pending",
+      //       component: PendingEmployeePage,
+      //       meta: {
+      //         title: "Employees - Dashboard",
+      //         showEmployeeCards: true,
+      //       },
+      //     },
+      //     {
+      //       path: "departments",
+      //       name: "dashboard.employees.departments",
+      //       component: EmployeeDepartmentPage,
+      //       meta: {
+      //         title: "Employees - Dashboard",
+      //         showEmployeeCards: true,
+      //       },
+      //     },
+      //     {
+      //       path: "departments/:id",
+      //       name: "dashboard.employees.departments.single",
+      //       component: SingleDepartmentLayout,
+      //       meta: {
+      //         title: "Departments - Dashboard",
+      //       },
+      //       children: [
+      //         {
+      //           path: "",
+      //           name: "dashboard.employees.departments.single.settings",
+      //           component: DepartmentSettings,
+      //         },
+      //         {
+      //           path: "settings",
+      //           name: "dashboard.employees.departments.single.payroll-settings",
+      //           component: DepartmentPayrollSettings,
+      //         },
+      //         {
+      //           path: "employees",
+      //           name: "dashboard.employees.departments.single.employees",
+      //           component: DepartmentEmployees,
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       path: "companies-setting/:id",
+      //       name: "dashboard.company.single",
+      //       component: CompanySettingsLayout,
+      //       meta: {
+      //         title: " CompanySetting - Dashboard",
+      //       },
+      //     },
+      //   ],
+      // },
       {
-        path: "employees",
-        name: "dashboard.employees",
-        component: EmployeeLayout,
-        meta: {
-          title: "Employees - Dashboard",
-        },
-        children: [
-          {
-            path: "",
-            name: "dashboard.employees.all",
-            component: EmployeesPage,
-            meta: {
-              title: "Employees - Dashboard",
-              showEmployeeCards: true,
-            },
-          },
-          {
-            path: "pending",
-            name: "dashboard.employees.pending",
-            component: PendingEmployeePage,
-            meta: {
-              title: "Employees - Dashboard",
-              showEmployeeCards: true,
-            },
-          },
-          {
-            path: "departments",
-            name: "dashboard.employees.departments",
-            component: EmployeeDepartmentPage,
-            meta: {
-              title: "Employees - Dashboard",
-              showEmployeeCards: true,
-            },
-          },
-          {
-            path: "departments/:id",
-            name: "dashboard.employees.departments.single",
-            component: SingleDepartmentLayout,
-            meta: {
-              title: "Departments - Dashboard",
-            },
-            children: [
-              {
-                path: "",
-                name: "dashboard.employees.departments.single.settings",
-                component: DepartmentSettings,
-              },
-              {
-                path: "settings",
-                name: "dashboard.employees.departments.single.payroll-settings",
-                component: DepartmentPayrollSettings,
-              },
-              {
-                path: "employees",
-                name: "dashboard.employees.departments.single.employees",
-                component: DepartmentEmployees,
-              },
-            ],
-          },
-          {
-            path: "companies-setting/:id",
-            name: "dashboard.company.single",
-            component: CompanySettingsLayout,
-            meta: {
-              title: " CompanySetting - Dashboard",
-            },
-          },
-        ],
-      },
-      {
-        path: "view-employee/:id",
+        path: ":organisationId/view-employee/:employeeId",
         name: "dashboard.employees.single",
         component: ViewEmployeeLayout,
         meta: {
-          title: "Destiny Employee - Profile - Dashboard",
+          title: "Employee - Profile - Dashboard",
         },
         children: [
           {
@@ -648,17 +676,17 @@ const routes = [
         ],
       },
       {
-        path: "company-settings",
+        path: "company-settings/:id",
         name: "dashboard.company.settings",
         component: CompanySettingsLayout,
-        redirect: "/dashboard/company-settings/company-information",
+        redirect: "/dashboard/company-settings/:id/company-information",
         children: [
           {
             path: "company-information",
             name: "dashboard.company.settings.information",
             component: CompanyInformationPage,
             meta: {
-              title: "Company -Settings - Contact - Dashboard",
+              title: "Company - Settings - Contact - Dashboard",
             },
           },
           {
@@ -666,15 +694,41 @@ const routes = [
             name: "dashboard.company.settings.contact",
             component: ContactInformationPage,
             meta: {
-              title: "Company -Settings - Contact - Dashboard",
+              title: "Company - Settings - Contact - Dashboard",
             },
           },
+          {
+            path: "subsidiaries",
+            name: "dashboard.company.settings.subsidiaries",
+            component: SubsidiariesPage,
+            meta: {
+              title: "Company - Settings - Subsidiaries - Dashboard",
+            },
+          },
+          {
+            path: "kyc",
+            name: "dashboard.company.settings.kyc",
+            component: KycPage,
+            meta: {
+              title: "Company - Settings - kyc - Dashboard",
+            },
+          },
+
+          {
+            path: "subscription",
+            name: "dashboard.company.settings.subscription",
+            component: SubscriptionSettingPage,
+            meta: {
+              title: "Company - Settings - Subscription - Dashboard",
+            },
+          },
+
           {
             path: "payroll-history",
             name: "dashboard.company.settings.payroll-history",
             component: PayrollHistory,
             meta: {
-              title: "Company - Settings - Admin - Logs - Dashboard",
+              title: "Company - Settings - Payroll History - Dashboard",
             },
           },
           {
@@ -682,7 +736,7 @@ const routes = [
             name: "dashboard.company.settings.employees-logs",
             component: EmployeesLogsPage,
             meta: {
-              title: "Company -Settings - Employees -Logs - Dashboard",
+              title: "Company - Settings - Employees Logs - Dashboard",
             },
           },
           {
@@ -690,7 +744,7 @@ const routes = [
             name: "dashboard.company.settings.delete-company",
             component: DeleteCompanyPage,
             meta: {
-              title: "Company -Settings - Delete - Dashboard",
+              title: "Company - Settings - Delete - Dashboard",
             },
           },
         ],
@@ -731,6 +785,46 @@ const routes = [
             component: EmployeePage,
             meta: {
               title: "Company - Manage - Employee - Dashboard",
+            },
+          },
+          {
+            path: "payroll",
+            name: "dashboard.manage.permission.payroll",
+            component: ManageUsersPayrollPage,
+            meta: {
+              title: "Company - Manage - payroll - Dashboard",
+            },
+          },
+          {
+            path: "pension",
+            name: "dashboard.manage.permission.pension",
+            component: ManageUsersPensionPage,
+            meta: {
+              title: "Company - Manage - pension - Dashboard",
+            },
+          },
+          {
+            path: "tax",
+            name: "dashboard.manage.permission.tax",
+            component: ManageUsersTaxPage,
+            meta: {
+              title: "Company - Manage - tax - Dashboard",
+            },
+          },
+          {
+            path: "manage-user",
+            name: "dashboard.manage.permission.user",
+            component: ManageUsersPage,
+            meta: {
+              title: "Company - Manage - user - Dashboard",
+            },
+          },
+          {
+            path: "company-settings",
+            name: "dashboard.manage.permission.settings",
+            component: ManageUsersSettingsPage,
+            meta: {
+              title: "Company - Manage - settings - Dashboard",
             },
           },
         ],

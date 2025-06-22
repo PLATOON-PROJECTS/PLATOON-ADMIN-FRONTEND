@@ -62,13 +62,13 @@ const emit = defineEmits<{ (event: "closeMenu"): void }>();
             </router-link>
           </li>
           <li id="step-1">
-            <router-link to="/dashboard/employees">
+            <router-link to="/dashboard/companies">
               <div class="side-nav-link" @click="closeMenu">
                 <div class="nav-link">
                   <span>
                     <IUserThree
                       :color="
-                        isActiveRoute('dashboard.employees')
+                        isActiveRoute('dashboard.companies')
                           ? '#0960CD'
                           : '#626669'
                       "
@@ -76,18 +76,18 @@ const emit = defineEmits<{ (event: "closeMenu"): void }>();
                   </span>
                   <span
                     :class="[
-                      isActiveRoute('dashboard.employees')
+                      isActiveRoute('dashboard.companies')
                         ? 'text-[#003b3d] font-medium'
                         : 'text-black-200',
                     ]"
-                    >Employees</span
+                    >Cmpanies</span
                   >
                 </div>
               </div>
             </router-link>
           </li>
           <li>
-            <router-link to="/dashboard/payroll/add-new">
+            <!-- <router-link to="/dashboard/payroll/add-new">
               <div class="side-nav-link" @click="closeMenu">
                 <div class="nav-link">
                   <span>
@@ -109,7 +109,7 @@ const emit = defineEmits<{ (event: "closeMenu"): void }>();
                   >
                 </div>
               </div>
-            </router-link>
+            </router-link> -->
           </li>
           <!-- <li>
           <div class="side-nav-link">
@@ -190,7 +190,7 @@ const emit = defineEmits<{ (event: "closeMenu"): void }>();
             </router-link>
           </li>
           <li>
-            <router-link to="/dashboard/company-settings/company-information">
+            <!-- <router-link to="/dashboard/company-settings/company-information">
               <div class="side-nav-link" @click="closeMenu">
                 <div class="nav-link">
                   <span>
@@ -212,7 +212,7 @@ const emit = defineEmits<{ (event: "closeMenu"): void }>();
                   >
                 </div>
               </div>
-            </router-link>
+            </router-link> -->
           </li>
           <li>
             <router-link to="/dashboard/myprofile">

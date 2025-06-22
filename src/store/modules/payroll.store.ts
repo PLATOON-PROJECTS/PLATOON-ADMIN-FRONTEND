@@ -11,9 +11,21 @@ interface State {}
 const payrollStore = defineStore("payroll", {
   state: (): State => ({}),
   actions: {
-    async index(organisationId: number, scheduledDate: string | null, status: string | null, pageSize: number,pageNumber: number): Promise<any> {
+    async index(
+      organisationId: number,
+      scheduledDate: string | null,
+      status: string | null,
+      pageSize: number,
+      pageNumber: number
+    ): Promise<any> {
       try {
-        const response = await payrollService.get(organisationId, scheduledDate, status, pageSize, pageNumber);
+        const response = await payrollService.get(
+          organisationId,
+          scheduledDate,
+          status,
+          pageSize,
+          pageNumber
+        );
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -25,7 +37,23 @@ const payrollStore = defineStore("payroll", {
         return await Promise.reject(error);
       }
     },
-    async deleteMany(data:string[]): Promise<any> {
+
+    async getSalaryBreakdown(employeeId: number): Promise<any> {
+      try {
+        const response = await payrollService.getSalaryBreakdown(employeeId);
+        if (response.data) {
+          return Promise.resolve(response);
+        } else if (response.response) {
+          return Promise.reject(response.response);
+        } else {
+          return Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return Promise.reject(error);
+      }
+    },
+
+    async deleteMany(data: string[]): Promise<any> {
       try {
         const response = await payrollService.deleteMany(data);
         if (response.data) {
@@ -67,9 +95,17 @@ const payrollStore = defineStore("payroll", {
     //     return await Promise.reject(error);
     //   }
     // },
-    async initiate(organisationId: number, pageSize: number, pageNumber: number): Promise<any> {
+    async initiate(
+      organisationId: number,
+      pageSize: number,
+      pageNumber: number
+    ): Promise<any> {
       try {
-        const response = await payrollService.initiate(organisationId, pageSize, pageNumber);
+        const response = await payrollService.initiate(
+          organisationId,
+          pageSize,
+          pageNumber
+        );
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -82,9 +118,69 @@ const payrollStore = defineStore("payroll", {
       }
     },
 
-    async fetchEmployeePayroll(organisationId: number, employeeId: number, pageSize: number = 10, pageNumber: number = 1): Promise<any> {
+    async companyPayrollById(
+      organisationId: number
+      // pageNumber: number,
+      // pageSize: number
+      // createdDate: number
+    ): Promise<any> {
       try {
-        const response = await payrollService.getEmployeePayroll(organisationId, employeeId, pageSize, pageNumber);
+        const response = await payrollService.companyPayrollById(
+          organisationId
+          // pageNumber,
+          // pageSize
+          // createdDate
+        );
+        if (response.data) {
+          return response;
+        } else if (response.response) {
+          return Promise.reject(response.response);
+        } else {
+          return Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return Promise.reject(error);
+      }
+    },
+
+    async employeePayrollById(
+      userId: number
+      // pageNumber: number,
+      // pageSize: number
+      // createdDate: number
+    ): Promise<any> {
+      try {
+        const response = await payrollService.employeePayrollById(
+          userId
+          // pageNumber,
+          // pageSize
+          // createdDate
+        );
+        if (response.data) {
+          return response;
+        } else if (response.response) {
+          return Promise.reject(response.response);
+        } else {
+          return Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return Promise.reject(error);
+      }
+    },
+
+    async fetchEmployeePayroll(
+      organisationId: number,
+      employeeId: number,
+      pageSize: number = 10,
+      pageNumber: number = 1
+    ): Promise<any> {
+      try {
+        const response = await payrollService.getEmployeePayroll(
+          organisationId,
+          employeeId,
+          pageSize,
+          pageNumber
+        );
         if (response.data) {
           return response.data;
         } else {
@@ -94,7 +190,7 @@ const payrollStore = defineStore("payroll", {
         console.error("Error fetching payroll:", error);
         throw error;
       }
-    },    
+    },
 
     async draft(): Promise<any> {
       try {
@@ -113,7 +209,9 @@ const payrollStore = defineStore("payroll", {
 
     async fetchDraftPayrollCount(organisationId: number): Promise<any> {
       try {
-        const response = await payrollService.getDraftedPayrollCount(organisationId);
+        const response = await payrollService.getDraftedPayrollCount(
+          organisationId
+        );
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -124,17 +222,17 @@ const payrollStore = defineStore("payroll", {
       } catch (error: any) {
         return await Promise.reject(error);
       }
-    },    
+    },
 
     async downloadCsvTemplate(): Promise<void> {
       try {
         const response = await payrollService.generateCsvTemplate();
         if (response.data) {
-          const blob = new Blob([response.data], { type: 'text/csv' });
+          const blob = new Blob([response.data], { type: "text/csv" });
           const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
+          const link = document.createElement("a");
           link.href = url;
-          link.setAttribute('download', 'Payroll_Template.csv');
+          link.setAttribute("download", "Payroll_Template.csv");
           document.body.appendChild(link);
           link.click();
           link.remove();
@@ -144,39 +242,49 @@ const payrollStore = defineStore("payroll", {
           throw response.message;
         }
       } catch (error: any) {
-        console.error('Error downloading CSV template:', error);
+        console.error("Error downloading CSV template:", error);
       }
-    },    
+    },
 
-    async importCsvFile(payload: { file: File; organisationId: number }): Promise<any> {
+    async importCsvFile(payload: {
+      file: File;
+      organisationId: number;
+    }): Promise<any> {
       try {
         const formData = new FormData();
-        console.log("Payload being sent:", formData);
-        formData.append('CsvFile', payload.file);
-        formData.append('OrganisationId', payload.organisationId.toString()); 
-        formData.forEach((value, key) => {
-          console.log(`${key}:`, value);});
+        formData.append("CsvFile", payload.file);
+        formData.append("OrganisationId", payload.organisationId.toString());
+        formData.forEach((value, key) => {});
         const response = await payrollService.uploadCsv(formData);
-        return response; 
+        return response;
       } catch (error) {
-        console.error('Error importing CSV file:', error);
-        throw error; 
+        console.error("Error importing CSV file:", error);
+        throw error;
       }
     },
 
-    async uploadPayrollCsv(csvFile: File, organisationId: number, scheduledMonth: string): Promise<void> {
+    async uploadPayrollCsv(
+      csvFile: File,
+      organisationId: number,
+      scheduledMonth: string
+    ): Promise<void> {
       try {
-        const response = await payrollService.uploadPayrollCsv(csvFile, organisationId, scheduledMonth);
-        console.log('Payroll uploaded successfully:', response);
-        return response; 
+        const response = await payrollService.uploadPayrollCsv(
+          csvFile,
+          organisationId,
+          scheduledMonth
+        );
+        return response;
       } catch (error) {
-        console.error('Error uploading payroll:', error);
+        console.error("Error uploading payroll:", error);
       }
     },
-    
+
     async fetchOrganisationPayrollCount(organisationId: number): Promise<any> {
       try {
-        const response = await payrollService.getOrganisationPayrollCount(organisationId);
+        const response = await payrollService.getOrganisationPayrollCount(
+          organisationId
+        );
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -187,7 +295,7 @@ const payrollStore = defineStore("payroll", {
       } catch (error: any) {
         return await Promise.reject(error);
       }
-    },    
+    },
 
     async createPayroll(payload: {
       organisationId: number;
@@ -256,7 +364,7 @@ const payrollStore = defineStore("payroll", {
         console.error("Error fetching payroll:", error);
         throw error;
       }
-    },    
+    },
 
     async submitPayroll(payrollId: number): Promise<any> {
       try {
@@ -270,7 +378,7 @@ const payrollStore = defineStore("payroll", {
         console.error("Error submitting payroll:", error);
         throw error;
       }
-    },   
+    },
     async savePayrollToDraft(payload: any): Promise<any> {
       try {
         const response = await payrollService.savePayrollToDraft(payload);
@@ -283,8 +391,8 @@ const payrollStore = defineStore("payroll", {
         console.error("Error saving payroll to draft:", error);
         throw error;
       }
-    },   
-      
+    },
+
     async getOrganisationDraftedPayroll(params: {
       organisationId: number;
       draftedPayrollId?: number;
@@ -292,33 +400,49 @@ const payrollStore = defineStore("payroll", {
       pageNumber?: number;
     }): Promise<any> {
       try {
-        const response = await payrollService.getOrganisationDraftedPayroll(params);
+        const response = await payrollService.getOrganisationDraftedPayroll(
+          params
+        );
         if (response && response.succeeded) {
           return response;
         } else {
-          throw new Error(response.message || "Failed to fetch drafted payroll.");
+          throw new Error(
+            response.message || "Failed to fetch drafted payroll."
+          );
         }
       } catch (error) {
         console.error("Error in store fetching drafted payroll:", error);
         throw error;
       }
-    },    
+    },
     async deleteDraftedPayroll(draftedPayrollId: number): Promise<any> {
       try {
-        const response = await payrollService.deleteDraftedPayroll(draftedPayrollId);
+        const response = await payrollService.deleteDraftedPayroll(
+          draftedPayrollId
+        );
         if (response && response.succeeded) {
           return response;
         } else {
-          throw new Error(response.message || "Failed to delete drafted payroll.");
+          throw new Error(
+            response.message || "Failed to delete drafted payroll."
+          );
         }
       } catch (error) {
         console.error("Error in store deleting drafted payroll:", error);
         throw error;
       }
-    },    
-    async removeEmployee(payrollId: number, employeeId: number, informalPayrollId?: number): Promise<any> {
+    },
+    async removeEmployee(
+      payrollId: number,
+      employeeId: number,
+      informalPayrollId?: number
+    ): Promise<any> {
       try {
-        const response = await payrollService.removeEmployeeFromPayroll(payrollId, employeeId, informalPayrollId);
+        const response = await payrollService.removeEmployeeFromPayroll(
+          payrollId,
+          employeeId,
+          informalPayrollId
+        );
         if (response.data && response.data.succeeded) {
           return response.data;
         } else {

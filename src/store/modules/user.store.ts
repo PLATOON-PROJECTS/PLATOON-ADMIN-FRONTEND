@@ -32,24 +32,45 @@ const userStore = defineStore("user", {
       try {
         const response = await userService.show(userId);
         if (response && response.data && response.data.data) {
-          console.log(
-            "_____\\\\\\\\_____",
-            response.data.data.organisation.user.email
-          );
           const data = JSON.stringify({
             customerInfo: {
               firstName: response.data.data.organisation.user.firstname,
               lastName: response.data.data.organisation.user.lastname,
               email: response.data.data.organisation.user.email,
               phone: response.data.data.organisation.user.email,
-              wallet: response.data.data.organisation.wallet.balance,
+              // wallet: response.data.data.organisation.wallet.balance,
               organisationName:
                 response.data.data.organisation.organisationName,
               organisationId: response.data.data.organisation.id,
+              userId: response.data.data.organisation.userId,
             },
           });
           storeItem(import.meta.env.VITE_USERDETAILS, data);
-          console.log("^^^^", data);
+          return await Promise.resolve(response);
+        } else if (response.response) {
+          return await Promise.reject(response.response);
+        } else {
+          return await Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return await Promise.reject(error);
+      }
+    },
+    async fetchAdmin(id: number): Promise<any> {
+      try {
+        const response = await userService.fetchAdmin(id);
+        if (response && response.data && response.data.data) {
+          const data = JSON.stringify({
+            customerInfo: {
+              firstName: response.data.data.organisation.user.firstname,
+              lastName: response.data.data.organisation.user.lastname,
+              email: response.data.data.organisation.user.email,
+              phone: response.data.data.organisation.user.email,
+              // wallet: response.data.data.organisation.wallet.balance,
+              id: response.data.data.organisation.id,
+            },
+          });
+          storeItem(import.meta.env.VITE_USERDETAILS, data);
           return await Promise.resolve(response);
         } else if (response.response) {
           return await Promise.reject(response.response);
@@ -111,10 +132,10 @@ const userStore = defineStore("user", {
         return await Promise.reject(error);
       }
     },
+
     async getUserRole(userId: number): Promise<any> {
       try {
         const response = await userService.getUserRoleById(userId);
-        console.log("Response from service:", response);
         if (response.succeeded) {
           return response.data;
         } else {

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed,inject, provide } from "vue";
+import { ref, computed, inject, provide, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { IArrowLeftTail } from "../core/icons";
 import { isActiveRoute } from "../core/router";
@@ -15,6 +15,7 @@ import { useEmployeeStore, useUserStore } from "../store/index";
 
 import { useRoute } from "vue-router";
 import { getItem } from "../core/utils/storage.helper";
+import { data } from "autoprefixer";
 
 // initialize route
 const route = useRoute();
@@ -25,31 +26,36 @@ const userStore = useUserStore();
 const deleteEmployeesId = ref<string[]>([]);
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
 
-const parsedUserInfo = typeof userInfo.value === 'string' ? JSON.parse(userInfo.value) : userInfo.value;
-const organisationId = parsedUserInfo?.customerInfo?.organisationId;
+const parsedUserInfo =
+  typeof userInfo.value === "string"
+    ? JSON.parse(userInfo.value)
+    : userInfo.value;
 
-const router = useRouter();
-
-const render = inject<any>("render");
+// const organisationId = Array.isArray(route.params.id)
+//   ? route.params.id[0]
+//   : route.params.id;
+// console.log("org id", organisationId);
 
 // variables
+const router = useRouter();
+const render = inject<any>("render");
 const isEditForm = ref(false);
 // Provide isEditForm to child components
-provide('isEditForm', isEditForm);
+provide("isEditForm", isEditForm);
 const employeeName = ref("....");
 const childComponent = ref();
-const responseData = ref<any>({message: ""});
+const employeeData = ref<any[]>([]); // This will store the fetched company data
+const pageSize = ref(10); // Define pageSize with a default value
+const responseData = ref<any>({ message: "" });
 const showSuccess = ref(false);
 const showConfirm = ref(false);
 const confirmType = ref("");
+const loading = ref(false);
 const deleting = ref(false);
 const confirmMessage = ref({ message: "" });
-// computed
-const employeeId = computed(() => {
-  return route.params.id as string;
-});
 
 // methods
+
 const setEmployeeName = (value: string) => {
   employeeName.value = value;
 };
@@ -61,15 +67,52 @@ const setEditStatus = (value: string) => {
 const saveChanges = () => {
   childComponent.value.saveChanges();
 };
-// const deleteEmployee = async () => {
-//   // deleting.value = true;
-//   // const response = await request(
-//   //   employeeStore.delete(employeeId.value),
-//   //   deleting
-//   // );
 
-//   // handleError(response, userStore);
-//   // const successResponse = handleSuccess(response, showSuccess);
+// computed
+// const employeeId = Array.isArray(route.params.id)
+//   ? route.params.id[1]
+//   : route.params.id;
+// console.log("employee id", employeeId);
+
+const organisationId = route.params.organisationId as string;
+const employeeId = route.params.employeeId as string;
+
+// console.log("Organisation ID:", organisationId);
+// console.log("Employee ID:", employeeId);
+
+const fetchEmployeeById = async () => {
+  loading.value = true;
+
+  try {
+    const response = await request(
+      employeeStore.getEmployeeById(Number(organisationId), Number(employeeId))
+    );
+
+    if (response && response.data) {
+      employeeData.value = [response.data.data]; // Ensure consistent array structure
+    } else {
+      console.error("No data found in response:", response);
+    }
+  } catch (error) {
+    console.error("Failed to fetch company:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchEmployeeById();
+});
+
+// const deleteEmployee = async () => {
+//   deleting.value = true;
+//   const response = await request(
+//     employeeStore.delete(employeeId.value),
+//     deleting
+//   );
+
+//   handleError(response, userStore);
+//   const successResponse = handleSuccess(response, showSuccess);
 //   confirmType.value = "delete";
 //   confirmMessage.value.message = `Do you really  want to delete multiple employees(${deleteEmployeesId.value.length})?  `;
 //   showConfirm.value = true;
@@ -79,72 +122,77 @@ const saveChanges = () => {
 //   }
 // };
 
-const confirmRemoveEmployees = () => {
-  confirmType.value = "delete";
-  confirmMessage.value.message = `Do you really  want to delete multiple employees(${deleteEmployeesId.value.length})?  `;
-  showConfirm.value = true;
-};
-const handleEmployee = (id: any) => {
-  if (deleteEmployeesId.value.includes(id)) {
-    deleteEmployeesId.value = deleteEmployeesId.value.filter((value: any) => {
-      return value !== id;
-    });
-  } else {
-    deleteEmployeesId.value.push(id);
-  }
-};
-const deleteManyEmployees = async () => {
-  if (deleteEmployeesId.value[0]) {
-    deleting.value = true;
+// const confirmRemoveEmployees = () => {
+//   confirmType.value = "delete";
+//   confirmMessage.value.message = `Do you really  want to delete multiple employees(${deleteEmployeesId.value.length})?  `;
+//   showConfirm.value = true;
+// };
+// const handleEmployee = (id: any) => {
+//   if (deleteEmployeesId.value.includes(id)) {
+//     deleteEmployeesId.value = deleteEmployeesId.value.filter((value: any) => {
+//       return value !== id;
+//     });
+//   } else {
+//     deleteEmployeesId.value.push(id);
+//   }
+// };
+// const deleteManyEmployees = async () => {
+//   if (deleteEmployeesId.value[0]) {
+//     deleting.value = true;
 
-    const response = await request(
-      employeeStore.deleteMany(deleteEmployeesId.value),
-      deleting
-    );
+//     const response = await request(
+//       employeeStore.deleteMany(deleteEmployeesId.value),
+//       deleting
+//     );
 
-    handleError(response, userStore);
-    const successResponse = handleSuccess(response, showSuccess);
+//     handleError(response, userStore);
+//     const successResponse = handleSuccess(response, showSuccess);
 
-    if (successResponse && typeof successResponse !== "undefined") {
-      // responseData.value.data = responseData.value.data.filter((data: any) => {
-      //   return !deleteEmployeesId.value.includes(data.id) && data.id;
-      // });
-      responseData.value.message = "Employee(s) deleted succesfully";
-      deleteEmployeesId.value.length = 0;
-      window.location.href = "/dashboard/employees/";
-      render.value = true;
-    }
-  }
-};
-const deleteEmployee = async () => {
-  deleting.value = true;
+//     if (successResponse && typeof successResponse !== "undefined") {
+//       // responseData.value.data = responseData.value.data.filter((data: any) => {
+//       //   return !deleteEmployeesId.value.includes(data.id) && data.id;
+//       // });
+//       responseData.value.message = "Employee(s) deleted succesfully";
+//       deleteEmployeesId.value.length = 0;
+//       window.location.href = "/dashboard/employees/";
+//       render.value = true;
+//     }
+//   }
+// };
+// const deleteEmployee = async () => {
+//   deleting.value = true;
 
-  const response = await request(
-    employeeStore.deleteEmployee(employeeId.value, organisationId),
-    deleting
-  );
+//   const response = await request(
+//     employeeStore.deleteEmployee(employeeId.value, organisationId),
+//     deleting
+//   );
 
-  handleError(response, userStore);
-  const successResponse = handleSuccess(response, showSuccess);
+//   handleError(response, userStore);
+//   const successResponse = handleSuccess(response, showSuccess);
 
-  if (successResponse && typeof successResponse !== "undefined") {
-    responseData.value.message = "Employee deleted successfully";
-    window.location.href = "/dashboard/employees/";
-    render.value = true;
-  }
-};
-const confirmRemoveEmployee = () => {
-  confirmType.value = "delete";
-  confirmMessage.value.message = `Do you really want to terminate this employee?`;
-  showConfirm.value = true;
-};
+//   if (successResponse && typeof successResponse !== "undefined") {
+//     responseData.value.message = "Employee deleted successfully";
+//     window.location.href = "/dashboard/employees/";
+//     render.value = true;
+//   }
+// };
+// const confirmRemoveEmployee = () => {
+//   confirmType.value = "delete";
+//   confirmMessage.value.message = `Do you really want to terminate this employee?`;
+//   showConfirm.value = true;
+// };
 
 // handleEmployee(route.params.id);
 </script>
 <template>
+  <div v-if="loading" class="flex justify-center items-center py-8">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"
+    ></div>
+  </div>
   <div>
     <div class="bg-white rounded-t-lg divide-y divide-grey-200">
-      <confirmAlert
+      <!-- <confirmAlert
       :showConfirm="showConfirm"
       @closeConfirm="showConfirm = false"
       v-if="showConfirm == true"
@@ -163,7 +211,7 @@ const confirmRemoveEmployee = () => {
         ></template
       >
       <template #message> {{ confirmMessage.message }}</template>
-    </confirmAlert>
+    </confirmAlert> -->
       <successAlert
         :showSuccess="showSuccess"
         @closeSuccess="showSuccess = false"
@@ -172,7 +220,7 @@ const confirmRemoveEmployee = () => {
         <template #otherMessage>CLOSE</template>
         {{ responseData.message }}</successAlert
       >
-      <div class="px-6+1">
+      <div class="px-6+1" v-for="employee in employeeData" :key="employee.id">
         <div
           class="flex items-center justify-between py-8 overflow-auto scrollbar-hide lg:space-x-0 space-x-4"
         >
@@ -184,13 +232,14 @@ const confirmRemoveEmployee = () => {
               <h3
                 class="text-black-rgba font-medium lg:text-2xl text-lg whitespace-nowrap"
               >
-                {{ employeeName }}
+                {{ employee.employee.user.firstname }}
+                {{ employee.employee.user.lastname }}
               </h3>
               <span class="text-sm text-gray-rgba-3">Manage employee</span>
             </div>
           </div>
 
-          <div class="flex space-x-4">
+          <!-- <div class="flex space-x-4">
             <button
               v-if="!isEditForm"
               @click="
@@ -216,7 +265,7 @@ const confirmRemoveEmployee = () => {
               <spinner v-if="childComponent.loading == true" />
               <span v-else>Update Changes</span>
             </button>
-          </div>
+          </div> -->
         </div>
         <!--  -->
         <!-- nav tabs -->
@@ -274,7 +323,7 @@ const confirmRemoveEmployee = () => {
             :is="Component"
             @setSingleEmployeeName="setEmployeeName"
             @doNotEdit="setEditStatus"
-            :child-component-ref="childComponent" 
+            :child-component-ref="childComponent"
           ></component>
         </router-view>
         <!--  -->

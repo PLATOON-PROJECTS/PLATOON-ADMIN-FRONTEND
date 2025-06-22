@@ -41,35 +41,41 @@ const deleting = ref(false);
 const showConfirm = ref(false);
 const isEmptyTable = ref(false);
 const responseData = ref<any>({ data: [], message: "" });
-const departmentState = ref(true)
+const departmentState = ref(true);
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
 const currentPage = ref(1);
 const totalPages = ref(1);
-const pageSize = ref(10);  // Make sure this is set to the page size used in the API
+const pageSize = ref(10); // Make sure this is set to the page size used in the API
 const totalItems = ref(0);
-
 
 // provide and inject
 provide("showDepartment", showDepartment);
 provide("selectedDepartment", [data, departmentName]);
 const render = inject<any>("render");
-const emit = defineEmits(['refetchInvite', 'showInviteEmployee', 'emptyDepartment']) 
+const emit = defineEmits([
+  "refetchInvite",
+  "showInviteEmployee",
+  "emptyDepartment",
+]);
 const departmentValues = ref();
-const parsedUserInfo = typeof userInfo.value === 'string' ? JSON.parse(userInfo.value) : userInfo.value;
+const parsedUserInfo =
+  typeof userInfo.value === "string"
+    ? JSON.parse(userInfo.value)
+    : userInfo.value;
 const organisationId = parsedUserInfo?.customerInfo?.organisationId;
 // methods
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  
-  const formattedDate = date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+
+  const formattedDate = date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
-  
-  const formattedTime = date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
+
+  const formattedTime = date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
     hour12: false,
   });
 
@@ -77,7 +83,7 @@ const formatDate = (dateString: string) => {
 };
 
 const capitalizeName = (name: string) => {
-  if (!name) return '';
+  if (!name) return "";
   return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 };
 
@@ -101,7 +107,7 @@ const confirmDownload = async () => {
     // console.log(successResponse.data);
     // console.log('---')
     successResponse.message = "Employee data download began successfully";
-    responseData.value.message= successResponse.message;
+    responseData.value.message = successResponse.message;
 
     // console.log(successResponse.data.data);
     // console.log('---')
@@ -160,14 +166,15 @@ const fetchEmployees = async (page = 1) => {
 
   // console.log("fetching employeee");
   const totalEmployeeCached = cache("total_employees");
-  console.log("##########",totalEmployeeCached);
 
   if (typeof totalEmployeeCached !== "undefined") {
     loading.value = false;
     responseData.value.data = totalEmployeeCached;
   }
-  console.log("ertyuio",responseData.value.data);
-  const response = await request(employeeStore.index(organisationId, 10, page), loading);
+  const response = await request(
+    employeeStore.index(organisationId, 10, page),
+    loading
+  );
   // console.log(loading.value);
 
   const successResponse = handleSuccess(response);
@@ -177,7 +184,7 @@ const fetchEmployees = async (page = 1) => {
     responseData.value.data = successResponse.data.data.pageItems;
     currentPage.value = successResponse.data.data.currentPage;
     totalPages.value = successResponse.data.data.numberOfPages;
-    totalItems.value = successResponse.data.data.pageSize * totalPages.value; 
+    totalItems.value = successResponse.data.data.pageSize * totalPages.value;
     // console.log(successResponse.data);
   }
 };
@@ -214,7 +221,7 @@ const getDepartments = async (page = 1) => {
 
   const response = await request(groupStore.index(organisationId, 10, page));
 
-// handleError(response, userStore);
+  // handleError(response, userStore);
   const successResponse = handleSuccess(response);
   // console.log('----gg');
 
@@ -227,7 +234,7 @@ const getDepartments = async (page = 1) => {
     // console.log(departmentValues.value);
     // console.log('+++++');
   } else {
-    emit('emptyDepartment', false);
+    emit("emptyDepartment", false);
     departmentValues.value = "You do not have any departments at the moment";
   }
 };
@@ -257,19 +264,18 @@ const confirmRemoveEmployees = () => {
 };
 
 const openEmployee = () => {
-  if(departmentValues.value && departmentValues.value.length){
+  if (departmentValues.value && departmentValues.value.length) {
     departmentState.value = true;
-    emit('showInviteEmployee')
-  }else{
+    emit("showInviteEmployee");
+  } else {
     departmentState.value = false;
   }
-
-}
+};
 
 fetchEmployees(currentPage.value);
 const updatePage = (page: number) => {
   fetchEmployees(page);
-}
+};
 
 // emit
 // const emit = defineEmits<{ (e: "refetchInvite"): void }>();
@@ -457,7 +463,8 @@ watch(showDepartment, (newValue, oldValue) => {
                       />
                       <div class="flex flex-col">
                         <span class="text-sm font-semimedium"
-                          >{{capitalizeName(user.firstName) }} {{ capitalizeName(user.lastName) }}</span
+                          >{{ capitalizeName(user.firstName) }}
+                          {{ capitalizeName(user.lastName) }}</span
                         >
                         <span class="text-xs text-gray-rgba-3 flex">{{
                           user.email
@@ -467,8 +474,12 @@ watch(showDepartment, (newValue, oldValue) => {
                   </td>
                   <td class="py-4 whitespace-nowrap">
                     <div class="text-left flex flex-col">
-                      <span class="text-sm font-semimedium">{{ formatDate(user.createdAt) }}</span>
-                      <span class="text-xs text-green">{{ user.isActive ? 'Active' : 'Inactive' }}</span>
+                      <span class="text-sm font-semimedium">{{
+                        formatDate(user.createdAt)
+                      }}</span>
+                      <span class="text-xs text-green">{{
+                        user.isActive ? "Active" : "Inactive"
+                      }}</span>
                     </div>
                   </td>
                   <td class="py-4 whitespace-nowrap">
@@ -482,19 +493,27 @@ watch(showDepartment, (newValue, oldValue) => {
                   <td class="py-4 whitespace-nowrap">
                     <div class="font-normal text-left flex flex-col">
                       <span class="text-sm font-semimedium">{{
-                        user.department && user.department !==null ? user.department.departmentName : "---"
+                        user.department && user.department !== null
+                          ? user.department.departmentName
+                          : "---"
                       }}</span>
                       <span class="text-xs text-gray-rgba-3">{{
-                        user.department && user.department !==null ? user.department.supportingName : "---"
+                        user.department && user.department !== null
+                          ? user.department.supportingName
+                          : "---"
                       }}</span>
                     </div>
                   </td>
                   <td class="py-4 text-left whitespace-nowrap">
                     <div class="font-normal flex flex-col">
                       <span class="text-sm font-semimedium">{{
-                        user.grades.id && user.grades !== null ? user.grades.code : "---"
+                        user.grades.id && user.grades !== null
+                          ? user.grades.code
+                          : "---"
                       }}</span>
-                      <span class="text-xs text-gray-rgba-3">{{user.employmentType}}</span>
+                      <span class="text-xs text-gray-rgba-3">{{
+                        user.employmentType
+                      }}</span>
                     </div>
                   </td>
                   <td class="py-4 text-left whitespace-nowrap w-[18%]">
@@ -530,17 +549,23 @@ watch(showDepartment, (newValue, oldValue) => {
                       to start managing employees
                     </template>
                     <template #actions>
-                      <button v-if="departmentState"
+                      <button
+                        v-if="departmentState"
                         @click="openEmployee()"
                         class="bg-[#003b3d] text-white px-4+1 py-2.5+1 rounded-full text-sm"
                       >
                         + Invite Employees
                       </button>
-                      <button v-else
-                        @click="router.push({name: 'dashboard.employees.departments'})"
+                      <button
+                        v-else
+                        @click="
+                          router.push({
+                            name: 'dashboard.employees.departments',
+                          })
+                        "
                         class="bg-[#4a7e6a]/70 text-white px-4+1 py-2.5+1 rounded-full text-sm capitalize"
                       >
-                        Your department is empty, please create new department. 
+                        Your department is empty, please create new department.
                       </button>
                     </template>
                   </EmptyState>
@@ -574,12 +599,12 @@ watch(showDepartment, (newValue, oldValue) => {
             >
           </div>
         </div> -->
-        <Pagination 
-        :currentPage="currentPage" 
-        :totalPages="totalPages"
-        :pageSize="pageSize"
-        :totalItems="totalItems"
-        @updatePage="updatePage"
+        <Pagination
+          :currentPage="currentPage"
+          :totalPages="totalPages"
+          :pageSize="pageSize"
+          :totalItems="totalItems"
+          @updatePage="updatePage"
         />
       </div>
     </div>

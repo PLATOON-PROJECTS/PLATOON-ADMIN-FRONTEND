@@ -9,7 +9,7 @@ export interface Create {
   currency: number;
 }
 export interface Update {
-name?: string;
+  name?: string;
   email?: string;
   telephone?: number;
   city?: string;
@@ -17,4 +17,60 @@ name?: string;
   state?: string;
   address?: string;
   currency?: number;
+}
+
+export interface Admin {
+  id: number;
+  email: string;
+  firstname: string;
+  lastname: string;
+}
+
+export interface Get {
+  id: number;
+  name: string;
+  admin: Admin;
+  employeeCount: number;
+  isActive: boolean;
+  dateAdded: string;
+}
+
+export interface ContactInfo {
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+}
+
+export interface OrganisationData {
+  contactInfo: ContactInfo;
+  id: number;
+  name: string;
+  admin: Admin;
+  employeeCount: number;
+  isActive: boolean;
+  dateAdded: string;
+}
+
+export interface OrganisationResponse {
+  succeeded: boolean;
+  message: string;
+  data: OrganisationData;
+  statusCode: number;
+}
+
+interface Payroll {
+  payrollId: number;
+  totalGrossPay: number;
+  totalDeductions: number;
+  totalBonus: number;
+  totalNetPay: number;
+  totalTaxAmount: number;
+  scheduleDate: string;
+  executionDate: string;
+  totalEmployees: number;
+}
+
+interface PayrollResponse {
+  pageItems: Payroll[];
 }

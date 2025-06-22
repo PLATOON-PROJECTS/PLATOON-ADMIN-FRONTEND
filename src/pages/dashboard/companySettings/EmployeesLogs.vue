@@ -14,7 +14,7 @@ import spinner from "../../../components/timer/Spinner.vue";
 import { ICaretUpDown, IMenuVertical, IUserThree } from "../../../core/icons";
 import CalenderInterface from "../../../layouts/CalenderLayout.vue";
 import EmptyState from "../../../components/EmptyState.vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { request } from "../../../composables/request.composable";
 import handleError from "../../../composables/handle_error.composable";
 import handleSuccess from "../../../composables/handle_success.composable";
@@ -25,6 +25,7 @@ import { getItem } from "../../../core/utils/storage.helper";
 import Pagination from "../../../components/Pagination.vue";
 
 const router = useRouter();
+const route = useRoute();
 
 // initialize store
 const employeeStore = useEmployeeStore();
@@ -55,6 +56,8 @@ const pageSize = ref(10); // Make sure this is set to the page size used in the 
 const totalItems = ref(0);
 
 // provide and inject
+const totalEmployeeCount = ref<any>({ data: {}, message: "" });
+const totalDepartmentCount = ref<any>({ data: {}, message: "" });
 provide("showDepartment", showDepartment);
 provide("selectedDepartment", [data, departmentName]);
 const render = inject<any>("render");
@@ -68,8 +71,9 @@ const parsedUserInfo =
   typeof userInfo.value === "string"
     ? JSON.parse(userInfo.value)
     : userInfo.value;
-const organisationId = parsedUserInfo?.customerInfo?.organisationId;
-// methods
+const organisationId = Array.isArray(route.params.id)
+  ? route.params.id[0]
+  : route.params.id; // methods
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
 
@@ -87,6 +91,44 @@ const formatDate = (dateString: string) => {
 
   return `${formattedDate} ${formattedTime}`;
 };
+
+const fetchTotalEmployeeCount = async () => {
+  loading.value = true;
+  try {
+    const response = await request(
+      employeeStore.getEmployeeCount(Number(organisationId))
+    );
+
+    if (response?.data) {
+      totalEmployeeCount.value = [response.data.data];
+    }
+  } catch (error) {
+    console.error("Failed to fetch total funds disbursed:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+fetchTotalEmployeeCount();
+
+const fetchTotalDepartmentCount = async () => {
+  loading.value = true;
+  try {
+    const response = await request(
+      groupStore.totalDepartment(Number(organisationId))
+    );
+
+    if (response?.data) {
+      totalDepartmentCount.value = [response.data.data];
+    }
+  } catch (error) {
+    console.error("Failed to fetch total funds disbursed:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+fetchTotalDepartmentCount();
 
 const capitalizeName = (name: string) => {
   if (!name) return "";
@@ -172,18 +214,15 @@ const fetchEmployees = async (page = 1) => {
 
   // console.log("fetching employeee");
   const totalEmployeeCached = cache("total_employees");
-  console.log("##########", totalEmployeeCached);
 
   if (typeof totalEmployeeCached !== "undefined") {
     loading.value = false;
     responseData.value.data = totalEmployeeCached;
   }
-  console.log("ertyuio", responseData.value.data);
   const response = await request(
-    employeeStore.index(organisationId, 10, page),
+    employeeStore.index(Number(organisationId), 10, page),
     loading
   );
-  // console.log(loading.value);
 
   const successResponse = handleSuccess(response);
 
@@ -227,7 +266,9 @@ const getDepartments = async (page = 1) => {
     departmentValues.value = cachedData;
   }
 
-  const response = await request(groupStore.index(organisationId, 10, page));
+  const response = await request(
+    groupStore.index(Number(organisationId), 10, page)
+  );
 
   // handleError(response, userStore);
   const successResponse = handleSuccess(response);
@@ -335,7 +376,9 @@ watch(showDepartment, (newValue, oldValue) => {
             <p class="text-[#000000AD] text-sm">
               All employees, active and inactive
             </p>
-            <h2 class="text-black text-xl font-bold pt-4">56</h2>
+            <h2 class="text-black text-xl font-bold pt-4">
+              {{ totalEmployeeCount[0] ?? 0 }}
+            </h2>
           </div>
 
           <!-- Card 2 -->
@@ -344,14 +387,16 @@ watch(showDepartment, (newValue, oldValue) => {
             <p class="text-[#000000AD] text-sm">
               Employees yet to accept invite
             </p>
-            <h2 class="text-black text-xl font-bold pt-4">5</h2>
+            <h2 class="text-black text-xl font-bold pt-4">0</h2>
           </div>
 
           <!-- Card 3 -->
           <div class="bg-[#F0F2F2] shadow-lg rounded-lg p-6">
             <p class="text-black text-base font-medium">Departments</p>
             <p class="text-[#000000AD] text-sm">Dapartments xyz xyz xyz</p>
-            <h2 class="text-black text-xl font-bold pt-4">7</h2>
+            <h2 class="text-black text-xl font-bold pt-4">
+              {{ totalDepartmentCount[0] ?? 0 }}
+            </h2>
           </div>
         </div>
 
@@ -359,7 +404,7 @@ watch(showDepartment, (newValue, oldValue) => {
         <div
           class="align-middle inline-block min-w-full border border-grey rounded-lg"
         >
-          <div class="px-5 py-2 flex justify-between">
+          <!-- <div class="px-5 py-2 flex justify-between">
             <div class="flex items-center gap-2">
               <div class="flex space-x-2">
                 <div class="text-sm pt-1 font-semimedium text-black-200">
@@ -386,7 +431,7 @@ watch(showDepartment, (newValue, oldValue) => {
                 </span>
               </div>
             </div>
-          </div>
+          </div> -->
           <fieldset class="overflow-hidden sm:rounded-lg">
             <table class="min-w-full table-fixed">
               <thead
@@ -499,7 +544,9 @@ watch(showDepartment, (newValue, oldValue) => {
                     <div class="flex items-center justify-between">
                       <button
                         @click="
-                          router.push(`/dashboard/view-employee/${user.id}`)
+                          router.push(
+                            `/dashboard/${organisationId}/view-employee/${user.id}`
+                          )
                         "
                         class="text-[#003b3d] bg-red-light text-sm text-bold px-4 py-2 rounded-full"
                       >
@@ -521,29 +568,7 @@ watch(showDepartment, (newValue, oldValue) => {
                     </template>
                     <template #heading> Employees </template>
                     <template #desc>
-                      All employees will be displayed here. Click on the “invite
-                      employee” <br />
-                      to start managing employees
-                    </template>
-                    <template #actions>
-                      <button
-                        v-if="departmentState"
-                        @click="openEmployee()"
-                        class="bg-[#003b3d] text-white px-4+1 py-2.5+1 rounded-full text-sm"
-                      >
-                        + Invite Employees
-                      </button>
-                      <button
-                        v-else
-                        @click="
-                          router.push({
-                            name: 'dashboard.employees.departments',
-                          })
-                        "
-                        class="bg-[#4a7e6a]/70 text-white px-4+1 py-2.5+1 rounded-full text-sm capitalize"
-                      >
-                        Your department is empty, please create new department.
-                      </button>
+                      No employee yet for this organisation
                     </template>
                   </EmptyState>
                 </tr>

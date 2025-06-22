@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, inject } from "vue";
 import useVuelidate from "@vuelidate/core";
 import {
   email,
@@ -17,7 +17,7 @@ import handleSuccess from "../../composables/handle_success.composable";
 import spinner from "../../components/timer/Spinner.vue";
 import { useAuthStore, useUserStore } from "../../store/index";
 import { stringValidate, numberValidate } from "../../validations/validate";
-import { storeItem, getItem } from "../../core/utils/storage.helper";
+import confirmAlert from "../../components/alerts/ConfirmAlert.vue";
 // store initializaion
 // initialize store
 const authStore = useAuthStore();
@@ -33,6 +33,11 @@ let data = ref<{
   password: string | null;
   confirmPassword: string | null;
   photo: string | null;
+  organisationName?: string;
+  country?: string;
+  city?: string;
+  state?: string;
+  street?: string;
 }>({
   firstname: null,
   lastname: null,
@@ -41,12 +46,22 @@ let data = ref<{
   password: null,
   confirmPassword: null,
   photo: null,
+  organisationName: undefined,
+  country: undefined,
+  city: undefined,
+  state: undefined,
+  street: undefined,
 });
 const showSuccess = ref(false);
 const disabled = ref(true);
 const valid = ref(false);
 const is_open = ref(false);
 const responseData = ref<any>({ message: "Action successful" });
+const render = inject<any>("render");
+const successMessage = ref("Action successful");
+const confirmMessage = ref({ message: "", id: "" });
+const showConfirm = ref(false);
+
 // methods
 
 const onInput = (phone: number, phoneObject: any, input: any) => {
@@ -56,49 +71,128 @@ const onInput = (phone: number, phoneObject: any, input: any) => {
   }
 };
 
-const validatePhone = () => {
-  return valid.value;
+// const validatePhone = () => {
+//   return valid.value;
+// };
+
+const capitalizeFirstLetter = (name: string | null) => {
+  if (!name) return "";
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 };
-const updateProfile = async () => {
-  // check if form is formattted correctly
+
+const updateAdminProfile = async (event?: Event) => {
   const isFormCorrect = await v$.value.$validate();
 
-  if (isFormCorrect == true) {
+  if (isFormCorrect) {
+    const phoneNumber = v$.value.telephone.$model as string;
+
+    // Extract country code and actual phone number
+    const countryCode = phoneNumber.match(/^\+\d{1,3}/)?.[0] || "";
+    const actualNumber = phoneNumber.replace(countryCode, "").trim();
+    const formattedNumber = actualNumber.startsWith("0")
+      ? actualNumber
+      : "0" + actualNumber;
+
     const dataObj = {
+      firstName: v$.value.firstname.$model as string,
+      lastName: v$.value.lastname.$model as string,
       email: v$.value.email.$model as string,
-      password: v$.value.password.$model as string,
-      firstname: v$.value.firstname.$model as string,
-      lastname: v$.value.lastname.$model as string,
-      telephone: v$.value.telephone.$model as string,
-      confirmPassword: v$.value.confirmPassword.$model as string,
-      // photo: data.photo as any,
+      countryCode: countryCode,
+      phoneNumber: formattedNumber,
     };
-
     loading.value = true;
-    const response = await request(authStore.updateProfile(dataObj), loading);
+    try {
+      const response = await request(
+        authStore.updateAdminProfile(dataObj),
+        loading
+      );
 
-    handleError(response, userStore);
-    const successResponse = handleSuccess(response, showSuccess);
+      handleError(response, userStore);
+      const successResponse = handleSuccess(response, showSuccess);
 
-    if (successResponse && typeof successResponse !== "undefined") {
-      // remove previously stored item and add a new one
-      sessionStorage.removeItem(import.meta.env.VITE_USERDETAILS);
+      if (
+        successResponse &&
+        successResponse.data &&
+        successResponse.data.succeeded
+      ) {
+        // Handle success response
+        responseData.value = {
+          message: successResponse.data.message,
+        };
+        showSuccess.value = true;
+        render.value = true;
 
-      const data = JSON.stringify({
-        customerInfo: {
-          firstName: successResponse.data.data.firstname,
-          lastName: successResponse.data.data.lastname,
-          email: successResponse.data.data.email,
-          phone: successResponse.data.data.phone,
-        },
-      });
+        if (
+          data.value.password &&
+          data.value.password === data.value.confirmPassword
+        ) {
+          const passwordResponse = await request(
+            authStore.changeThePassword(data.value.password),
+            loading
+          );
+          handleError(passwordResponse, userStore);
+          const passwordSuccessResponse = handleSuccess(
+            passwordResponse,
+            showSuccess
+          );
 
-      storeItem(import.meta.env.VITE_USERDETAILS, data);
-
-      responseData.value = successResponse;
+          if (
+            passwordSuccessResponse &&
+            passwordSuccessResponse.data &&
+            passwordSuccessResponse.data.succeeded
+          ) {
+            await authStore.logoutUser();
+            window.location.href = "/login";
+            responseData.value.message += " and password updated successfully.";
+          } else {
+            responseData.value.message += " but password update failed.";
+          }
+        }
+        await fetchUserDetails();
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      responseData.value.message =
+        "An error occurred while updating the profile.";
+    } finally {
+      loading.value = false;
     }
   }
 };
+
+const fetchUserDetails = async () => {
+  const userId = Number(localStorage.getItem("userId"));
+
+  if (userId) {
+    const response = await request(userStore.show(userId));
+
+    const successResponse = handleSuccess(response);
+
+    if (successResponse && successResponse.data && successResponse.data.data) {
+      const userData = successResponse.data.data.organisation.user;
+      const organisationData = successResponse.data.data.organisation;
+
+      data.value = {
+        firstname: capitalizeFirstLetter(userData.firstname || ""),
+        lastname: capitalizeFirstLetter(userData.lastname || ""),
+        email: userData.email || "",
+        telephone: userData.phoneNumber || "",
+        password: null,
+        confirmPassword: null,
+        photo: userData.imageUrl || null,
+        organisationName: organisationData.organisationName || "",
+        street: organisationData.address.street || "",
+        city: organisationData.address.city || "",
+        state: organisationData.address.state || "",
+        country: organisationData.address.country || "",
+      };
+    } else {
+      console.error("Invalid response data:", successResponse);
+    }
+  }
+};
+
+fetchUserDetails();
 
 const getProfile = async () => {
   const response = await request(authStore.getProfile());
@@ -115,6 +209,12 @@ const getProfile = async () => {
 
 // getProfile();
 // validations rule
+const validatePhone = (phone: string) => {
+  if (!phone) return true;
+  const phoneRegex = /^\+\d{1,3}\d{9,14}$/;
+  return phoneRegex.test(phone);
+};
+
 const rules = computed(() => {
   return {
     email: {
@@ -143,7 +243,7 @@ const rules = computed(() => {
       ),
     },
     telephone: {
-      required: helpers.withMessage("Telephone is required", required),
+      // required: helpers.withMessage("Telephone is required", required),
       validatePhone: helpers.withMessage("Invalid Phone Number", validatePhone),
     },
   };
@@ -153,6 +253,20 @@ const v$ = useVuelidate(rules as any, data);
 </script>
 <template>
   <div class="px-6 py-9 space-y-6 cursor-pointer">
+    <!-- Confirm Alert -->
+    <confirmAlert
+      :showConfirm="showConfirm"
+      @closeConfirm="showConfirm = false"
+      v-if="showConfirm == true"
+    >
+      <template #title>Delete</template>
+      <template #message>{{ confirmMessage.message }}</template>
+      <template #confirm>
+        <span @click="[updateAdminProfile(), (showConfirm = false)]">
+          CONFIRM</span
+        ></template
+      >
+    </confirmAlert>
     <successAlert
       :showSuccess="showSuccess"
       @closeSuccess="showSuccess = false"
@@ -168,14 +282,12 @@ const v$ = useVuelidate(rules as any, data);
         class="flex items-center justify-between overflow-auto scrollbar-hide lg:space-x-0 space-x-3"
       >
         <div>
-          <h3 class="text-black-rgba font-medium text-base">
-            Personal Information
-          </h3>
+          <h3 class="text-black-rgba font-medium text-base">Update profile</h3>
           <span class="text-sm text-gray-rgba-3"
             >Edit your profile information</span
           >
         </div>
-        <ButtonBlue @click="updateProfile" :disabled="disabled">
+        <ButtonBlue @click="updateAdminProfile" :disabled="disabled">
           <template #placeholder>
             <spinner v-if="loading == true" /> <span v-else>Save Changes</span>
           </template>
@@ -183,7 +295,10 @@ const v$ = useVuelidate(rules as any, data);
       </div>
 
       <!-- form -->
-      <form @submit.prevent="updateProfile" class="space-y-6 lg:w-1/2 mr-auto">
+      <form
+        @submit.prevent="updateAdminProfile()"
+        class="space-y-6 lg:w-1/2 mr-auto"
+      >
         <div class="space-y-4-1">
           <h4 class="text-base text-black-200 font-medium">Contact</h4>
           <div class="grid sm:grid-cols-2 gap-4">
@@ -249,26 +364,29 @@ const v$ = useVuelidate(rules as any, data);
                   {{ "* " + v$.email.$errors[0].$message }}
                 </div>
               </div>
+              <span class="text-sm font-semimedium text-gray-rgba-3">
+                To change email, contact your administrator to create a new
+                profile for you
+              </span>
             </div>
             <div>
               <div class="relative">
                 <input
-                  @click="disabled = false"
                   type="tel"
                   id="Telephone"
                   v-model="data.telephone"
-                  maxlength="54"
+                  maxlength="14"
                   class="input-float text-black peer pr-10.5"
-                  placeholder=""
+                  placeholder="+2348145951347"
                 />
                 <label
                   for="Telephone"
                   class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
                 >
-                  Phone Number</label
+                  Telephone (with country code)</label
                 >
-                <div v-if="v$.email.$error" class="text-red-600 text-xs">
-                  {{ "* " + v$.email.$errors[0].$message }}
+                <div v-if="v$.telephone.$error" class="text-red-600 text-xs">
+                  {{ "* " + v$.telephone.$errors[0].$message }}
                 </div>
               </div>
             </div>
@@ -281,36 +399,16 @@ const v$ = useVuelidate(rules as any, data);
             <div class="relative">
               <input
                 @click="disabled = false"
-                type="password"
-                id="oldpassword"
-                maxlength="54"
-                class="input-float peer text-black pr-10.5"
-                placeholder=""
-              />
-              <label
-                for="Password"
-                class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
-              >
-                Old Password</label
-              >
-
-              <span class="absolute right-4 top-4+2">
-                <IEyeOpened />
-              </span>
-            </div>
-            <!-- <div></div> -->
-            <div class="relative">
-              <input
-                @click="disabled = false"
                 :type="is_open ? 'text' : 'password'"
-                id="newpassword"
+                id="newPasswordInput"
                 v-model="data.password"
                 maxlength="54"
                 class="input-float peer text-black pr-10.5"
                 placeholder=""
+                autocomplete="new-password"
               />
               <label
-                for="Password"
+                for="newPasswordInput"
                 class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
               >
                 New Password</label

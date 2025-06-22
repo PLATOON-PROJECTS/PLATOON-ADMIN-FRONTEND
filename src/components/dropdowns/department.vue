@@ -16,12 +16,13 @@ const departments = ref<any>([]);
 const stateMessage = ref<string>("");
 const userInfo = ref(getItem(import.meta.env.VITE_USERDETAILS));
 
-const parsedUserInfo = typeof userInfo.value === 'string' ? JSON.parse(userInfo.value) : userInfo.value;
-
+const parsedUserInfo =
+  typeof userInfo.value === "string"
+    ? JSON.parse(userInfo.value)
+    : userInfo.value;
 
 // Access the organisationId safely
-const organisationId = parsedUserInfo?.customerInfo?.organisationId
-console.log("~~~~~~~~~~~~~:", organisationId);
+const organisationId = parsedUserInfo?.customerInfo?.organisationId;
 // emits
 const emit = defineEmits<{ (e: "setGrades", grades: any[]): void }>();
 
@@ -40,7 +41,6 @@ let selectedDepartment = inject<any>("selectedDepartment");
 
 //   selectedDepartment[1].value = department.name;
 //   showDepartment.value = false;
-  
 
 //   emit("setGrades", department.grades);
 // };
@@ -52,10 +52,8 @@ const selectDepartment = (department: any) => {
   emit("setGrades", department.grades);
 };
 
-
 const getDepartments = async () => {
   const cachedData = cache("departments");
-  console.log("cachedData-----",cachedData)
 
   if (typeof cachedData !== "undefined") {
     departments.value = cachedData;

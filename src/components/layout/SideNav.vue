@@ -18,6 +18,8 @@ import {
   IHome,
   IBuildings,
   IUserGear,
+  IFileClockIcon,
+  ISettings,
   ICompanySettings,
   IUserThree,
   IScales,
@@ -61,56 +63,54 @@ const parsedUserInfo =
   typeof userInfo.value === "string"
     ? JSON.parse(userInfo.value)
     : userInfo.value;
-console.log("userInfo before parsing:", userInfo.value);
 
 // Computed property to get initials
 const initials = computed(() => {
   const userDetails = parsedUserInfo;
-  console.log(">>>>>>>>>>>", userDetails);
   const firstName = userDetails.customerInfo.firstName || "";
   const lastName = userDetails.customerInfo.lastName || "";
   return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
 });
 
 // methods
-const fetchCompany = async () => {
-  loading.value = true;
-  const response = await request(companyStore.index(), loading);
+// const fetchCompany = async () => {
+//   loading.value = true;
+//   const response = await request(companyStore.index(), loading);
 
-  const successResponse = handleSuccess(response);
+//   const successResponse = handleSuccess(response);
 
-  if (successResponse && typeof successResponse !== "undefined") {
-    companies.value = successResponse.data.data;
-    // console.log(successResponse.data.data)
-    logged_in_company.value = successResponse.data.data.find(
-      (element: any) => element.is_default == true
-    );
-    // always make the defualt company appear first
-    companies.value.sort((a, b) => {
-      return b.is_default - a.is_default;
-    });
-  }
-};
+//   if (successResponse && typeof successResponse !== "undefined") {
+//     companies.value = successResponse.data.data;
+//     // console.log(successResponse.data.data)
+//     logged_in_company.value = successResponse.data.data.find(
+//       (element: any) => element.is_default == true
+//     );
+//     // always make the defualt company appear first
+//     companies.value.sort((a, b) => {
+//       return b.is_default - a.is_default;
+//     });
+//   }
+// };
 // fetchCompany();
 
-const switchCompany = async (id: string, name: string) => {
-  loading.value = true;
-  const response = await request(companyStore.switch(id), loading);
-  handleError(response, userStore);
-  const successResponse = handleSuccess(response, showSuccess);
+// const switchCompany = async (id: string, name: string) => {
+//   loading.value = true;
+//   const response = await request(companyStore.switch(id), loading);
+//   handleError(response, userStore);
+//   const successResponse = handleSuccess(response, showSuccess);
 
-  if (successResponse && typeof successResponse !== "undefined") {
-    responseData.value.message = response.data.message;
-    fetchCompany();
-    render.value = true;
-    logged_in_company.value = successResponse.data.data.find(
-      (element: any) => element.is_default == true
-    );
-  }
-};
+//   if (successResponse && typeof successResponse !== "undefined") {
+//     responseData.value.message = response.data.message;
+//     fetchCompany();
+//     render.value = true;
+//     logged_in_company.value = successResponse.data.data.find(
+//       (element: any) => element.is_default == true
+//     );
+//   }
+// };
 
 defineExpose({
-  fetchCompany,
+  // fetchCompany,
   loading,
   request,
   handleSuccess,
@@ -169,9 +169,9 @@ defineExpose({
             <span class="text-green bg-green-rgba py-0.5-1 text-xs uppercase"
               >Admin</span
             >
-            <span @click="showDropDown = !showDropDown" class="cursor-pointer">
+            <!-- <span @click="showDropDown = !showDropDown" class="cursor-pointer">
               <IArrowDown />
-            </span>
+            </span> -->
           </div>
           <div class="flex items-center justify-between">
             <span class="text-[12px] text-black/40">{{
@@ -183,14 +183,14 @@ defineExpose({
       <!-- drop down -->
 
       <div class="absolute w-full">
-        <general
+        <!-- <general
           v-if="showDropDown == true"
           class="max-h-80 h-auto overflow-auto scrollbar-hide"
         >
           <spinner v-if="loading == true" class="flex justify-center" />
 
-          <div v-else>
-            <div class="space-y-7" v-if="companies[0]">
+          <div v-else> -->
+        <!-- <div class="space-y-7" v-if="companies[0]">
               <div
                 v-for="company in companies"
                 :key="company"
@@ -216,10 +216,10 @@ defineExpose({
               >
                 + Add new Company
               </p>
-            </div>
+            </div> -->
 
-            <!--  -->
-            <EmptyState v-else class="h-auto">
+        <!--  -->
+        <!-- <EmptyState v-else class="h-auto">
               <template #icon>
                 <ILinkBreak />
               </template>
@@ -238,9 +238,9 @@ defineExpose({
                   Create Company
                 </button>
               </template>
-            </EmptyState>
-          </div>
-        </general>
+            </EmptyState> -->
+        <!-- </div>
+        </general> -->
       </div>
     </div>
     <div class="mt-11">
@@ -319,7 +319,7 @@ defineExpose({
           </router-link>
         </li> -->
 
-        <li>
+        <!-- <li>
           <router-link to="/dashboard/payroll">
             <div class="side-nav-link">
               <div class="nav-link">
@@ -341,8 +341,35 @@ defineExpose({
               </div>
             </div>
           </router-link>
-        </li>
+        </li> -->
 
+        <li>
+          <router-link to="/dashboard/subscription">
+            <div class="side-nav-link">
+              <div class="nav-link">
+                <span class="w-6 h-6">
+                  <img
+                    src="/images/svg/svg8.svg"
+                    alt="file text"
+                    :color="
+                      isActiveRoute('dashboard.subscription')
+                        ? '#003b3d'
+                        : '#626669'
+                    "
+                  />
+                </span>
+                <span
+                  :class="[
+                    isActiveRoute('dashboard.subscription')
+                      ? 'text-[#003b3d] font-medium'
+                      : 'text-black-200',
+                  ]"
+                  >Subscription</span
+                >
+              </div>
+            </div>
+          </router-link>
+        </li>
         <li>
           <router-link to="/dashboard/health/existing">
             <div class="side-nav-link">
@@ -473,7 +500,7 @@ defineExpose({
             <div class="side-nav-link">
               <div class="nav-link">
                 <span>
-                  <ICompanySettings
+                  <ISettings
                     :color="
                       isActiveRoute('dashboard.settings')
                         ? '#003b3d'

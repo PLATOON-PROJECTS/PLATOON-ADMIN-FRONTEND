@@ -87,13 +87,9 @@ const handleLogin = async (): Promise<void> => {
       // console.log(true);
       responseData.value = successResponse;
       responseData.value.message = "Login successful";
-      console.log("Response Data:::::::::", responseData.value);
 
       const userId = successResponse.data.data.id;
       localStorage.setItem("userId", userId);
-      console.log("Stored User ID:", localStorage.getItem("userId"));
-      console.log("===========", userId);
-      console.log("====^^^^====", successResponse);
 
       setTimeout(() => {
         window.location.href = "/dashboard/home"; // Redirect to dashboard
@@ -283,6 +279,17 @@ const gotoExternalRouteOnTab = (route: string) => {
         class="text-[#003b3d] text-sm underline underline-offset-4 font-medium"
         >Forgot password?</a
       >
+    </div>
+    <div class="mt-20 pb-20">
+      <p>
+        New to Platoon?
+        <router-link
+          to="/signup"
+          class="text-[#003b3d] underline underline-offset-4 font-semimedium"
+        >
+          Create account</router-link
+        >
+      </p>
     </div>
 
     <!-- <div class="mt-20 pb-20">

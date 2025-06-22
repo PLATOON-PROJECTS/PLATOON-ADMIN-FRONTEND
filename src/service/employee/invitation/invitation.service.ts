@@ -9,7 +9,7 @@ class EmployeeInvitation {
 
   private createAxiosInstance() {
     return axios.create({
-      baseURL: "https://platoon-backend.onrender.com/api", // Set your custom base URL here
+      baseURL: import.meta.env.VITE_PLATOON_BASEURL, // Set your custom base URL here
       headers: authhHeader(), // Include any headers you need
     });
   }
@@ -34,7 +34,6 @@ class EmployeeInvitation {
         headers: authhHeader(),
       })
       .then((res) => {
-        console.log("Pending==========",res)
         return res;
       })
       .catch((err) => {
@@ -49,11 +48,10 @@ class EmployeeInvitation {
         headers: authhHeader(),
         params: {
           PageSize: pageSize,
-          PageNumber: pageNumber
-        }
+          PageNumber: pageNumber,
+        },
       })
       .then((res) => {
-        console.log("All Pending==========",res)
         return res;
       })
       .catch((err) => {
@@ -79,12 +77,11 @@ class EmployeeInvitation {
   // }
 
   async create(data: Create): Promise<any> {
-
     const customRequest = this.createAxiosInstance();
 
     return await customRequest
       .post(
-        "/Invite/send-employee-invite", 
+        "/Invite/send-employee-invite",
         {
           firstName: data.firstName,
           lastName: data.lastName,
@@ -101,7 +98,6 @@ class EmployeeInvitation {
         }
       )
       .then((res) => {
-        console.log("==========",res)
         return res;
       })
       .catch((err) => {

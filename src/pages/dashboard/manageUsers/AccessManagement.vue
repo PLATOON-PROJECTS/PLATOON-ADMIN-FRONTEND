@@ -2,8 +2,9 @@
 import ButtonBlueOutline from "../../../components/buttons/ButtonBlueOutline.vue";
 import FCheckedComponent from "../../../components/forms/FCheckBox.vue";
 import { inject } from "vue";
+import { useRouter } from "vue-router";
 // inject
-const openUpdateUser = inject("openUpdateUser");
+const router = useRouter();
 </script>
 
 <template>
@@ -18,7 +19,8 @@ const openUpdateUser = inject("openUpdateUser");
         <p class="text-sm font-semimedium">ACCESS</p>
         <div class="items-center">
           <div class="flex space-x-2">
-            <FCheckedComponent />
+            <FCheckedComponent :checked="true" :disabled="true" />
+
             <div class="flex flex-col">
               <span class="text-md font-semimedium">Employees </span>
               <span class="text-sm text-gray-rgba-4"
@@ -29,7 +31,8 @@ const openUpdateUser = inject("openUpdateUser");
         </div>
         <div class="items-center">
           <div class="flex space-x-2">
-            <FCheckedComponent />
+            <FCheckedComponent :checked="true" :disabled="true" />
+
             <div class="flex flex-col">
               <span class="text-md font-semimedium">Payroll</span>
               <span class="text-sm text-gray-rgba-4"
@@ -41,7 +44,8 @@ const openUpdateUser = inject("openUpdateUser");
         </div>
         <div class="items-center">
           <div class="flex space-x-2">
-            <FCheckedComponent />
+            <FCheckedComponent :checked="true" :disabled="true" />
+
             <div class="flex flex-col">
               <span class="text-md font-semimedium">Pension </span>
               <span class="text-sm text-gray-rgba-4"
@@ -53,7 +57,8 @@ const openUpdateUser = inject("openUpdateUser");
         </div>
         <div class="items-center">
           <div class="flex space-x-2">
-            <FCheckedComponent />
+            <FCheckedComponent :checked="true" :disabled="true" />
+
             <div class="flex flex-col">
               <span class="text-md font-semimedium">Tax & NHF </span>
               <span class="text-sm text-gray-rgba-4"
@@ -65,7 +70,8 @@ const openUpdateUser = inject("openUpdateUser");
         </div>
         <div class="items-center">
           <div class="flex space-x-2">
-            <FCheckedComponent />
+            <FCheckedComponent :checked="true" :disabled="true" />
+
             <div class="flex flex-col">
               <span class="text-md font-semimedium">Manage Users</span>
               <span class="text-sm text-gray-rgba-4"
@@ -76,7 +82,8 @@ const openUpdateUser = inject("openUpdateUser");
         </div>
         <div class="items-center">
           <div class="flex space-x-2">
-            <FCheckedComponent />
+            <FCheckedComponent :checked="true" :disabled="true" />
+
             <div class="flex flex-col">
               <span class="text-md font-semimedium">Company Settings</span>
               <span class="text-sm text-gray-rgba-4"
@@ -90,20 +97,24 @@ const openUpdateUser = inject("openUpdateUser");
     <!--  -->
     <div class="h-full rounded-lg p-4 bg-blue-lighter space-y-8">
       <div class="items-center">
-        <div class="flex justify-between lg:space-x-0 space-x-2">
-          <span class="text-xl font-semimedium">Approver Access</span>
-          <div class="whitespace-nowrap">
-            <ButtonBlueOutline @click="openUpdateUser = true">
+        <div class="flex justify-end lg:space-x-0 space-x-2">
+          <!-- <div class="whitespace-nowrap">
+            <ButtonBlueOutline
+              @click="
+                () => router.push('/dashboard/manage-permission/employee')
+              "
+            >
               <template v-slot:placeholder>Edit Role access</template>
             </ButtonBlueOutline>
-          </div>
+          </div> -->
         </div>
       </div>
       <div class="space-y-5">
         <p class="text-sm font-semimedium">ACCESS</p>
         <div class="items-center">
           <div class="flex space-x-2">
-            <FCheckedComponent />
+            <FCheckedComponent :checked="true" :disabled="true" />
+
             <div class="flex flex-col">
               <span class="text-md font-semimedium">Employees</span>
               <span class="text-sm text-gray-rgba-4"
@@ -114,7 +125,8 @@ const openUpdateUser = inject("openUpdateUser");
         </div>
         <div class="items-center">
           <div class="flex space-x-2">
-            <FCheckedComponent />
+            <FCheckedComponent :checked="true" :disabled="true" />
+
             <div class="flex flex-col">
               <span class="text-md font-semimedium">Payroll</span>
               <span class="text-sm text-gray-rgba-4"
@@ -125,7 +137,8 @@ const openUpdateUser = inject("openUpdateUser");
         </div>
         <div class="items-center">
           <div class="flex space-x-2">
-            <FCheckedComponent />
+            <FCheckedComponent :checked="true" :disabled="true" />
+
             <div class="flex flex-col">
               <span class="text-md font-semimedium">Pension</span>
               <span class="text-sm text-gray-rgba-4"
@@ -136,7 +149,7 @@ const openUpdateUser = inject("openUpdateUser");
         </div>
         <div class="items-center">
           <div class="flex space-x-2">
-            <FCheckedComponent />
+            <FCheckedComponent :checked="true" :disabled="true" />
             <div class="flex flex-col">
               <span class="text-md font-semimedium">Tax & NHF</span>
               <span class="text-sm text-gray-rgba-4"

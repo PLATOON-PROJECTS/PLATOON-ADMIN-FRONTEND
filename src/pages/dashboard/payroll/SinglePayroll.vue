@@ -66,7 +66,6 @@ const summaryData = ref({
 
 const { payrollId } = route.params;
 
-console.log("--------", payrollId);
 const parsedPayrollId = Number(payrollId);
 
 const month = computed(() => {
@@ -191,12 +190,10 @@ const fetchPayrollSummary = async () => {
         organisationId,
         payrollId: parsedPayrollId,
       });
-      console.log("API Response:", response); // Log the entire response
       if (response.succeeded) {
         payrollData.value = response.data;
         responseData.value = payrollData.value.pageItems.employeeSalaries;
-        console.log("Payroll Data:", payrollData.value); // Log the payroll data
-        console.log("Response Data:", responseData.value); // Log the response data
+
         const scheduledDate = payrollData.value.pageItems.payroll.scheduledDate;
         const formattedExecutionDate = formatDate(scheduledDate, "full");
         const formattedExecutionMonthYear = formatDate(
@@ -204,19 +201,12 @@ const fetchPayrollSummary = async () => {
           "monthYear"
         );
 
-        console.log("Formatted Execution Date:", formattedExecutionDate);
-
         summaryData.value = {
           totalEmployees: payrollData.value.pageItems.totalEmployees,
           totalSalaries: payrollData.value.pageItems.totalSalaries,
           executionDate: formattedExecutionDate,
           executionMonth: formattedExecutionMonthYear,
         };
-        console.log(
-          "Total Employees:",
-          payrollData.value?.pageItems.totalEmployees
-        );
-        console.log("Summary Data:", summaryData.value); // Log the summary data
       } else {
         throw new Error(response.message);
       }

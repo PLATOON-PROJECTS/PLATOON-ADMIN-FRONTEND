@@ -52,10 +52,10 @@ const data = reactive<{
   password: "",
 });
 
-async function checkDomainExists(email:string | null) {
-  const domain = email?.split('@')[1];
+async function checkDomainExists(email: string | null) {
+  const domain = email?.split("@")[1];
   try {
-    const response = await fetch(`https://${domain}`, { mode: 'no-cors' });
+    const response = await fetch(`https://${domain}`, { mode: "no-cors" });
     return true; // Returns true if the domain exists
   } catch (error) {
     return false; // Returns false if there's an error or domain doesn't exist
@@ -70,53 +70,28 @@ const handleRegister = async (): Promise<void> => {
   invalidDomain.value = false;
 
   if (isFormCorrect == true) {
-    // const data = {
-    //   telephone: v$.value.telephone.$model as number,
-    //   email: v$.value.email.$model as string,
-    //   password: v$.value.password.$model as string,
-    //   confirmPassword: v$.value.confirmPassword.$model as string,
-    //   firstname: v$.value.firstname.$model as string,
-    //   lastname: v$.value.lastname.$model as string,
-    //   // company: { name: v$.value.company.name.$model as string },
-    // };
-
     const data = {
       email: v$.value.email.$model as string,
       company: v$.value.company.$model as string,
       // company: { name: v$.value.company.name.$model as string },
       password: v$.value.password.$model as string,
     };
-    console.log("Data to be sent:", data);
 
     loading.value = true;
-    // const is_alive = await checkDomainExists(data.email)
-    // .then((result: any) => {
-    //   if (result) {
-    //     return true;
-    //   } else {
-    //     return false;
-    //   }
-    // })
-    // .catch(error => {
-    //   return "Not yet ready";
-    // });
-    // const is_alive = true;
 
-    // if(){
-      const response = await request(authStore.userRegister(data), loading);
-      console.log("Response from API:", response);
+    const response = await request(authStore.userRegister(data), loading);
 
-      handleError(response, userStore);
-  
-      const successResponse = handleSuccess(response, showSuccess);
-  
-      if (successResponse && typeof successResponse !== "undefined") {
-        responseData.value = successResponse;
-  
-        setTimeout(() => {
-          router.replace("/login");
-        }, 3000);
-      }
+    handleError(response, userStore);
+
+    const successResponse = handleSuccess(response, showSuccess);
+
+    if (successResponse && typeof successResponse !== "undefined") {
+      responseData.value = successResponse;
+
+      setTimeout(() => {
+        router.replace("/login");
+      }, 3000);
+    }
     // }else{
     //   loading.value = false;
     //   invalidDomain.value = true;
@@ -159,7 +134,7 @@ const rules = computed(() => {
 
     company: {
       // name: {
-        required: helpers.withMessage("Company name  is required", required),
+      required: helpers.withMessage("Company name  is required", required),
       // },
       // stringValidate: helpers.withMessage(
       //   "company name can only include alphabets",
@@ -171,9 +146,9 @@ const rules = computed(() => {
 
 const v$ = useVuelidate(rules as any, data);
 
-const gotoExternalRouteOnTab = (route:string) => {
-    window.location.href = route;
-}
+const gotoExternalRouteOnTab = (route: string) => {
+  window.location.href = route;
+};
 </script>
 <template>
   <!--  -->
@@ -258,11 +233,20 @@ const gotoExternalRouteOnTab = (route:string) => {
         </div>
 
         <div class="relative">
-          <input type="text" v-model="data.company" id="company_name" maxlength="55"
-            class="input-float peer pr-10.5" placeholder="" />
-          <label for="company_name"
-            class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2">
-            Company Name</label>
+          <input
+            type="text"
+            v-model="data.company"
+            id="company_name"
+            maxlength="55"
+            class="input-float peer pr-10.5"
+            placeholder=""
+          />
+          <label
+            for="company_name"
+            class="input-float-label peer-focus:text-black-100 peer-placeholder-shown:scale-75 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:px-2"
+          >
+            Company Name</label
+          >
           <span class="absolute right-4 top-4+2">
             <IBuildings />
           </span>
@@ -293,7 +277,6 @@ const gotoExternalRouteOnTab = (route:string) => {
         <div v-if="v$.password.$error" class="!text-red-100 text-xs">
           {{ "* " + v$.password.$errors[0].$message }}
         </div>
-
       </div>
 
       <!-- button -->
@@ -307,7 +290,10 @@ const gotoExternalRouteOnTab = (route:string) => {
 
     <div class="mt-6">
       <p class="text-sm">
-        By Signing up, you accept our<a href="/" class="!text-[#003b3d] link-underline">
+        By Signing up, you accept our<a
+          href="/"
+          class="!text-[#003b3d] link-underline"
+        >
           Terms</a
         >,
         <a href="/" class="!text-[#003b3d] link-underline">Privacy Policy</a>
@@ -322,8 +308,9 @@ const gotoExternalRouteOnTab = (route:string) => {
         <button
           @click="router.push('/login')"
           class="text-[#003b3d] underline underline-offset-4 font-semimedium"
-          >Login</button
         >
+          Login
+        </button>
       </p>
     </div>
   </div>
@@ -335,29 +322,6 @@ const gotoExternalRouteOnTab = (route:string) => {
   border-radius: 7px;
 }
 </style>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <!-- <script lang="ts" setup>
 import { reactive, ref, computed } from "vue";
@@ -569,7 +533,7 @@ const togglePasswordState = (type: string) => {
 // </script>
 // <template>
   //   -->
-  <!-- <div class="lg:w-[456px] w-screen mx-auto h-full pt-18 relative">
+<!-- <div class="lg:w-[456px] w-screen mx-auto h-full pt-18 relative">
     <successAlert
       v-if="showSuccess == true"
       @closeSuccess="showSuccess = false"
@@ -583,7 +547,7 @@ const togglePasswordState = (type: string) => {
         <h4 class="text-2xl+4">Get started with Platoon</h4>
         <p>Fill in your details below to create an account</p>
       </div> -->
-      <!-- <div class="space-y-2">
+<!-- <div class="space-y-2">
         <div
           class="flex items-center bg-grey py-3 px-6 rounded-full space-x-24"
         >
@@ -598,8 +562,8 @@ const togglePasswordState = (type: string) => {
           <span class="text-sm">Continue with Apple</span>
         </div>
       </div> -->
-    <!-- </div> -->
-    <!-- <div class="flex gap-4 mt-3">
+<!-- </div> -->
+<!-- <div class="flex gap-4 mt-3">
 
         <button type="button"
           class="flex items-center justify-center w-full bg-[#003b3d] text-white py-3 px-6 rounded-full space-x-24 cursor-default"
@@ -620,8 +584,8 @@ const togglePasswordState = (type: string) => {
       <div class="divider-local flex-1"></div>
     </div> -->
 
-    <!-- form -->
-    <!-- <form @submit.prevent="handleRegister" class="pt-9+2 space-y-6">
+<!-- form -->
+<!-- <form @submit.prevent="handleRegister" class="pt-9+2 space-y-6">
       <div class="space-y-4">
         <div class="relative">
           <input
@@ -705,7 +669,7 @@ const togglePasswordState = (type: string) => {
           {{ "* " + v$.telephone.$errors[0].$message }}
         </div> -->
 
-        <!-- <div class="relative">
+<!-- <div class="relative">
           <input type="text" v-model="data.company.name" id="company_name" maxlength="55"
             class="input-float peer pr-10.5" placeholder="" />
           <label for="company_name"
@@ -719,7 +683,7 @@ const togglePasswordState = (type: string) => {
           </div>
         </div> -->
 
-        <!-- <div class="relative">
+<!-- <div class="relative">
           <input
             :type="passwordType"
             id="password"
@@ -766,8 +730,8 @@ const togglePasswordState = (type: string) => {
         </div>
       </div> -->
 
-      <!-- button -->
-      <!-- <button
+<!-- button -->
+<!-- <button
         :disabled="loading"
         class="bg-[#003b3d] flex items-start justify-center py-4 rounded-full text-white w-full text-sm"
       >
@@ -805,5 +769,3 @@ const togglePasswordState = (type: string) => {
   border-radius: 7px;
 }
 </style>  -->
-
-
