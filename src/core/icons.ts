@@ -1,4 +1,5 @@
 import IQuestionMark from "../components/icons/IQuestionMark.vue";
+import IFileText from "../components/icons/IFileText.vue";
 import IArrowDown from "../components/icons/IArrowDown.vue";
 import IArrowRight from "../components/icons/IArrowRight.vue";
 import IBuildings from "../components/icons/IBuildings.vue";
@@ -39,7 +40,15 @@ import ITablePencil from "../components/icons/ITablePencil.vue";
 import IMore from "../components/icons/IMore.vue";
 import ISliderDown from "../components/icons/ISliderDown.vue";
 import ILinkBreak from "../components/icons/ILinkBreak.vue";
+import ISettings from "../components/icons/ISettings.vue";
+import IFileClockIcon from "../components/icons/IFileClockIcon.vue";
+import IDownload from "../components/icons/IDownload.vue";
+
 export {
+  ISettings,
+  IDownload,
+  IFileText,
+  IFileClockIcon,
   IQuestionMark,
   IIncDecBlue,
   IMemory,

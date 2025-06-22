@@ -208,7 +208,7 @@ const activeTab = computed(() => route.path);
         <div
           class="bg-white py-6 h-[10rem] px-4 rounded-t-lg items-center text-black-200 cursor-pointer text-sm justify-between flex space-x-8 whitespace-nowrap overflow-auto scrollbar-hide"
         >
-          <div class="flex flex-col">
+          <div class="flex flex-col border-b border-grey w-full">
             <div class="flex items-start space-x-5-1">
               <button @click="router.push('/dashboard/companies')">
                 <IArrowLeftTail />
@@ -243,6 +243,22 @@ const activeTab = computed(() => route.path);
                 <span
                   @click="
                     router.push(
+                      `/dashboard/company-settings/${organisationId}/kyc`
+                    )
+                  "
+                  :class="[
+                    activeTab.includes('kyc')
+                      ? 'border-b-2 border-blue pb-7 text-blue font-semimedium'
+                      : '',
+                    'font-normal cursor-pointer',
+                  ]"
+                >
+                  Verification Information
+                </span>
+
+                <span
+                  @click="
+                    router.push(
                       `/dashboard/company-settings/${organisationId}/contact-information`
                     )
                   "
@@ -254,6 +270,37 @@ const activeTab = computed(() => route.path);
                   ]"
                 >
                   Contact Information
+                </span>
+
+                <span
+                  @click="
+                    router.push(
+                      `/dashboard/company-settings/${organisationId}/subsidiaries`
+                    )
+                  "
+                  :class="[
+                    activeTab.includes('subsidiaries')
+                      ? 'border-b-2 border-blue pb-7 text-blue font-semimedium'
+                      : '',
+                    'font-normal cursor-pointer',
+                  ]"
+                >
+                  Subsidiaries
+                </span>
+                <span
+                  @click="
+                    router.push(
+                      `/dashboard/company-settings/${organisationId}/subscription`
+                    )
+                  "
+                  :class="[
+                    activeTab.includes('subscription')
+                      ? 'border-b-2 border-blue pb-7 text-blue font-semimedium'
+                      : '',
+                    'font-normal cursor-pointer',
+                  ]"
+                >
+                  Subscription
                 </span>
 
                 <span

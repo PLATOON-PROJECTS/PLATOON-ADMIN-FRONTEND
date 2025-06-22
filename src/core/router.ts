@@ -103,6 +103,9 @@ const HealthHistoryPage = () => import("../pages/dashboard/health/History.vue");
 // const HealthSettingsPage = () =>
 //   import("../pages/dashboard/health/Settings.vue");
 
+//subscriptions
+const SubscriptionPage = () =>
+  import("../pages/dashboard/subscription/Subscription.vue");
 // pension
 const ExcludedPensionPage = () =>
   import("../pages/dashboard/pension/ExcludedPension.vue");
@@ -128,6 +131,11 @@ const EmployeesLogsPage = () =>
   import("../pages/dashboard/companySettings/EmployeesLogs.vue");
 const CompanyInformationPage = () =>
   import("../pages/dashboard/companySettings/CompanyInformation.vue");
+const SubsidiariesPage = () =>
+  import("../pages/dashboard/companySettings/Subsidiaries.vue");
+const KycPage = () => import("../pages/dashboard/companySettings/kyc.vue");
+const SubscriptionSettingPage = () =>
+  import("../pages/dashboard/companySettings/Subscription.vue");
 const ContactInformationPage = () =>
   import("../pages/dashboard/companySettings/ContactInformation.vue");
 const DeleteCompanyPage = () =>
@@ -294,6 +302,14 @@ const routes = [
         path: "companies",
         name: "dashboard.companies",
         component: CompaniesPage,
+        meta: {
+          title: "Companies - Dashboard",
+        },
+      },
+      {
+        path: "subscription",
+        name: "dashboard.subscription",
+        component: SubscriptionPage,
         meta: {
           title: "Companies - Dashboard",
         },
@@ -681,6 +697,32 @@ const routes = [
               title: "Company - Settings - Contact - Dashboard",
             },
           },
+          {
+            path: "subsidiaries",
+            name: "dashboard.company.settings.subsidiaries",
+            component: SubsidiariesPage,
+            meta: {
+              title: "Company - Settings - Subsidiaries - Dashboard",
+            },
+          },
+          {
+            path: "kyc",
+            name: "dashboard.company.settings.kyc",
+            component: KycPage,
+            meta: {
+              title: "Company - Settings - kyc - Dashboard",
+            },
+          },
+
+          {
+            path: "subscription",
+            name: "dashboard.company.settings.subscription",
+            component: SubscriptionSettingPage,
+            meta: {
+              title: "Company - Settings - Subscription - Dashboard",
+            },
+          },
+
           {
             path: "payroll-history",
             name: "dashboard.company.settings.payroll-history",

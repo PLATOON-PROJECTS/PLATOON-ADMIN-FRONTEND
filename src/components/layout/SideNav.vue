@@ -18,6 +18,8 @@ import {
   IHome,
   IBuildings,
   IUserGear,
+  IFileClockIcon,
+  ISettings,
   ICompanySettings,
   IUserThree,
   IScales,
@@ -342,6 +344,33 @@ defineExpose({
         </li> -->
 
         <li>
+          <router-link to="/dashboard/subscription">
+            <div class="side-nav-link">
+              <div class="nav-link">
+                <span class="w-6 h-6">
+                  <img
+                    src="/images/svg/svg8.svg"
+                    alt="file text"
+                    :color="
+                      isActiveRoute('dashboard.subscription')
+                        ? '#003b3d'
+                        : '#626669'
+                    "
+                  />
+                </span>
+                <span
+                  :class="[
+                    isActiveRoute('dashboard.subscription')
+                      ? 'text-[#003b3d] font-medium'
+                      : 'text-black-200',
+                  ]"
+                  >Subscription</span
+                >
+              </div>
+            </div>
+          </router-link>
+        </li>
+        <li>
           <router-link to="/dashboard/health/existing">
             <div class="side-nav-link">
               <div class="nav-link">
@@ -471,7 +500,7 @@ defineExpose({
             <div class="side-nav-link">
               <div class="nav-link">
                 <span>
-                  <ICompanySettings
+                  <ISettings
                     :color="
                       isActiveRoute('dashboard.settings')
                         ? '#003b3d'
