@@ -134,7 +134,7 @@ const CompanyInformationPage = () =>
 const SubsidiariesPage = () =>
   import("../pages/dashboard/companySettings/Subsidiaries.vue");
 const VerificationPage = () =>
-  import("../pages/dashboard/companySettings/verification.vue");
+  import("../pages/dashboard/companySettings/Verification.vue");
 const SubscriptionSettingPage = () =>
   import("../pages/dashboard/companySettings/Subscription.vue");
 const ContactInformationPage = () =>

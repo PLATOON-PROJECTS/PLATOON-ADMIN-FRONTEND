@@ -28,7 +28,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 
-const is_good_token = ref(false)
+const is_good_token = ref(false);
 
 enum Password {
   PASSWORD = "password",
@@ -61,10 +61,10 @@ const data = reactive<{
   // company: { name: "" },
 });
 
-async function checkDomainExists(email:string | null) {
-  const domain = email?.split('@')[1];
+async function checkDomainExists(email: string | null) {
+  const domain = email?.split("@")[1];
   try {
-    const response = await fetch(`https://${domain}`, { mode: 'no-cors' });
+    const response = await fetch(`https://${domain}`, { mode: "no-cors" });
     return true; // Returns true if the domain exists
   } catch (error) {
     return false; // Returns false if there's an error or domain doesn't exist
@@ -76,9 +76,10 @@ const handleVerification = async (): Promise<void> => {
   // check if form is formatted correctlyx
 
   loading.value = true;
-  const response = await request(authStore.changePassword({
-    "token": route.query.token,
-  }), loading);
+  const response = await request(
+    authStore.changeThePassword(route.query.token as string),
+    loading
+  );
 
   handleError(response, userStore);
   const successResponse = handleSuccess(response, showSuccess);
@@ -111,7 +112,10 @@ const handleRegister = async (): Promise<void> => {
     };
 
     loading.value = true;
-    const response = await request(authStore.forgotPasswordComplete(data), loading);
+    const response = await request(
+      authStore.forgotPasswordComplete(data),
+      loading
+    );
 
     handleError(response, userStore);
     const successResponse = handleSuccess(response, showSuccess);
@@ -122,7 +126,7 @@ const handleRegister = async (): Promise<void> => {
       // console.log(responseData.value);
 
       setTimeout(() => {
-        router.push({name: 'auth.login'});
+        router.push({ name: "auth.login" });
       }, 3000);
     }
   }
@@ -204,17 +208,20 @@ const rules = computed(() => {
 
 const v$ = useVuelidate(rules as any, data);
 
-const gotoExternalRouteOnTab = (route:string) => {
-    window.location.href = route;
-}
+const gotoExternalRouteOnTab = (route: string) => {
+  window.location.href = route;
+};
 
-if(!route.query.token){
-  router.push({name: 'auth.login'});
+if (!route.query.token) {
+  router.push({ name: "auth.login" });
 }
 </script>
 <template>
   <!--  -->
-  <div class="lg:w-[456px] w-screen mx-auto h-full pt-18 relative" v-if="is_good_token">
+  <div
+    class="lg:w-[456px] w-screen mx-auto h-full pt-18 relative"
+    v-if="is_good_token"
+  >
     <successAlert
       v-if="showSuccess == true"
       @closeSuccess="showSuccess = false"

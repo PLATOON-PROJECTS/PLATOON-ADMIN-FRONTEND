@@ -130,12 +130,12 @@ const exportToPDF = (tempSlip: any, payrollId: number) => {
     .save()
     .then(() => {
       // Hide the element again after PDF generation
-      element.classList.add("hidden");
+      element?.classList.add("hidden");
       generatingPDF.value[payrollId] = false; // Stop loading after PDF is generated
     })
     .catch((error: any) => {
       console.error("Failed to generate PDF:", error);
-      element.classList.add("hidden"); // Hide the element on error
+      element?.classList.add("hidden"); // Hide the element on error
       generatingPDF.value[payrollId] = false; // Stop loading on error
     });
 };

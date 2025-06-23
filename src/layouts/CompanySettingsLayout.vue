@@ -243,11 +243,11 @@ const activeTab = computed(() => route.path);
                 <span
                   @click="
                     router.push(
-                      `/dashboard/company-settings/${organisationId}/kyc`
+                      `/dashboard/company-settings/${organisationId}/verification`
                     )
                   "
                   :class="[
-                    activeTab.includes('kyc')
+                    activeTab.includes('verification')
                       ? 'border-b-2 border-blue pb-7 text-blue font-semimedium'
                       : '',
                     'font-normal cursor-pointer',
