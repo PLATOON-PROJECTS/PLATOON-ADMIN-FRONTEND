@@ -118,7 +118,7 @@
             <tr v-for="doc in documents" :key="doc.name">
               <td class="flex items-center gap-2 px-4 py-3">
                 <IFileText color="#46A754" size="20px" />
-                <div class="flex flex-col gap-2 gap-1">
+                <div class="flex flex-col gap-2">
                   <p class="font-medium text-[#444444] text-base">
                     {{ doc.name }}
                   </p>
