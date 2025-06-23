@@ -133,7 +133,8 @@ const CompanyInformationPage = () =>
   import("../pages/dashboard/companySettings/CompanyInformation.vue");
 const SubsidiariesPage = () =>
   import("../pages/dashboard/companySettings/Subsidiaries.vue");
-const KycPage = () => import("../pages/dashboard/companySettings/kyc.vue");
+const VerificationPage = () =>
+  import("../pages/dashboard/companySettings/verification.vue");
 const SubscriptionSettingPage = () =>
   import("../pages/dashboard/companySettings/Subscription.vue");
 const ContactInformationPage = () =>
@@ -706,11 +707,11 @@ const routes = [
             },
           },
           {
-            path: "kyc",
-            name: "dashboard.company.settings.kyc",
-            component: KycPage,
+            path: "verification",
+            name: "dashboard.company.settings.verification",
+            component: VerificationPage,
             meta: {
-              title: "Company - Settings - kyc - Dashboard",
+              title: "Company - Settings - verification - Dashboard",
             },
           },
 
