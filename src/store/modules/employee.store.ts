@@ -13,13 +13,14 @@ const employeeStore = defineStore("employee", {
   state: (): State => ({}),
   actions: {
     async index(
-      organisationId: number,
+      // organisationId: number,
       pageSize: number,
-      pageNumber: number
+      pageNumber: number,
+      page?: number
     ): Promise<any> {
       try {
         const response = await employeeService.index(
-          organisationId,
+          // organisationId,
           pageSize,
           pageNumber
         );

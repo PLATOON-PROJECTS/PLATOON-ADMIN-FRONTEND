@@ -154,28 +154,6 @@ const exportToPDF = (tempSlip: any, payrollId: number) => {
     return;
   }
 
-  // Make the element visible temporarily for PDF generation
-  // element.classList.remove("hidden");
-
-  // // Update the contents of the hidden element
-  // const pdfName = element.querySelector("#pdf-name");
-  // const pdfNarration = element.querySelector("#pdf-narration");
-  // const pdfPaymentDate = element.querySelector("#pdf-payment-date");
-  // const pdfGrossPay = element.querySelector("#pdf-gross-pay");
-  // const pdfBonus = element.querySelector("#pdf-bonus");
-  // const pdfDeductions = element.querySelector("#pdf-deductions");
-  // const pdfTax = element.querySelector("#pdf-tax");
-  // const pdfNetPay = element.querySelector("#pdf-net-pay");
-
-  // if (pdfName) pdfName.textContent = tempSlip.name;
-  // if (pdfNarration) pdfNarration.textContent = tempSlip.narration;
-  // if (pdfPaymentDate) pdfPaymentDate.textContent = tempSlip.paymentDate;
-  // if (pdfGrossPay) pdfGrossPay.textContent = `₦${tempSlip.grossPay}`;
-  // if (pdfBonus) pdfBonus.textContent = `₦${tempSlip.bonus}`;
-  // if (pdfDeductions) pdfDeductions.textContent = `₦${tempSlip.deductions}`;
-  // if (pdfTax) pdfTax.textContent = `₦${tempSlip.tax}`;
-  // if (pdfNetPay) pdfNetPay.textContent = `₦${tempSlip.netPay}`;
-
   const opt = {
     margin: 10,
     filename: `payslip-${tempSlip.name}-${tempSlip.paymentDate}.pdf`,
@@ -192,12 +170,12 @@ const exportToPDF = (tempSlip: any, payrollId: number) => {
     .save()
     .then(() => {
       // Hide the element again after PDF generation
-      element.classList.add("hidden");
+      element?.classList.add("hidden");
       generatingPDF.value[payrollId] = false; // Stop loading after PDF is generated
     })
     .catch((error: any) => {
       console.error("Failed to generate PDF:", error);
-      element.classList.add("hidden"); // Hide the element on error
+      element?.classList.add("hidden"); // Hide the element on error
       generatingPDF.value[payrollId] = false; // Stop loading on error
     });
 };

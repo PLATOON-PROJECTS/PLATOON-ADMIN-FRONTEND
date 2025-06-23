@@ -279,6 +279,7 @@
 import { ref } from "vue";
 import IDownload from "../../../components/icons/IDownload.vue";
 import IFileText from "../../../components/icons/IFileText.vue";
+import { onMounted, onUnmounted } from "vue";
 
 const showModal = ref(false);
 const selectedDoc = ref("");
@@ -303,7 +304,6 @@ function selectDocument(doc: string) {
   selectedDoc.value = doc;
   isDropdownOpen.value = false;
 }
-import { onMounted, onUnmounted } from "vue";
 
 function handleClickOutside(event: MouseEvent) {
   const dropdown = document.querySelector(".relative");

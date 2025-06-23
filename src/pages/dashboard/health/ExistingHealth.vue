@@ -76,7 +76,7 @@ const fetchEmployee = async () => {
     enrolledData.value = totalEnrolledPensionCache;
   }
 
-  const response = await request(employeeStore.index(), loading);
+  const response = await request(employeeStore.index(1, 10), loading);
 
   const successResponse = handleSuccess(response);
 
