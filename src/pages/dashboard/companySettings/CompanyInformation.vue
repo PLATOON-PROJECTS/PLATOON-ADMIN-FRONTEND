@@ -83,6 +83,7 @@ const fetchCompaniesById = async () => {
 
     if (response && response.data) {
       companyData.value = [response.data.data]; // Wrap the data in an array for consistency
+      console.log("KYC Data:", companyData);
     } else {
       console.error("No data found in response:", response);
     }

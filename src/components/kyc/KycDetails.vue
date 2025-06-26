@@ -13,12 +13,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import KycStatusActions from "../../../components/kyc/KycStatusActions.vue";
-import BusinessOwnerInfo from "../../../components/kyc/BussinessOwnerInfo.vue";
-import BusinessDocuments from "../../../components/kyc/BusinessDocuments.vue";
-import UploadDocumentModal from "../../../components/kyc/UploadDocumentModal.vue";
-import { request } from "../../../composables/request.composable";
-import { useKycStore } from "../../../store/index";
+import KycStatusActions from "./KycStatusActions.vue";
+import BusinessOwnerInfo from "./BusinessOwnerInfo.vue";
+import BusinessDocuments from "./BusinessDocuments.vue";
+import UploadDocumentModal from "./UploadDocumentModal.vue";
+import { useKycStore } from "src/store";
+import { request } from "src/composables/request.composable";
 import {
   KycDocument,
   KycInformation,
