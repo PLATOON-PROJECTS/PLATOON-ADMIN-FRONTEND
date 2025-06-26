@@ -1,9 +1,6 @@
 <template>
   <section v-if="!loading && kycData" class="px-8 py-6 space-y-10 bg-white">
-    <KycStatusActions
-      :status="kycData.status"
-      @open-upload="showModal = true"
-    />
+    <KycStatusActions :status="kycData.status" />
     <BusinessOwnerInfo :info="kycData.information" />
     <BusinessDocuments
       :documents="kycData.documents"
@@ -16,12 +13,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import KycStatusActions from "../../../components/kyc/KycStatusActions.vue";
-import BusinessOwnerInfo from "../../../components/kyc/BussinessOwnerInfo.vue";
-import BusinessDocuments from "../../../components/kyc/BusinessDocuments.vue";
-import UploadDocumentModal from "../../../components/kyc/UploadDocumentModal.vue";
-import { request } from "../../../composables/request.composable";
-import { useKycStore } from "../../../store/index";
+import KycStatusActions from "./KycStatusActions.vue";
+import BusinessOwnerInfo from "./BusinessOwnerInfo.vue";
+import BusinessDocuments from "./BusinessDocuments.vue";
+import UploadDocumentModal from "./UploadDocumentModal.vue";
+import { useKycStore } from "src/store";
+import { request } from "src/composables/request.composable";
 import {
   KycDocument,
   KycInformation,
