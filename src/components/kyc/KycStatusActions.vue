@@ -16,16 +16,15 @@
       </p>
     </div>
 
-    <!-- Show buttons only if status is Pending -->
     <div v-if="status === 'Pending'" class="flex gap-4">
       <button
-        @click="triggerConfirmation(false)"
+        @click="triggerConfirmation(Number(organisationId), false)"
         class="px-4 py-2 rounded-full border border-[#E6E6E6] text-sm font-medium hover:bg-gray-100"
       >
         Decline
       </button>
       <button
-        @click="triggerConfirmation(true)"
+        @click="triggerConfirmation(Number(organisationId), true)"
         class="px-4 py-2 rounded-full bg-[#306651] text-white text-sm font-medium hover:bg-green-700"
       >
         Approve
@@ -33,7 +32,15 @@
     </div>
   </div>
 
-  <!-- Confirmation Dialog -->
+  <!-- ❗ Error Message -->
+  <div
+    v-if="errorMessage"
+    class="mt-4 text-sm text-[#FF4C51] bg-[#FFE5E6] px-4 py-2 rounded-md border border-[#FFB3B6]"
+  >
+    {{ errorMessage }}
+  </div>
+
+  <!-- Confirm Dialog -->
   <confirmAlert
     :showConfirm="showConfirmApproval"
     @closeConfirm="showConfirmApproval = false"
@@ -42,9 +49,9 @@
     <template #title>{{ approvalIntent ? "Approve" : "Decline" }}</template>
     <template #message>{{ confirmMessage.message }}</template>
     <template #confirm>
-      <span @click="submitApproval(confirmMessage.id, approvalIntent)"
-        >CONFIRM</span
-      >
+      <span @click="submitApproval(confirmMessage.id, approvalIntent)">
+        CONFIRM
+      </span>
     </template>
   </confirmAlert>
 
@@ -58,9 +65,12 @@
     {{ successMessage }}
   </successAlert>
 </template>
+
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRoute } from "vue-router";
+import ConfirmAlert from "../../components/alerts/ConfirmAlert.vue";
+import SuccessAlert from "../../components/alerts/SuccessAlert.vue";
 import { request } from "../../composables/request.composable";
 import kycStore from "../../store/modules/kyc.store";
 import handleError from "../../composables/handle_error.composable";
@@ -73,12 +83,12 @@ const organisationId = route.params.id;
 const showConfirmApproval = ref(false);
 const showSuccess = ref(false);
 const loading = ref(false);
-const approvalIntent = ref<boolean>(true);
+const approvalIntent = ref(true);
 const confirmMessage = ref({ message: "", id: "" });
 const successMessage = ref("Action successful");
+const errorMessage = ref(""); // 👈 new
 
-// Trigger confirmation popup
-function triggerConfirmation(approve: boolean) {
+function triggerConfirmation(id: number, approve: boolean) {
   approvalIntent.value = approve;
   confirmMessage.value = {
     message: approve
@@ -87,26 +97,29 @@ function triggerConfirmation(approve: boolean) {
     id: organisationId as string,
   };
   showConfirmApproval.value = true;
+  errorMessage.value = ""; // Clear previous errors
 }
 
-// Send approval (true) or rejection (false)
 async function submitApproval(id: string, approve: boolean) {
   loading.value = true;
+  errorMessage.value = "";
   try {
-    const response = await request(kycStore().approval(Number(id)));
-    if (response?.data) {
+    const response = await request(kycStore().approval(id, approve));
+
+    if (response?.data?.succeeded) {
       successMessage.value = approve
         ? "Company approved successfully"
         : "Company declined successfully";
       showSuccess.value = true;
       showConfirmApproval.value = false;
 
-      // Optional: reload page or emit status update
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      setTimeout(() => window.location.reload(), 2000);
+    } else {
+      errorMessage.value =
+        response?.data?.message || "Approval failed. Please try again.";
     }
-  } catch (error) {
+  } catch (error: any) {
+    errorMessage.value = error?.message || "Something went wrong.";
     handleError(error, "Action failed");
   } finally {
     loading.value = false;

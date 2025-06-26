@@ -1,6 +1,9 @@
 <template>
   <section v-if="!loading && kycData" class="px-8 py-6 space-y-10 bg-white">
-    <KycStatusActions :status="kycData.status" />
+    <KycStatusActions
+      :status="kycData.status"
+      @open-upload="showModal = true"
+    />
     <BusinessOwnerInfo :info="kycData.information" />
     <BusinessDocuments
       :documents="kycData.documents"

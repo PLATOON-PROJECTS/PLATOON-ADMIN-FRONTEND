@@ -28,13 +28,17 @@ class Kyc {
       });
   }
 
-  async approval(organisationId: string): Promise<any> {
+  async approval(organisationId: string, approve: boolean): Promise<any> {
     const customRequest = this.createAxiosInstance();
 
     return await customRequest
-      .put(`Kyc/toggle-kyc-approver/${organisationId}`, {
-        headers: authhHeader(),
-      })
+      .put(
+        `Kyc/toggle-kyc-approver/${organisationId}?approve=${approve}`,
+        null,
+        {
+          headers: authhHeader(),
+        }
+      )
       .then((res) => {
         return res;
       })

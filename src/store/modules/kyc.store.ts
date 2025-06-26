@@ -23,9 +23,9 @@ const kycStore = defineStore("Kyc", {
       }
     },
 
-    async approval(organisationId: number): Promise<any> {
+    async approval(organisationId: string, approve: boolean): Promise<any> {
       try {
-        const response = await kycService.approval(organisationId.toString());
+        const response = await kycService.approval(organisationId, approve);
         if (response.data) {
           return response;
         } else if (response.response) {
