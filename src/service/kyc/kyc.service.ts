@@ -63,6 +63,70 @@ class Kyc {
       .then((res) => res)
       .catch((err) => err);
   }
+
+  // async uploadKycDocument(Files: File, organisationId: number): Promise<any> {
+  //   const formData = new FormData();
+  //   formData.append("File", Files);
+
+  //   const params = {
+  //     params: {
+  //       OrganisationId: organisationId,
+  //     },
+  //   };
+
+  //   const customRequest = this.createAxiosInstance();
+
+  //   return await customRequest
+  //     .post(`Kyc/submit-document`, formData, {
+  //       headers: {
+  //         ...authhHeader(),
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //       ...params,
+  //     })
+  //     .then((res) => {
+  //       return res.data;
+  //     })
+  //     .catch((err) => {
+  //       throw err;
+  //     });
+  // }
+
+  // async uploadKycDocument(formData: FormData): Promise<any> {
+  //   const customRequest = this.createAxiosInstance();
+
+  //   return await customRequest
+  //     .post(`Kyc/submit-document`, formData, {
+  //       headers: {
+  //         ...authhHeader(),
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     })
+  //     .then((res) => {
+  //       return res;
+  //     })
+  //     .catch((err) => {
+  //       console.error("Error uploading Document:", err);
+  //       return Promise.reject(err);
+  //     });
+  // }
+
+  async uploadKycDocument(formData: FormData): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .post(`Kyc/submit-document`, formData, {
+        headers: {
+          ...authhHeader(),
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((res) => res)
+      .catch((err) => {
+        console.error("Error uploading Document:", err);
+        return Promise.reject(err);
+      });
+  }
 }
 
 export default new Kyc(http);

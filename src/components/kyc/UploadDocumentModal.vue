@@ -1,3 +1,85 @@
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from "vue";
+import IFileText from "../../components/icons/IFileText.vue";
+import { useRoute } from "vue-router";
+import kycStore from "../../store/modules/kyc.store";
+
+defineProps<{ modelValue: boolean }>();
+const emit = defineEmits(["update:modelValue"]);
+
+const uploadedFile = ref<File | null>(null);
+const selectedDoc = ref("");
+const isDropdownOpen = ref(false);
+const errorMessage = ref("");
+
+const route = useRoute();
+const organisationId = Number(route.params.id);
+
+const documentOptions = ["CAC_BN1", "POA", "SR", "CAC"];
+
+function handleFileUpload(event: Event) {
+  const file = (event.target as HTMLInputElement)?.files?.[0];
+  if (file) {
+    uploadedFile.value = file;
+    errorMessage.value = "";
+  }
+}
+
+function removeFile() {
+  uploadedFile.value = null;
+}
+
+function selectDocument(doc: string) {
+  selectedDoc.value = doc;
+  isDropdownOpen.value = false;
+}
+
+function handleClickOutside(event: MouseEvent) {
+  const dropdown = document.querySelector(".relative");
+  if (dropdown && !dropdown.contains(event.target as Node)) {
+    isDropdownOpen.value = false;
+  }
+}
+
+async function submitUpload() {
+  if (!uploadedFile.value) {
+    errorMessage.value = "Please select a file.";
+    return;
+  }
+
+  if (!selectedDoc.value) {
+    errorMessage.value = "Please select a document type.";
+    return;
+  }
+
+  if (!organisationId) {
+    errorMessage.value = "Organisation ID not found.";
+    return;
+  }
+
+  try {
+    await kycStore().uploadKycDocument({
+      file: uploadedFile.value,
+      documentType: selectedDoc.value, // ✅ INCLUDE DOCUMENT TYPE!
+      organisationId: organisationId,
+    });
+
+    emit("update:modelValue", false); // close modal
+    window.location.reload();
+  } catch (error) {
+    console.error("Upload failed:", error);
+    errorMessage.value = "Upload failed. Please check your file and try again.";
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+});
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
+</script>
+
 <template>
   <transition name="fade">
     <div
@@ -16,11 +98,16 @@
           </button>
         </div>
 
+        <!-- Error message -->
+        <div v-if="errorMessage" class="mb-4 text-sm text-red-600">
+          {{ errorMessage }}
+        </div>
+
         <!-- Dropdown -->
         <div class="relative mb-4">
-          <label class="block text-sm text-[#2D2B32] font-medium mb-1"
-            >Select Document</label
-          >
+          <label class="block text-sm text-[#2D2B32] font-medium mb-1">
+            Select Document
+          </label>
           <button
             @click="isDropdownOpen = !isDropdownOpen"
             class="w-full border border-[#E6E6E6] rounded-lg p-4 text-sm text-left flex justify-between items-center"
@@ -89,7 +176,9 @@
 
         <!-- Submit -->
         <button
-          class="mt-2 w-[40%] bg-[#306651] text-white py-2 rounded-full hover:bg-green-700 text-sm font-medium"
+          :disabled="!uploadedFile || !selectedDoc"
+          @click="submitUpload"
+          class="mt-2 w-[40%] bg-[#306651] text-white py-2 rounded-full hover:bg-green-700 text-sm font-medium disabled:opacity-50"
         >
           Upload
         </button>
@@ -97,54 +186,6 @@
     </div>
   </transition>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
-import IFileText from "../../components/icons/IFileText.vue";
-
-defineProps<{
-  modelValue: boolean;
-}>();
-defineEmits(["update:modelValue"]);
-
-const uploadedFile = ref<File | null>(null);
-const selectedDoc = ref("");
-const isDropdownOpen = ref(false);
-
-const documentOptions = [
-  "Certificate of Business Name",
-  "Proof of Address",
-  "Company Tax ID",
-];
-
-function handleFileUpload(event: Event) {
-  const file = (event.target as HTMLInputElement)?.files?.[0];
-  if (file) uploadedFile.value = file;
-}
-
-function removeFile() {
-  uploadedFile.value = null;
-}
-
-function selectDocument(doc: string) {
-  selectedDoc.value = doc;
-  isDropdownOpen.value = false;
-}
-
-function handleClickOutside(event: MouseEvent) {
-  const dropdown = document.querySelector(".relative");
-  if (dropdown && !dropdown.contains(event.target as Node)) {
-    isDropdownOpen.value = false;
-  }
-}
-
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-});
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
-</script>
 
 <style scoped>
 .fade-enter-active,

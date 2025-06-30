@@ -6,7 +6,11 @@
       <h2 class="text-lg font-semibold text-gray-800">Business Documents</h2>
       <button
         @click="$emit('open-upload')"
+        :disabled="props.documents.length >= 3"
         class="px-4 py-2 flex items-center gap-2 text-[#306651] text-sm border border-[#306651] rounded-full"
+        :class="{
+          'opacity-50 cursor-not-allowed': props.documents.length >= 3,
+        }"
       >
         <img src="/images/svg/cloud.svg" alt="Upload" />
         Upload
@@ -40,7 +44,7 @@
               <span
                 :class="[
                   'inline-block px-3 py-1 rounded-full text-sm font-medium',
-                  doc.status === 'Approve'
+                  doc.status === 'Approved'
                     ? 'text-[#46A754]'
                     : doc.status === 'Pending'
                     ? 'text-[#FFB400]'
@@ -119,13 +123,13 @@
 import { ref } from "vue";
 import IDownload from "../../components/icons/IDownload.vue";
 import IFileText from "../../components/icons/IFileText.vue";
-import ConfirmAlert from "../../components/alerts/ConfirmAlert.vue"; // ✅ import
-import SuccessAlert from "../../components/alerts/SuccessAlert.vue"; // ✅ import
+import ConfirmAlert from "../../components/alerts/ConfirmAlert.vue"; // import
+import SuccessAlert from "../../components/alerts/SuccessAlert.vue"; // import
 import { request } from "../../composables/request.composable";
 import handleError from "../../composables/handle_error.composable";
 import kycStore from "../../store/modules/kyc.store";
 
-defineProps<{ documents: any[] }>();
+const props = defineProps<{ documents: any[] }>();
 defineEmits(["open-upload"]);
 
 const showConfirmApproval = ref(false);
@@ -160,10 +164,11 @@ async function submitDocumentApproval(documentId: number, accept: boolean) {
       showSuccess.value = true;
       showConfirmApproval.value = false;
 
-      // Optional refresh
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      // update locally:
+      const targetDoc = props.documents.find((d) => d.id === documentId);
+      if (targetDoc) {
+        targetDoc.status = accept ? "Approved" : "Rejected";
+      }
     }
   } catch (error) {
     handleError(error, "Document approval failed");
