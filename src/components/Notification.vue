@@ -1,8 +1,12 @@
-<script lang="ts" setup>
-import { INotification } from "../core/icons";
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { NotificationItem } from "src/service/notification/interface/notification.interface";
+import INotification from "../components/icons/INotification.vue";
 import { ComponentPosition as NotificationPosition } from "../interface/enums.interface";
+import { useNotificationStore } from "../store";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     position?: NotificationPosition;
   }>(),
@@ -10,77 +14,122 @@ withDefaults(
     position: NotificationPosition.HOMEPAGE,
   }
 );
+
+const notifications = ref<NotificationItem[]>([]);
+const notificationStore = useNotificationStore();
+const router = useRouter();
+const userId = Number(localStorage.getItem("userId"));
+
+onMounted(async () => {
+  if (!userId) {
+    console.warn("UserId not found in localStorage");
+    return;
+  }
+
+  try {
+    const result = await notificationStore.getNotifications(userId, 10, 1);
+    notifications.value = result.data.pageItems;
+  } catch (err) {
+    console.error("Error fetching notifications:", err);
+  }
+});
+
+// ✅ Handler for click
+function handleNotificationClick(item: NotificationItem) {
+  console.log("Clicked:", item);
+  if (item.subject?.toLowerCase().trim() === "kyc" && item.organisationId) {
+    console.log(
+      "Routing to:",
+      `/dashboard/company-settings/${item.organisationId}/verification`
+    );
+    router.push(
+      `/dashboard/company-settings/${item.organisationId}/verification`
+    );
+  } else {
+    console.log("No match for KYC or no organisationId");
+  }
+}
 </script>
-<template class="">
+
+<template>
   <div class="dropdown dropdown-end">
+    <!-- Trigger -->
     <label
       tabindex="0"
-      class="relative flex items-center bg-grey-100 lg:p-2.5 p-3.5 rounded-full space-x-3 cursor-pointer"
+      class="relative flex items-center p-3 rounded-full cursor-pointer transition hover:bg-gray-100"
       :class="[
-        position === NotificationPosition.HOMEPAGE
+        props.position === NotificationPosition.HOMEPAGE
           ? 'bg-clip-rgba text-white'
-          : 'bg-grey-100',
+          : 'bg-white border border-gray-200',
       ]"
     >
-      <span>
-        <INotification
-          :color="
-            position === NotificationPosition.HOMEPAGE ? 'white' : 'black'
-          "
-        />
-      </span>
-      <span class="font-semimedium text-sm lg:block"
-        >Your notifications</span
-      >
+      <INotification
+        :color="
+          props.position === NotificationPosition.HOMEPAGE ? 'white' : 'black'
+        "
+      />
+      <span class="sr-only">Notifications</span>
       <span
-        class="text-xxs p-1 rounded-full lg:relative absolute lg:top-[0px] lg:right-[0px] top-[-4px] right-[-13px]"
-        :class="[
-          position === NotificationPosition.HOMEPAGE
-            ? 'text-white bg-red'
-            : 'text-red bg-red-rgba',
-        ]"
-        >99+</span
+        class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 text-black text-xs font-semibold px-1.5 py-0.5 rounded-full"
       >
+        {{ notifications.length }}
+      </span>
     </label>
 
-    <!-- content -->
-    <ul
+    <!-- Dropdown -->
+    <div
       tabindex="0"
-      class="dropdown-content menu p-6 shadow-rgba bg-white rounded-lg lg:w-[480px] mt-4 divide-y divide-grey-200"
+      class="dropdown-content w-80 lg:w-[400px] mt-4 bg-white shadow-lg rounded-xl overflow-hidden ring-1 ring-black/5"
       :class="[
-        position === NotificationPosition.HOMEPAGE ? '-left-56' : '-left-44',
+        props.position === NotificationPosition.HOMEPAGE
+          ? '-left-56'
+          : '-left-44',
       ]"
     >
-      <li>
-        <div class="flex flex-col items-start space-y-1 p-4">
-          <a class="text-sm text-black font-bold">Title of Notification</a>
-          <p class="text-sm text-gray-rgba-4 font-semimedium">
-            Description of the notification in full, with no truncation. This
-            should be used for platform update or things that arent really long.
-            Maybe we’d discuss what this feature is really needed
-          </p>
-        </div>
-      </li>
-      <li>
-        <div class="flex flex-col items-start space-y-1 p-4">
-          <a class="text-sm text-black font-bold">Title of Notification</a>
-          <p class="text-sm text-gray-rgba-4 font-semimedium">
-            Description of the notification in full, with no truncation. This
-            should be used for platform update or things that arent really long.
-            Maybe we’d discuss what this feature is really needed
-          </p>
-        </div>
-      </li>
-      <li>
-        <div class="flex flex-col items-start space-y-1 p-4">
-          <a class="text-sm text-black font-bold">Title of Notification</a>
-          <p class="text-sm text-gray-rgba-4 font-semimedium">
-            Description of the notification in full, with no truncation. This
-            should be used for platform update or things that arent really long.
-            Maybe we’d discuss what this feature is really needed
-          </p>
-        </div>
-      </li>
-    </ul>
+      <div
+        v-if="notifications.length === 0"
+        class="p-6 text-sm text-gray-500 text-center"
+      >
+        You have no notifications.
+      </div>
+      <ul v-else class="">
+        <li
+          v-for="(item, idx) in notifications"
+          :key="item.id"
+          class="hover:bg-gray-50 transition cursor-pointer"
+          :class="{
+            'border-b border-[#EDEDED]': idx !== notifications.length - 1,
+          }"
+          @click="handleNotificationClick(item)"
+        >
+          <div class="flex items-start gap-3 p-4">
+            <!-- Status dot -->
+            <div class="mt-1">
+              <span
+                v-if="!item.isRead"
+                class="w-2 h-2 rounded-full bg-blue-500 block"
+              ></span>
+              <span
+                v-else
+                class="w-2 h-2 rounded-full bg-gray-300 block"
+              ></span>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1">
+              <h4 class="text-sm font-semibold text-gray-800 mb-1">
+                {{ item.subject }}
+              </h4>
+              <p class="text-sm text-gray-600 leading-snug mb-2">
+                {{ item.body }}
+              </p>
+              <time class="text-xs text-gray-400">
+                {{ new Date(item.createdAt).toLocaleString() }}
+              </time>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>

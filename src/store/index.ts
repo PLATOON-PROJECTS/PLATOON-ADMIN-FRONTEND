@@ -9,6 +9,7 @@ import usePayrollStore from "./modules/payroll.store";
 import usePensionStore from "./modules/pension.store";
 import useWalletStore from "./modules/wallet.store";
 import useKycStore from "./modules/kyc.store";
+import { useNotificationStore } from "./modules/notification.store";
 export {
   useBrowserStore,
   useAuthStore,
@@ -21,4 +22,5 @@ export {
   useWalletStore,
   useTaxStore,
   useKycStore,
+  useNotificationStore,
 };
