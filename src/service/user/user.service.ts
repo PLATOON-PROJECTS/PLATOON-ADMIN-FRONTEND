@@ -207,22 +207,27 @@ class UserService {
         return err;
       });
   }
-  async updateUserImage(userId: number, formData: FormData): Promise<any> {
+
+  async getUserProfile(userId: number) {
+    const response = await axios.get(`/User/user-details/${userId}`);
+    return response.data;
+  }
+
+  async uploadPassport(file: File, userId: number): Promise<any> {
     const customRequest = this.createAxiosInstance();
+    const formData = new FormData();
+    formData.append("Image", file);
+    formData.append("UserId", String(userId));
 
     return await customRequest
-      .put(`/User/update-user-image/${userId}`, formData, {
+      .put(`/User/update-user-image`, formData, {
         headers: {
+          ...authhHeader(),
           "Content-Type": "multipart/form-data",
-          ...authhHeader(), // Include any necessary headers
         },
       })
-      .then((res) => {
-        return res;
-      })
-      .catch((err) => {
-        return err;
-      });
+      .then((res) => res)
+      .catch((err) => err);
   }
 }
 

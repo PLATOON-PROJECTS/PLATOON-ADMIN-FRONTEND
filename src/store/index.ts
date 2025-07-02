@@ -14,7 +14,6 @@ export {
   useBrowserStore,
   useAuthStore,
   useGroupStore,
-  useUserStore,
   useCompanyStore,
   useEmployeeStore,
   usePayrollStore,
@@ -23,4 +22,5 @@ export {
   useTaxStore,
   useKycStore,
   useNotificationStore,
+  useUserStore,
 };
