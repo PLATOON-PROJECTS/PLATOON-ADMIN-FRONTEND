@@ -197,6 +197,15 @@ const dashboardData = async () => {
   }
 };
 
+onMounted(() => {
+  const userId = Number(localStorage.getItem("userId"));
+  if (userId) {
+    userStore.fetchUserProfilePhoto(userId).then(() => {
+      console.log("Loaded:", userStore.profilePhotoUrl);
+    });
+  }
+});
+
 // const fetchEmployees = async () => {
 //   const totalEmployeeCached = cache("total_employees");
 
@@ -297,7 +306,13 @@ fetchEmployees();
               @click="showProfileAction = !showProfileAction"
               id="step-2"
             >
-              <img src="/images/png/avatar.png" alt="Avatar" />
+              <div v-if="userStore.profilePhotoUrl">
+                <img
+                  :src="userStore.profilePhotoUrl"
+                  alt="Profile Photo"
+                  class="w-full h-full rounded-full object-cover"
+                />
+              </div>
               <IUserGear />
               <span
                 class="absolute right-0 top-7 h-3 w-3 rounded-full bg-green border-2 border-white"

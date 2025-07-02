@@ -9,6 +9,19 @@ import {
 import { ComponentPosition } from "../../interface/enums.interface";
 import Notification from "../Notification.vue";
 import DarkModeToggle from "../DarkModeToggle.vue";
+import { onMounted } from "vue";
+import { useUserStore } from "../../store/index";
+
+const userStore = useUserStore();
+
+onMounted(() => {
+  const userId = Number(localStorage.getItem("userId"));
+  if (userId) {
+    userStore.fetchUserProfilePhoto(userId).then(() => {
+      console.log("Loaded:", userStore.profilePhotoUrl);
+    });
+  }
+});
 </script>
 <template>
   <nav
@@ -45,13 +58,23 @@ import DarkModeToggle from "../DarkModeToggle.vue";
       <div class="lg:flex items-center space-x-6 hidden">
         <!-- <IGridMenu /> -->
         <div
-          class="relative cursor-pointer bg-[#ededed] h-[40px] w-[40px] rounded-full flex items-center justify-center"
+          class="relative cursor-pointer bg-[#ededed] h-[40px] w-[40px] rounded-full flex items-center justify-center overflow-hidden"
           @click="$emit('closeProfileAction')"
         >
-          <IUserGear />
-          <span
-            class="absolute right-0 top-7 h-3 w-3 rounded-full bg-green border-2 border-white"
-          ></span>
+          <template v-if="userStore.profilePhotoUrl">
+            <img
+              :src="userStore.profilePhotoUrl"
+              alt="Profile Photo"
+              class="w-full h-full rounded-full object-cover"
+            />
+          </template>
+          <template v-else>
+            <div
+              class="w-full h-full rounded-full bg-gray-200 flex items-center justify-center"
+            >
+              <span class="text-gray-500 text-xs">No Photo</span>
+            </div>
+          </template>
         </div>
       </div>
     </div>

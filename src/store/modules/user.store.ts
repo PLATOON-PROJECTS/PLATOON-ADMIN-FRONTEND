@@ -3,31 +3,20 @@ import { defineStore } from "pinia";
 import { Create, Update } from "../../service/user/interface/user.interface";
 import userService from "../../service/user/user.service";
 import { storeItem } from "../../core/utils/storage.helper";
+import { ref } from "vue";
 
 interface State {
   error: { value: boolean; type: any | null; message: string | null };
+  profilePhotoUrl: string | null; // add it to state!
 }
-const userStore = defineStore("user", {
+
+export const useUserStore = defineStore("user", {
   state: (): State => ({
     error: { value: false, type: null, message: null },
+    profilePhotoUrl: null,
   }),
 
   actions: {
-    // async show(id: string): Promise<any> {
-    //   try {
-    //     const response = await userService.show(id);
-    //     if (response.data) {
-    //       return await Promise.resolve(response);
-    //     } else if (response.response) {
-    //       return await Promise.reject(response.response);
-    //     } else {
-    //       return await Promise.reject(response.message);
-    //     }
-    //   } catch (error: any) {
-    //     return await Promise.reject(error);
-    //   }
-    // },
-
     async show(userId: number): Promise<any> {
       try {
         const response = await userService.show(userId);
@@ -243,9 +232,24 @@ const userStore = defineStore("user", {
         return await Promise.reject(error);
       }
     },
-    async updateUserImage(userId: number, formData: FormData): Promise<any> {
+
+    async fetchUserProfilePhoto(userId: number) {
       try {
-        const response = await userService.updateUserImage(userId, formData);
+        const result = await userService.getUserProfile(userId);
+        if (result?.succeeded && result.data?.employee?.user?.imageUrl) {
+          this.profilePhotoUrl = result.data.employee.user.imageUrl; // ✅ set store state
+        } else {
+          this.profilePhotoUrl = null;
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile photo:", error);
+        this.profilePhotoUrl = null;
+      }
+    },
+
+    async uploadPassport(file: File, userId: number) {
+      try {
+        const response = await userService.uploadPassport(file, userId);
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -260,4 +264,4 @@ const userStore = defineStore("user", {
   },
 });
 
-export default userStore;
+export default useUserStore;
