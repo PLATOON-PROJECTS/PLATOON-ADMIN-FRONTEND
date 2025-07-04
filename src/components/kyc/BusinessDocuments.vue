@@ -33,7 +33,7 @@
               <IFileText color="#46A754" size="20px" />
               <div class="flex flex-col gap-2">
                 <p class="font-medium text-[#444444] text-base">
-                  {{ doc.documentType }}
+                  {{ getDocumentTypeFull(doc.documentType) }}
                 </p>
                 <p class="text-xs text-[#737373]">
                   Uploaded: {{ new Date(doc.createdAt).toLocaleDateString() }}
@@ -59,8 +59,27 @@
             </td>
             <td class="px-4 py-3">
               <div class="flex gap-2 items-center">
-                <a :href="doc.documentUrl" target="_blank">
-                  <IDownload color="#306651" />
+                <a
+                  v-if="doc.documentUrl.endsWith('.pdf')"
+                  :href="`https://docs.google.com/viewer?url=${encodeURIComponent(
+                    doc.documentUrl
+                  )}&embedded=true`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="shadow-lg border border-[#EEEEEE] p-2 text-[#306651] hover:underline hover:text-blue-500"
+                  @click.stop
+                >
+                  View
+                </a>
+                <a
+                  v-else
+                  :href="doc.documentUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="shadow-lg border border-[#EEEEEE] p-2 text-[#306651] hover:underline hover:text-blue-500"
+                  @click.stop
+                >
+                  View
                 </a>
 
                 <!-- Show buttons only if status is Pending -->
@@ -121,7 +140,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import IDownload from "../../components/icons/IDownload.vue";
+import IEyeOpened from "../../components/icons/IEyeOpened.vue";
 import IFileText from "../../components/icons/IFileText.vue";
 import ConfirmAlert from "../../components/alerts/ConfirmAlert.vue"; // import
 import SuccessAlert from "../../components/alerts/SuccessAlert.vue"; // import
@@ -175,5 +194,16 @@ async function submitDocumentApproval(documentId: number, accept: boolean) {
   } finally {
     loading.value = false;
   }
+}
+
+const documentTypeMap: Record<string, string> = {
+  POA: "Proof of Address",
+  CAC: "Corporate Affairs Commission (CAC)",
+  CAC_BN1: "Business Name (CAC BN1)",
+  SR: "Status Report",
+};
+
+function getDocumentTypeFull(type: string) {
+  return documentTypeMap[type] || type;
 }
 </script>

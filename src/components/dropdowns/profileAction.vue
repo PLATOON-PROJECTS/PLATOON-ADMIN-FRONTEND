@@ -1,50 +1,67 @@
 <script lang="ts" setup>
-import { useUserStore } from "../../store";
 import { ref } from "vue";
+import userStore from "../../store/modules/user.store";
+import successAlert from "../alerts/SuccessAlert.vue";
 
-// Local state
+import { defineEmits } from "vue";
+
+const emit = defineEmits(["imageUploaded", "logout", "closeProfileAction"]);
+
 const selectedFile = ref<File | null>(null);
-const showUploadInput = ref(false);
+const showUploadInput = ref(false); // Reactive variable to control visibility
+const store = userStore(); // Initialize the store
+const showSuccess = ref(false);
+const successMessage = ref("");
 
-const userStore = useUserStore(); // ✅ Pinia store instance
-
-// Handle file select
-function onFileChange(event: Event) {
+const onFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target.files && target.files.length > 0) {
     selectedFile.value = target.files[0];
   }
-}
+};
 
-// Upload
-async function uploadImage() {
+const uploadImage = async () => {
   if (!selectedFile.value) {
     alert("Please select a file to upload.");
     return;
   }
 
+  const formData = new FormData();
+  formData.append("Image", selectedFile.value);
+
   const userId = Number(localStorage.getItem("userId"));
-  if (!userId) {
-    alert("User ID not found.");
-    return;
-  }
+  console.log("User ID:", userId);
+
+  formData.append("UserId", userId.toString());
 
   try {
-    const response = await userStore.uploadPassport(selectedFile.value, userId);
-    if (response && response.status === 200) {
-      alert("Profile picture uploaded successfully!");
-      showUploadInput.value = false; // Hide input after success
+    const response = await store.uploadPassport(selectedFile.value, userId);
+
+    if (response?.data?.succeeded) {
+      console.log("Image uploaded successfully:", response.data);
+      console.log("Image:", response.data.data);
+      showUploadInput.value = false;
+
+      emit("imageUploaded", response.data.data);
     } else {
-      alert("Upload failed.");
+      showSuccess.value = true;
+      successMessage.value = "Failed to update profile picture.";
     }
-  } catch (error) {
-    console.error(error);
-    alert("An error occurred during upload.");
+  } catch (error: any) {
+    console.error("Error uploading image:", error.response?.data || error);
   }
-}
+};
 </script>
 
 <template>
+  <successAlert
+    @closeSuccess="showSuccess = false"
+    v-if="showSuccess == true"
+    :showSuccess="showSuccess"
+  >
+    <template #otherMessage>CLOSE</template>
+    {{ successMessage }}
+  </successAlert>
   <div class="bg-width-animate">
     <Transition
       name="confirm-slide"
@@ -56,7 +73,7 @@ async function uploadImage() {
         class="rounded-lg px-7 py-6 space-y-6 flex shadow-lg flex-col justify-between top-18 bg-white h-auto mx-4 right-0 fixed z-[9999]"
       >
         <div class="space-y-2">
-          <div>
+          <div class="">
             <span class="text-base font-medium"> Manage Profile </span>
           </div>
 
@@ -68,11 +85,10 @@ async function uploadImage() {
               Edit information, change password
             </router-link>
           </div>
-
           <div>
             <button
               @click="showUploadInput = !showUploadInput"
-              class="bg-blue-500 rounded px-4 py-2"
+              class="bg-blue-500 text-[#222222AD] rounded px-4 py-2"
             >
               Upload Profile Picture
             </button>
@@ -91,7 +107,7 @@ async function uploadImage() {
             />
             <button
               @click="uploadImage"
-              class="mt-2 bg-blue-500 rounded px-4 py-2"
+              class="mt-2 bg-blue-500 text-[#222222AD] rounded px-4 py-2"
             >
               Upload
             </button>
@@ -110,3 +126,11 @@ async function uploadImage() {
     </Transition>
   </div>
 </template>
+<style scoped>
+.bg-width-animate {
+  -webkit-transition: width 1s ease-in-out;
+  -moz-transition: width 1s ease-in-out;
+  -o-transition: width 1s ease-in-out;
+  transition: width 1s ease-in-out;
+}
+</style>

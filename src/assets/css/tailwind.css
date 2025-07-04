@@ -260,3 +260,9 @@ tbody tr.no-hover:hover {
   border: 1px solid black;
   border-radius: 7px;
 }
+html,
+body {
+  overflow-x: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
