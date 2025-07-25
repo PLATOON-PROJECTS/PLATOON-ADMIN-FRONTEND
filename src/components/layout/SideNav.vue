@@ -343,7 +343,7 @@ defineExpose({
           </router-link>
         </li> -->
 
-        <li>
+        <!-- <li>
           <router-link to="/dashboard/subscription">
             <div class="side-nav-link">
               <div class="nav-link">
@@ -369,8 +369,8 @@ defineExpose({
               </div>
             </div>
           </router-link>
-        </li>
-        <li>
+        </li> -->
+        <!-- <li>
           <router-link to="/dashboard/health/existing">
             <div class="side-nav-link">
               <div class="nav-link">
@@ -392,9 +392,9 @@ defineExpose({
               </div>
             </div>
           </router-link>
-        </li>
+        </li> -->
 
-        <li>
+        <!-- <li>
           <router-link to="/dashboard/pension/existing">
             <div class="side-nav-link">
               <div class="nav-link">
@@ -416,9 +416,9 @@ defineExpose({
               </div>
             </div>
           </router-link>
-        </li>
+        </li> -->
 
-        <li>
+        <!-- <li>
           <router-link to="/dashboard/tax-compliance">
             <div class="side-nav-link">
               <div class="nav-link">
@@ -442,7 +442,7 @@ defineExpose({
               </div>
             </div>
           </router-link>
-        </li>
+        </li> -->
         <li>
           <router-link to="/dashboard/manage-users/all-users">
             <div class="side-nav-link">

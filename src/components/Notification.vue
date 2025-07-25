@@ -37,7 +37,7 @@ onMounted(async () => {
 
 <template>
   <!-- Notification Bell Fixed to Top-Right -->
-  <div class="top-6 right-6 z-50">
+  <div class="top-6 right-6 z-50 no-scrollbar">
     <!-- Bell Trigger -->
     <div class="relative group">
       <button
@@ -54,7 +54,7 @@ onMounted(async () => {
       </button>
       <!-- Dropdown -->
       <div
-        class="hidden group-focus-within:block group-hover:block absolute right-0 mt-2 w-96 lg:w-[400px] bg-white rounded-xl shadow-2xl ring-1 ring-black/10 transition-all"
+        class="hidden overflow-auto max-h-80 group-focus-within:block group-hover:block absolute right-0 mt-2 w-96 lg:w-[400px] bg-white rounded-xl shadow-2xl ring-1 ring-black/10 transition-all"
       >
         <div
           class="p-4 border-b border-[#EEEEEE] flex items-center justify-between"
@@ -73,7 +73,7 @@ onMounted(async () => {
           </div>
           <div>No notifications yet.</div>
         </div>
-        <ul v-else class="divide-y divide-[#EEEEEE] max-h-92 overflow-y-auto">
+        <ul v-else class="divide-y divide-[#EEEEEE]">
           <li
             v-for="(item, idx) in notifications"
             :key="item.id"
