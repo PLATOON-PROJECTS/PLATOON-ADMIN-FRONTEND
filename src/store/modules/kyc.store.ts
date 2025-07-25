@@ -38,7 +38,11 @@ const kycStore = defineStore("Kyc", {
       }
     },
 
-    async docApprove(documentId: number, accept: boolean): Promise<any> {
+    async docApprove(
+      documentId: number,
+      accept: boolean,
+      reason: string
+    ): Promise<any> {
       try {
         const response = await kycService.docApprove(
           documentId.toString(),

@@ -39,6 +39,26 @@ class Notifications {
       return Promise.reject(error);
     }
   }
+
+  // POST method to create a new notification
+  async createNotification(payload: {
+    userId: number;
+    roleId: number;
+    organisationId: number;
+    platoon: boolean;
+    subject: string;
+    body: string;
+  }): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    try {
+      const response = await customRequest.post(`Notification/send`, payload);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating notification:", error);
+      return Promise.reject(error);
+    }
+  }
 }
 
 export default new Notifications(axios);

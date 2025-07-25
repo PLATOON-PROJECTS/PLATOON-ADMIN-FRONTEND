@@ -272,7 +272,7 @@ const activeTab = computed(() => route.path);
                   Contact Information
                 </span>
 
-                <span
+                <!-- <span
                   @click="
                     router.push(
                       `/dashboard/company-settings/${organisationId}/subsidiaries`
@@ -286,8 +286,8 @@ const activeTab = computed(() => route.path);
                   ]"
                 >
                   Subsidiaries
-                </span>
-                <span
+                </span> -->
+                <!-- <span
                   @click="
                     router.push(
                       `/dashboard/company-settings/${organisationId}/subscription`
@@ -301,7 +301,7 @@ const activeTab = computed(() => route.path);
                   ]"
                 >
                   Subscription
-                </span>
+                </span> -->
 
                 <span
                   @click="

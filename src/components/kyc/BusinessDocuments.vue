@@ -136,6 +136,16 @@
       {{ successMessage }}
     </successAlert>
   </div>
+
+  <!-- Rejection Modal -->
+  <RejectionModal
+    :show="showRejectionModal"
+    :userId="selectedRejectionUserId ?? 0"
+    :roleId="selectedRejectionRoleId ?? 0"
+    :organisationId="selectedRejectionOrganisationId ?? 0"
+    @close="showRejectionModal = false"
+    @submitted="handleRejectionSubmitted"
+  />
 </template>
 
 <script setup lang="ts">
@@ -147,6 +157,12 @@ import SuccessAlert from "../../components/alerts/SuccessAlert.vue"; // import
 import { request } from "../../composables/request.composable";
 import handleError from "../../composables/handle_error.composable";
 import kycStore from "../../store/modules/kyc.store";
+import RejectionModal from "../../modals/RejectionModal.vue";
+
+const showRejectionModal = ref(false);
+const selectedRejectionUserId = ref<number | null>(null);
+const selectedRejectionRoleId = ref<number | null>(null);
+const selectedRejectionOrganisationId = ref<number | null>(null);
 
 const props = defineProps<{ documents: any[] }>();
 defineEmits(["open-upload"]);
@@ -160,21 +176,48 @@ const successMessage = ref("Action successful");
 
 // Confirm modal trigger
 function triggerConfirmation(accept: boolean, docId: number) {
-  approvalIntent.value = accept;
-  confirmMessage.value = {
-    message: accept
-      ? "Do you want to approve this document?"
-      : "Do you want to reject this document?",
-    id: docId.toString(),
-  };
-  showConfirmApproval.value = true;
+  if (accept) {
+    approvalIntent.value = true;
+    confirmMessage.value = {
+      message: "Do you want to approve this document?",
+      id: docId.toString(),
+    };
+    showConfirmApproval.value = true;
+  } else {
+    // Open Rejection Modal instead
+    const doc = props.documents.find((d) => d.id === docId);
+    if (doc) {
+      selectedRejectionUserId.value = doc.userId; // make sure your doc has this!
+      selectedRejectionRoleId.value = doc.roleId;
+      selectedRejectionOrganisationId.value = doc.organisationId;
+      showRejectionModal.value = true;
+    }
+  }
+}
+
+function handleRejectionSubmitted() {
+  showRejectionModal.value = false;
+  successMessage.value = "Document rejected successfully";
+  showSuccess.value = true;
+
+  // Optionally mark the document status:
+  if (selectedRejectionUserId.value) {
+    const targetDoc = props.documents.find(
+      (d) => d.userId === selectedRejectionUserId.value
+    );
+    if (targetDoc) {
+      targetDoc.status = "Rejected";
+    }
+  }
 }
 
 // Call the document approval API
 async function submitDocumentApproval(documentId: number, accept: boolean) {
   loading.value = true;
   try {
-    const response = await request(kycStore().docApprove(documentId, accept));
+    const response = await request(
+      kycStore().docApprove(documentId, accept, "")
+    );
 
     if (response?.data) {
       successMessage.value = accept
