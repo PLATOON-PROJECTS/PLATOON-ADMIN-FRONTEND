@@ -140,17 +140,27 @@
   <!-- Rejection Modal -->
   <RejectionModal
     :show="showRejectionModal"
-    :userId="selectedRejectionUserId ?? 0"
-    :roleId="selectedRejectionRoleId ?? 0"
-    :organisationId="selectedRejectionOrganisationId ?? 0"
-    @close="showRejectionModal = false"
-    @submitted="handleRejectionSubmitted"
+    :userId="userId"
+    :roleId="0"
+    :organisationId="organisationId"
+    @close="
+      () => {
+        console.log('RejectionModal closed');
+        showRejectionModal = false;
+      }
+    "
+    @submitted="
+      () => {
+        console.log('RejectionModal submitted event received');
+        handleRejectionSubmitted();
+      }
+    "
   />
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import IEyeOpened from "../../components/icons/IEyeOpened.vue";
+import { ref, computed } from "vue";
+import { useRoute } from "vue-router";
 import IFileText from "../../components/icons/IFileText.vue";
 import ConfirmAlert from "../../components/alerts/ConfirmAlert.vue"; // import
 import SuccessAlert from "../../components/alerts/SuccessAlert.vue"; // import
@@ -159,10 +169,7 @@ import handleError from "../../composables/handle_error.composable";
 import kycStore from "../../store/modules/kyc.store";
 import RejectionModal from "../../modals/RejectionModal.vue";
 
-const showRejectionModal = ref(false);
-const selectedRejectionUserId = ref<number | null>(null);
-const selectedRejectionRoleId = ref<number | null>(null);
-const selectedRejectionOrganisationId = ref<number | null>(null);
+const route = useRoute();
 
 const props = defineProps<{ documents: any[] }>();
 defineEmits(["open-upload"]);
@@ -174,6 +181,14 @@ const approvalIntent = ref(true);
 const confirmMessage = ref({ message: "", id: "" });
 const successMessage = ref("Action successful");
 
+// RejectionModal variables
+const showRejectionModal = ref(false);
+const selectedDocumentId = ref<number | null>(null);
+
+// Computed properties for IDs
+const userId = computed(() => Number(window.localStorage.getItem("userId")));
+const organisationId = computed(() => Number(route.params.id));
+
 // Confirm modal trigger
 function triggerConfirmation(accept: boolean, docId: number) {
   if (accept) {
@@ -184,30 +199,64 @@ function triggerConfirmation(accept: boolean, docId: number) {
     };
     showConfirmApproval.value = true;
   } else {
-    // Open Rejection Modal instead
-    const doc = props.documents.find((d) => d.id === docId);
-    if (doc) {
-      selectedRejectionUserId.value = doc.userId; // make sure your doc has this!
-      selectedRejectionRoleId.value = doc.roleId;
-      selectedRejectionOrganisationId.value = doc.organisationId;
-      showRejectionModal.value = true;
-    }
+    // Open RejectionModal for rejection with notification
+    selectedDocumentId.value = docId;
+    showRejectionModal.value = true;
   }
 }
 
-function handleRejectionSubmitted() {
+// Handle rejection modal submission
+async function handleRejectionSubmitted() {
+  console.log(
+    "handleRejectionSubmitted called with documentId:",
+    selectedDocumentId.value
+  );
   showRejectionModal.value = false;
-  successMessage.value = "Document rejected successfully";
-  showSuccess.value = true;
 
-  // Optionally mark the document status:
-  if (selectedRejectionUserId.value) {
-    const targetDoc = props.documents.find(
-      (d) => d.userId === selectedRejectionUserId.value
-    );
-    if (targetDoc) {
-      targetDoc.status = "Rejected";
+  if (selectedDocumentId.value) {
+    loading.value = true;
+    try {
+      console.log(
+        "Calling docApprove API to reject document:",
+        selectedDocumentId.value
+      );
+      // Call the API to reject the document
+      const response = await request(
+        kycStore().docApprove(
+          selectedDocumentId.value,
+          false,
+          "Document rejected"
+        )
+      );
+
+      console.log("docApprove response:", response);
+
+      // Update UI immediately regardless of API response structure
+      const targetDoc = props.documents.find(
+        (d) => d.id === selectedDocumentId.value
+      );
+      if (targetDoc) {
+        console.log("Updating document status to Rejected for:", targetDoc);
+        targetDoc.status = "Rejected";
+        console.log("Document status updated, UI should refresh now");
+      }
+
+      successMessage.value = "Document rejected successfully";
+      showSuccess.value = true;
+
+      // Refresh the page after successful rejection
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500); // Wait 1.5 seconds to show success message before refresh
+    } catch (error) {
+      console.error("Error rejecting document:", error);
+      handleError(error, "Document rejection failed");
+    } finally {
+      loading.value = false;
+      selectedDocumentId.value = null;
     }
+  } else {
+    console.log("No selectedDocumentId found");
   }
 }
 
