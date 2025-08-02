@@ -25,8 +25,19 @@ const handleCancel = () => {
 };
 
 const handleConfirm = async () => {
+  console.log("RejectionModal handleConfirm called");
   loading.value = true;
+
   try {
+    console.log("Creating notification with:", {
+      userId: props.userId,
+      roleId: props.roleId,
+      organisationId: props.organisationId,
+      platoon: props.platoon ?? false,
+      subject: subject.value,
+      body: reason.value,
+    });
+
     await notificationStore.createNotification({
       userId: props.userId,
       roleId: props.roleId,
@@ -35,12 +46,17 @@ const handleConfirm = async () => {
       subject: subject.value,
       body: reason.value,
     });
-    emit("submitted");
-    handleCancel();
+
+    console.log("Notification created successfully");
   } catch (error) {
-    // Optionally handle error (show alert, etc.)
-    loading.value = false;
+    console.error("Error creating notification:", error);
+    // Continue with document rejection even if notification fails
   }
+
+  // Always emit submitted event to proceed with document rejection
+  console.log("Emitting submitted event");
+  emit("submitted");
+  handleCancel();
 };
 </script>
 
