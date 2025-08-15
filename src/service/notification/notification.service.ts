@@ -59,6 +59,36 @@ class Notifications {
       return Promise.reject(error);
     }
   }
+
+  // PUT method to mark notification as read
+  async markAsRead(notificationId: number): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    try {
+      const response = await customRequest.put(
+        `/Notification/mark-notification-asRead/${notificationId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      return Promise.reject(error);
+    }
+  }
+
+  // PUT method to mark all notifications as read for a user
+  async markAllAsRead(userId: number): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    try {
+      const response = await customRequest.put(
+        `/Notification/mark-notification-asRead/${userId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      return Promise.reject(error);
+    }
+  }
 }
 
 export default new Notifications(axios);

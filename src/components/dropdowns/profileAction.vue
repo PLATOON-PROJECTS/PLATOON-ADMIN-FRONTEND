@@ -12,11 +12,38 @@ const showUploadInput = ref(false); // Reactive variable to control visibility
 const store = userStore(); // Initialize the store
 const showSuccess = ref(false);
 const successMessage = ref("");
+const uploading = ref(false);
 
 const onFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target.files && target.files.length > 0) {
-    selectedFile.value = target.files[0];
+    const file = target.files[0];
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Please select a valid image file (JPEG, PNG, or GIF)");
+      target.value = ""; // Clear the input
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      alert("File size must be less than 5MB");
+      target.value = ""; // Clear the input
+      return;
+    }
+
+    console.log(
+      "File selected:",
+      file.name,
+      "Size:",
+      file.size,
+      "Type:",
+      file.type
+    );
+    selectedFile.value = file;
   }
 };
 
@@ -26,29 +53,53 @@ const uploadImage = async () => {
     return;
   }
 
-  const formData = new FormData();
-  formData.append("Image", selectedFile.value);
-
   const userId = Number(localStorage.getItem("userId"));
   console.log("User ID:", userId);
+  console.log("Selected file:", selectedFile.value);
 
-  formData.append("UserId", userId.toString());
+  if (!userId || userId === 0) {
+    alert("User ID not found. Please log in again.");
+    return;
+  }
 
   try {
+    uploading.value = true;
+    console.log("Starting image upload...");
     const response = await store.uploadPassport(selectedFile.value, userId);
 
-    if (response?.data?.succeeded) {
-      console.log("Image uploaded successfully:", response.data);
-      console.log("Image:", response.data.data);
-      showUploadInput.value = false;
+    console.log("Upload response:", response);
 
-      emit("imageUploaded", response.data.data);
-    } else {
+    if (response?.data?.succeeded) {
+      console.log("✅ Image uploaded successfully:", response.data);
+      console.log(
+        "📋 Full response structure:",
+        JSON.stringify(response, null, 2)
+      );
+
+      showUploadInput.value = false;
       showSuccess.value = true;
-      successMessage.value = "Failed to update profile picture.";
+      successMessage.value = "Profile picture updated successfully!";
+
+      // Always trigger a profile refresh after successful upload
+      console.log("🔄 Upload successful, triggering profile refresh");
+      emit("imageUploaded", "refresh");
+
+      selectedFile.value = null; // Clear selected file
+    } else {
+      console.log("❌ Upload failed - response:", response);
+      showSuccess.value = true;
+      successMessage.value =
+        response?.data?.message || "Failed to update profile picture.";
     }
   } catch (error: any) {
-    console.error("Error uploading image:", error.response?.data || error);
+    console.error("Error uploading image:", error);
+    showSuccess.value = true;
+    successMessage.value =
+      error?.response?.data?.message ||
+      error?.message ||
+      "An error occurred while uploading the image.";
+  } finally {
+    uploading.value = false;
   }
 };
 </script>
@@ -107,9 +158,10 @@ const uploadImage = async () => {
             />
             <button
               @click="uploadImage"
-              class="mt-2 bg-blue-500 text-[#222222AD] rounded px-4 py-2"
+              :disabled="uploading || !selectedFile"
+              class="mt-2 bg-blue-500 text-black rounded px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Upload
+              {{ uploading ? "Uploading..." : "Upload" }}
             </button>
           </div>
         </div>

@@ -63,7 +63,7 @@ const steps = [
     },
     options: {
       popper: {
-        placement: "auto",
+        placement: "auto" as const,
         modifiers: [
           {
             name: "offset",
@@ -90,7 +90,7 @@ const steps = [
     },
     options: {
       popper: {
-        placement: "bottom",
+        placement: "bottom" as const,
         modifiers: [
           {
             name: "offset",
@@ -126,7 +126,7 @@ const stepsTwo = [
     },
     options: {
       popper: {
-        placement: "auto",
+        placement: "auto" as const,
         modifiers: [
           {
             name: "offset",
@@ -185,6 +185,41 @@ const logout = async () => {
     }
   } catch (error) {
     console.error("Error during logout:", error);
+  }
+};
+
+const handleImageUploaded = async (imageUrl: string) => {
+  console.log("📸 Image uploaded, received:", imageUrl);
+
+  const userId = Number(localStorage.getItem("userId"));
+  if (!userId) {
+    console.error("❌ No userId found");
+    return;
+  }
+
+  // Always refresh from server after upload
+  console.log("🔄 Refreshing profile photo from server...");
+  try {
+    // Wait a moment for server to process the upload
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    await userStore.fetchUserProfilePhoto(userId);
+    console.log("✅ Profile photo refreshed:", userStore.profilePhotoUrl);
+
+    // If still no photo URL, try again after a longer delay
+    if (!userStore.profilePhotoUrl) {
+      console.log("⏳ No photo URL yet, trying again in 2 seconds...");
+      setTimeout(async () => {
+        try {
+          await userStore.fetchUserProfilePhoto(userId);
+          console.log("🔄 Second attempt result:", userStore.profilePhotoUrl);
+        } catch (error) {
+          console.error("💥 Second attempt failed:", error);
+        }
+      }, 2000);
+    }
+  } catch (error) {
+    console.error("💥 Failed to refresh profile photo:", error);
   }
 };
 
@@ -346,7 +381,7 @@ onMounted(() => {
     <!-- create user modal-->
     <CreateUser v-if="openCreateUser == true" @fetchUsers="fetchUsers()" />
     <!-- Update user modal-->
-    <UpdateUser v-if="openUpdateUser == true" />
+    <UpdateUser v-if="openUpdateUser == true" :fetchUsers="fetchUsers" />
     <!-- side nav -->
     <SideNav class="hidden lg:block" ref="sideNav" />
     <!-- bottom nav -->
@@ -364,6 +399,7 @@ onMounted(() => {
         @logout="confirmLogout"
         v-if="showProfileAction == true"
         @closeProfileAction="showProfileAction = false"
+        @imageUploaded="handleImageUploaded"
       />
       <!-- main content -->
       <main class="h-full relative">

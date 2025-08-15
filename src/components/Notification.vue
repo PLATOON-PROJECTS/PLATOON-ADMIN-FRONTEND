@@ -20,6 +20,39 @@ const notificationStore = useNotificationStore();
 const router = useRouter();
 const userId = Number(localStorage.getItem("userId"));
 
+const markAsRead = async (notificationId: number) => {
+  try {
+    await notificationStore.markAsRead(notificationId);
+  } catch (error) {
+    console.error("Failed to mark notification as read:", error);
+  }
+};
+
+const markAllAsRead = async () => {
+  try {
+    await notificationStore.markAllAsRead(userId);
+  } catch (error) {
+    console.error("Failed to mark all notifications as read:", error);
+  }
+};
+
+const handleNotificationClick = async (notification: NotificationItem) => {
+  // Mark as read if not already read
+  if (!notification.isRead) {
+    await markAsRead(notification.id);
+  }
+
+  // Handle navigation for KYC notifications
+  if (
+    notification.subject?.toLowerCase().trim() === "kyc" &&
+    notification.organisationId
+  ) {
+    router.push(
+      `/dashboard/company-settings/${notification.organisationId}/verification`
+    );
+  }
+};
+
 onMounted(async () => {
   if (!userId) {
     console.warn("UserId not found in localStorage");
@@ -45,12 +78,11 @@ onMounted(async () => {
         aria-label="Notifications"
       >
         <INotification :color="'#e11d48'" class="w-6 h-6" />
+        <!-- Simple red dot indicator for unread notifications -->
         <span
-          v-if="notifications.length > 0"
-          class="absolute -top-1 -right-3 bg-[#e5e7eb] text-red-700 text-xs font-bold px-2 py-0.5 rounded-full border-2 border-white shadow"
-        >
-          {{ notifications.length }}
-        </span>
+          v-if="notificationStore.unreadCount > 0"
+          class="absolute -top-1 -right-1 w-3 h-3 bg-[#FF4C51] rounded-full border-2 border-white shadow-sm animate-pulse"
+        ></span>
       </button>
       <!-- Dropdown -->
       <div
@@ -60,9 +92,18 @@ onMounted(async () => {
           class="p-4 border-b border-[#EEEEEE] flex items-center justify-between"
         >
           <span class="font-semibold text-lg text-gray-800">Notifications</span>
-          <span class="text-xs text-gray-400">{{
-            new Date().toLocaleDateString()
-          }}</span>
+          <!-- <div class="flex items-center gap-2">
+            <button
+              v-if="notificationStore.unreadCount > 0"
+              @click="markAllAsRead"
+              class="text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              Mark all as read
+            </button>
+            <span class="text-xs text-gray-400">{{
+              new Date().toLocaleDateString()
+            }}</span>
+          </div> -->
         </div>
         <div
           v-if="notifications.length === 0"
@@ -77,7 +118,11 @@ onMounted(async () => {
           <li
             v-for="(item, idx) in notifications"
             :key="item.id"
-            class="flex items-start gap-3 px-4 py-5 hover:bg-gray-50 transition"
+            :class="[
+              'flex items-start gap-3 px-4 py-5 hover:bg-gray-50 transition cursor-pointer',
+              !item.isRead ? 'bg-blue-50' : '',
+            ]"
+            @click="handleNotificationClick(item)"
           >
             <!-- Status dot -->
             <span
@@ -89,8 +134,14 @@ onMounted(async () => {
             <!-- Content -->
             <div class="flex-1">
               <div class="flex items-center justify-between">
-                <h4 class="text-sm font-semibold text-gray-800">
+                <h4
+                  :class="[
+                    'text-sm font-semibold',
+                    item.isRead ? 'text-gray-600' : 'text-gray-800',
+                  ]"
+                >
                   {{ item.subject }}
+                  <span v-if="!item.isRead" class="text-blue-600 ml-1">•</span>
                 </h4>
                 <!-- View Button for KYC -->
                 <div
@@ -100,18 +151,19 @@ onMounted(async () => {
                   "
                 >
                   <button
-                    class="px-0 py-1 bg-green-300 text-green-800 text-sm underline rounded-full font-semibold hover:bg-red-700 transition"
-                    @click.stop="
-                      router.push(
-                        `/dashboard/company-settings/${item.organisationId}/verification`
-                      )
-                    "
+                    class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-semibold hover:bg-green-200 transition"
+                    @click.stop="handleNotificationClick(item)"
                   >
                     View
                   </button>
                 </div>
               </div>
-              <p class="text-sm text-gray-600 mt-1 mb-2">
+              <p
+                :class="[
+                  'text-sm mt-1 mb-2',
+                  item.isRead ? 'text-gray-500' : 'text-gray-700',
+                ]"
+              >
                 {{ item.body }}
               </p>
               <time class="text-xs text-gray-400 whitespace-nowrap">

@@ -256,6 +256,41 @@ const logout = async () => {
   }
 };
 
+const handleImageUploaded = async (imageUrl: string) => {
+  console.log("📸 Image uploaded, received:", imageUrl);
+
+  const userId = Number(localStorage.getItem("userId"));
+  if (!userId) {
+    console.error("❌ No userId found");
+    return;
+  }
+
+  // Always refresh from server after upload
+  console.log("🔄 Refreshing profile photo from server...");
+  try {
+    // Wait a moment for server to process the upload
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    await userStore.fetchUserProfilePhoto(userId);
+    console.log("✅ Profile photo refreshed:", userStore.profilePhotoUrl);
+
+    // If still no photo URL, try again after a longer delay
+    if (!userStore.profilePhotoUrl) {
+      console.log("⏳ No photo URL yet, trying again in 2 seconds...");
+      setTimeout(async () => {
+        try {
+          await userStore.fetchUserProfilePhoto(userId);
+          console.log("🔄 Second attempt result:", userStore.profilePhotoUrl);
+        } catch (error) {
+          console.error("💥 Second attempt failed:", error);
+        }
+      }, 2000);
+    }
+  } catch (error) {
+    console.error("💥 Failed to refresh profile photo:", error);
+  }
+};
+
 const fetchUserDetails = async () => {
   const userId = Number(localStorage.getItem("userId")); // Retrieve userId from storage
   if (userId) {
@@ -306,14 +341,25 @@ fetchEmployees();
               @click="showProfileAction = !showProfileAction"
               id="step-2"
             >
-              <div v-if="userStore.profilePhotoUrl">
+              <template v-if="userStore.profilePhotoUrl">
                 <img
                   :src="userStore.profilePhotoUrl"
                   alt="Profile Photo"
                   class="w-full h-full rounded-full object-cover"
                 />
-              </div>
-              <IUserGear />
+              </template>
+              <template v-else-if="userStore.userInitials">
+                <div
+                  class="w-full h-full rounded-full bg-[#306651] flex items-center justify-center"
+                >
+                  <span class="text-white text-sm font-semibold">
+                    {{ userStore.userInitials }}
+                  </span>
+                </div>
+              </template>
+              <template v-else>
+                <IUserGear />
+              </template>
               <span
                 class="absolute right-0 top-7 h-3 w-3 rounded-full bg-green border-2 border-white"
               ></span>
@@ -326,6 +372,7 @@ fetchEmployees();
         v-if="showProfileAction == true"
         @logout="confirmLogout"
         @closeProfileAction="showProfileAction = false"
+        @imageUploaded="handleImageUploaded"
         class="hidden lg:block md:block"
       />
       <!-- confirm alert -->

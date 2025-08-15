@@ -251,6 +251,7 @@ const rules = computed(() => {
 
 const v$ = useVuelidate(rules as any, data);
 </script>
+
 <template>
   <div class="px-6 py-9 space-y-6 cursor-pointer">
     <!-- Confirm Alert -->
