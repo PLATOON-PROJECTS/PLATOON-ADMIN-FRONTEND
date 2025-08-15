@@ -8,13 +8,26 @@ import { ref } from "vue";
 interface State {
   error: { value: boolean; type: any | null; message: string | null };
   profilePhotoUrl: string | null; // add it to state!
+  userFirstName: string | null;
+  userLastName: string | null;
 }
 
 export const useUserStore = defineStore("user", {
   state: (): State => ({
     error: { value: false, type: null, message: null },
     profilePhotoUrl: null,
+    userFirstName: null,
+    userLastName: null,
   }),
+
+  getters: {
+    userInitials: (state) => {
+      if (!state.userFirstName && !state.userLastName) return null;
+      const firstInitial = state.userFirstName?.charAt(0).toUpperCase() || "";
+      const lastInitial = state.userLastName?.charAt(0).toUpperCase() || "";
+      return `${firstInitial}${lastInitial}`;
+    },
+  },
 
   actions: {
     async show(userId: number): Promise<any> {
@@ -235,16 +248,94 @@ export const useUserStore = defineStore("user", {
 
     async fetchUserProfilePhoto(userId: number) {
       try {
-        const result = await userService.getUserProfile(userId);
-        if (result?.succeeded && result.data?.employee?.user?.imageUrl) {
-          this.profilePhotoUrl = result.data.employee.user.imageUrl; // ✅ set store state
+        console.log("🔍 Fetching profile photo for userId:", userId);
+
+        // Try both endpoints to get user profile data
+        let result = null;
+
+        try {
+          // First try the getUserProfile endpoint
+          result = await userService.getUserProfile(userId);
+          console.log("📡 getUserProfile result:", result);
+        } catch (error) {
+          console.log("⚠️ getUserProfile failed, trying show endpoint");
+          // Fallback to show endpoint
+          result = await userService.show(userId);
+          console.log("📡 show result:", result);
+        }
+
+        // Check different possible response structures
+        let imageUrl = null;
+        let firstName = null;
+        let lastName = null;
+
+        if (result?.succeeded && result.data?.employee?.user) {
+          // Structure from getUserProfile: result.data.employee.user
+          const user = result.data.employee.user;
+          imageUrl = user.imageUrl;
+          firstName = user.firstname || user.firstName;
+          lastName = user.lastname || user.lastName;
+        } else if (
+          result?.data?.succeeded &&
+          result.data?.data?.organisation?.user
+        ) {
+          // Structure: result.data.data.organisation.user
+          const user = result.data.data.organisation.user;
+          imageUrl = user.imageUrl;
+          firstName = user.firstname || user.firstName;
+          lastName = user.lastname || user.lastName;
+        } else if (result?.data?.data?.employee?.user) {
+          // Structure: result.data.data.employee.user
+          const user = result.data.data.employee.user;
+          imageUrl = user.imageUrl;
+          firstName = user.firstname || user.firstName;
+          lastName = user.lastname || user.lastName;
+        } else if (result?.data?.data?.user) {
+          // Structure: result.data.data.user
+          const user = result.data.data.user;
+          imageUrl = user.imageUrl;
+          firstName = user.firstname || user.firstName;
+          lastName = user.lastname || user.lastName;
+        } else if (result?.data?.data?.imageUrl) {
+          // Structure: result.data.data.imageUrl
+          imageUrl = result.data.data.imageUrl;
+        } else if (result?.data?.imageUrl) {
+          // Direct structure: result.data.imageUrl
+          imageUrl = result.data.imageUrl;
+        }
+
+        // Update user names
+        this.userFirstName = firstName;
+        this.userLastName = lastName;
+        console.log("👤 User names set:", { firstName, lastName });
+
+        if (imageUrl) {
+          // Add cache-busting timestamp to prevent browser caching issues
+          this.profilePhotoUrl = imageUrl.includes("?")
+            ? `${imageUrl}&t=${Date.now()}`
+            : `${imageUrl}?t=${Date.now()}`;
+          console.log("✅ Profile photo URL set to:", this.profilePhotoUrl);
         } else {
+          console.log("❌ No image URL found in response, setting to null");
+          console.log(
+            "📋 Full response structure:",
+            JSON.stringify(result, null, 2)
+          );
           this.profilePhotoUrl = null;
         }
       } catch (error) {
-        console.error("Failed to fetch profile photo:", error);
+        console.error("💥 Failed to fetch profile photo:", error);
         this.profilePhotoUrl = null;
       }
+    },
+
+    updateProfilePhotoUrl(imageUrl: string) {
+      console.log("🔄 Updating profile photo URL:", imageUrl);
+      // Add cache-busting timestamp to prevent browser caching issues
+      this.profilePhotoUrl = imageUrl.includes("?")
+        ? `${imageUrl}&t=${Date.now()}`
+        : `${imageUrl}?t=${Date.now()}`;
+      console.log("✅ Profile photo URL updated to:", this.profilePhotoUrl);
     },
 
     async uploadPassport(file: File, userId: number) {

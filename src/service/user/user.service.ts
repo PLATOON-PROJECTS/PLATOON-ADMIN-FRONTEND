@@ -209,8 +209,20 @@ class UserService {
   }
 
   async getUserProfile(userId: number) {
-    const response = await axios.get(`/User/user-details/${userId}`);
-    return response.data;
+    const customRequest = this.createAxiosInstance();
+    try {
+      console.log("🌐 Making request to: /User/user-details/" + userId);
+      const response = await customRequest.get(`/User/user-details/${userId}`);
+      console.log("📡 getUserProfile response:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error(
+        "💥 getUserProfile error:",
+        error.response?.status,
+        error.response?.data
+      );
+      throw error;
+    }
   }
 
   async uploadPassport(file: File, userId: number): Promise<any> {

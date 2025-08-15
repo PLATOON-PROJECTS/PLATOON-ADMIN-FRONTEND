@@ -68,12 +68,17 @@ onMounted(() => {
               class="w-full h-full rounded-full object-cover"
             />
           </template>
-          <template v-else>
+          <template v-else-if="userStore.userInitials">
             <div
-              class="w-full h-full rounded-full bg-gray-200 flex items-center justify-center"
+              class="w-full h-full rounded-full bg-[#306651] flex items-center justify-center"
             >
-              <span class="text-gray-500 text-xs">No Photo</span>
+              <span class="text-white text-sm font-semibold">
+                {{ userStore.userInitials }}
+              </span>
             </div>
+          </template>
+          <template v-else>
+            <IUserGear />
           </template>
         </div>
       </div>

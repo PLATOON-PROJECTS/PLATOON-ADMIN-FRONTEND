@@ -15,6 +15,13 @@ export const useNotificationStore = defineStore("notification", {
     loading: false,
   }),
 
+  getters: {
+    unreadCount: (state) => state.notifications.filter((n) => !n.isRead).length,
+    unreadNotifications: (state) =>
+      state.notifications.filter((n) => !n.isRead),
+    readNotifications: (state) => state.notifications.filter((n) => n.isRead),
+  },
+
   actions: {
     async getNotifications(userId: number, pageSize = 10, pageNumber = 1) {
       this.loading = true;
@@ -56,6 +63,41 @@ export const useNotificationStore = defineStore("notification", {
         }
       } catch (error) {
         return Promise.reject(error);
+      }
+    },
+
+    async markAsRead(notificationId: number) {
+      try {
+        const response = await notificationService.markAsRead(notificationId);
+
+        // Update the local notification state
+        const notification = this.notifications.find(
+          (n) => n.id === notificationId
+        );
+        if (notification) {
+          notification.isRead = true;
+        }
+
+        return response;
+      } catch (error) {
+        console.error("Error marking notification as read:", error);
+        throw error;
+      }
+    },
+
+    async markAllAsRead(userId: number) {
+      try {
+        const response = await notificationService.markAllAsRead(userId);
+
+        // Update all local notifications to read
+        this.notifications.forEach((notification) => {
+          notification.isRead = true;
+        });
+
+        return response;
+      } catch (error) {
+        console.error("Error marking all notifications as read:", error);
+        throw error;
       }
     },
   },

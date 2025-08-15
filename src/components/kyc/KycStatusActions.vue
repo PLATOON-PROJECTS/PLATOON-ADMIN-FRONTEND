@@ -64,6 +64,16 @@
     <template #otherMessage>CLOSE</template>
     {{ successMessage }}
   </successAlert>
+
+  <!-- Decline Modal -->
+  <DeclineModal
+    :show="showDeclineModal"
+    :userId="userId"
+    :roleId="0"
+    :organisationId="Number(route.params.id) || 0"
+    @close="showDeclineModal = false"
+    @submitted="handleDeclineSubmitted"
+  />
 </template>
 
 <script setup lang="ts">
@@ -71,6 +81,7 @@ import { ref } from "vue";
 import { useRoute } from "vue-router";
 import ConfirmAlert from "../../components/alerts/ConfirmAlert.vue";
 import SuccessAlert from "../../components/alerts/SuccessAlert.vue";
+import DeclineModal from "../../modals/DeclineModal.vue";
 import { request } from "../../composables/request.composable";
 import kycStore from "../../store/modules/kyc.store";
 import handleError from "../../composables/handle_error.composable";
@@ -88,16 +99,65 @@ const confirmMessage = ref({ message: "", id: "" });
 const successMessage = ref("Action successful");
 const errorMessage = ref(""); // 👈 new
 
+// DeclineModal variables
+const showDeclineModal = ref(false);
+const selectedOrganisationId = ref<number | null>(null);
+
+// Get userId from localStorage
+const userId = Number(localStorage.getItem("userId")) || 0;
+
 function triggerConfirmation(id: number, approve: boolean) {
-  approvalIntent.value = approve;
-  confirmMessage.value = {
-    message: approve
-      ? "Do you want to approve this company?"
-      : "Do you want to decline this company?",
-    id: organisationId as string,
-  };
-  showConfirmApproval.value = true;
+  if (approve) {
+    // Use confirmation dialog for approval
+    approvalIntent.value = true;
+    confirmMessage.value = {
+      message: "Do you want to approve this company?",
+      id: organisationId as string,
+    };
+    showConfirmApproval.value = true;
+  } else {
+    // Use DeclineModal for decline with notification
+    selectedOrganisationId.value = id;
+    showDeclineModal.value = true;
+  }
   errorMessage.value = ""; // Clear previous errors
+}
+
+// Handle decline modal submission
+async function handleDeclineSubmitted() {
+  showDeclineModal.value = false;
+
+  if (selectedOrganisationId.value) {
+    loading.value = true;
+    errorMessage.value = "";
+    try {
+      console.log(
+        "Calling approval API to decline company:",
+        selectedOrganisationId.value
+      );
+      const response = await request(
+        kycStore().approval(selectedOrganisationId.value.toString(), false)
+      );
+
+      console.log("Decline response:", response);
+
+      if (response?.data?.succeeded) {
+        successMessage.value = "Company declined successfully";
+        showSuccess.value = true;
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        errorMessage.value =
+          response?.data?.message || "Decline failed. Please try again.";
+      }
+    } catch (error: any) {
+      console.error("Error declining company:", error);
+      errorMessage.value = error?.message || "Something went wrong.";
+      handleError(error, "Decline failed");
+    } finally {
+      loading.value = false;
+      selectedOrganisationId.value = null;
+    }
+  }
 }
 
 async function submitApproval(id: string, approve: boolean) {
