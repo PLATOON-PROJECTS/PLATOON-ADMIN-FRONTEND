@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import kycService from "../../service/kyc/kyc.service";
+import { SubmitKycInfoPayload } from "../../service/kyc/interface/kyc.interface";
 
 interface State {
   // Define any state properties if needed
@@ -94,6 +95,21 @@ const kycStore = defineStore("Kyc", {
       } catch (error) {
         console.error("Error uploading document:", error);
         throw error;
+      }
+    },
+
+    async submitKycInfo(payload: SubmitKycInfoPayload): Promise<any> {
+      try {
+        const response = await kycService.submitInfo(payload);
+        if (response.data) {
+          return response;
+        } else if (response.response) {
+          return Promise.reject(response.response);
+        } else {
+          return Promise.reject(response.message);
+        }
+      } catch (error: any) {
+        return Promise.reject(error);
       }
     },
   },

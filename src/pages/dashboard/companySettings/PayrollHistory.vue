@@ -48,7 +48,8 @@ onMounted(() => {
 const fetchTotalRevenue = async () => {
   loading.value = true;
   try {
-    const response = await request(walletStore.getTotalRevenue());
+    const userId = Number(localStorage.getItem("userId"));
+    const response = await request(walletStore.getTotalRevenue(userId));
     if (response?.data) {
       totalRevenueData.value = [response.data.data];
     }
@@ -63,7 +64,8 @@ const fetchTotalRevenue = async () => {
 const fetchTotalFundReceived = async () => {
   loading.value = true;
   try {
-    const response = await request(walletStore.getTotalFundReceived());
+    const userId = Number(localStorage.getItem("userId"));
+    const response = await request(walletStore.getTotalFundReceived(userId));
     if (response?.data) {
       totalFundReceived.value = [response.data.data];
     }
@@ -78,7 +80,8 @@ const fetchTotalFundReceived = async () => {
 const fetchPendingDisbursement = async () => {
   loading.value = true;
   try {
-    const response = await request(walletStore.pendingDisbursement());
+    const userId = Number(localStorage.getItem("userId"));
+    const response = await request(walletStore.pendingDisbursement(userId));
     if (response?.data) {
       pendingDisbursementData.value = [response.data.data];
     }
@@ -93,7 +96,8 @@ const fetchPendingDisbursement = async () => {
 const fetchTotalFundDisbursed = async () => {
   loading.value = true;
   try {
-    const response = await request(walletStore.getTotalFundDisbursed());
+    const userId = Number(localStorage.getItem("userId"));
+    const response = await request(walletStore.getTotalFundDisbursed(userId));
     if (response?.data) {
       totalFundDisbursed.value = [response.data.data];
     }

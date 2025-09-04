@@ -116,9 +116,9 @@ const walletStore = defineStore("wallet", {
       }
     },
 
-    async getTotalRevenue(): Promise<any> {
+    async getTotalRevenue(userId?: number): Promise<any> {
       try {
-        const response = await walletService.getTotalRevenue();
+        const response = await walletService.getTotalRevenue(userId);
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -131,9 +131,9 @@ const walletStore = defineStore("wallet", {
       }
     },
 
-    async pendingDisbursement(): Promise<any> {
+    async pendingDisbursement(userId?: number): Promise<any> {
       try {
-        const response = await walletService.pendingDisbursement();
+        const response = await walletService.pendingDisbursement(userId);
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -145,9 +145,9 @@ const walletStore = defineStore("wallet", {
         return await Promise.reject(error);
       }
     },
-    async getTotalFundReceived(): Promise<any> {
+    async getTotalFundReceived(userId?: number): Promise<any> {
       try {
-        const response = await walletService.getTotalFundReceived();
+        const response = await walletService.getTotalFundReceived(userId);
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {
@@ -159,9 +159,9 @@ const walletStore = defineStore("wallet", {
         return await Promise.reject(error);
       }
     },
-    async getTotalFundDisbursed(): Promise<any> {
+    async getTotalFundDisbursed(userId?: number): Promise<any> {
       try {
-        const response = await walletService.getTotalFundDisbursed();
+        const response = await walletService.getTotalFundDisbursed(userId);
         if (response.data) {
           return await Promise.resolve(response);
         } else if (response.response) {

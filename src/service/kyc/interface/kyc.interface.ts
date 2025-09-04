@@ -45,3 +45,16 @@ export interface Get {
   data: KycData;
   statusCode: number;
 }
+
+export interface SubmitKycInfoPayload {
+  organisationId: number;
+  firstname: string;
+  middlename: string;
+  lastname: string;
+  phone: string;
+  email: string;
+  gender: string;
+  country: string;
+  address: string;
+  bvn: string;
+}

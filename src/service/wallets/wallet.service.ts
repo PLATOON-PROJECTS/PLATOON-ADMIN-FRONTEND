@@ -48,12 +48,14 @@ class WalletService {
         return err;
       });
   }
-  async getTotalRevenue(): Promise<any> {
+  async getTotalRevenue(userId?: number): Promise<any> {
     const customRequest = this.createAxiosInstance();
+    const params = userId ? { UserId: userId } : {};
 
     return await customRequest
       .get("/Dashboard/get-total-revenue-received", {
         headers: authHeader(),
+        params,
       })
       .then((res) => {
         return res;
@@ -63,12 +65,14 @@ class WalletService {
       });
   }
 
-  async pendingDisbursement(): Promise<any> {
+  async pendingDisbursement(userId?: number): Promise<any> {
     const customRequest = this.createAxiosInstance();
+    const params = userId ? { UserId: userId } : {};
 
     return await customRequest
       .get("/Dashboard/get-total-pending-disbursement", {
         headers: authHeader(),
+        params,
       })
       .then((res) => {
         return res;
@@ -78,12 +82,14 @@ class WalletService {
       });
   }
 
-  async getTotalFundDisbursed(): Promise<any> {
+  async getTotalFundDisbursed(userId?: number): Promise<any> {
     const customRequest = this.createAxiosInstance();
+    const params = userId ? { UserId: userId } : {};
 
     return await customRequest
       .get("/Dashboard/get-total-fund-disbursed", {
         headers: authHeader(),
+        params,
       })
       .then((res) => {
         return res;
@@ -93,12 +99,14 @@ class WalletService {
       });
   }
 
-  async getTotalFundReceived(): Promise<any> {
+  async getTotalFundReceived(userId?: number): Promise<any> {
     const customRequest = this.createAxiosInstance();
+    const params = userId ? { UserId: userId } : {};
 
     return await customRequest
       .get("/Dashboard/get-total-fund-received", {
         headers: authHeader(),
+        params,
       })
       .then((res) => {
         return res;

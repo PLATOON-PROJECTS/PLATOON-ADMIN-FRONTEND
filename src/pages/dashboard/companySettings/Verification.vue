@@ -3,6 +3,7 @@ import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import KycStatusActions from "../../../components/kyc/KycStatusActions.vue";
 import BusinessOwnerInfo from "../../../components/kyc/BussinessOwnerInfo.vue";
+import BusinessOwnerInfoForm from "../../../components/kyc/BusinessOwnerInfoForm.vue";
 import BusinessDocuments from "../../../components/kyc/BusinessDocuments.vue";
 import UploadDocumentModal from "../../../components/kyc/UploadDocumentModal.vue";
 import { request } from "../../../composables/request.composable";
@@ -38,6 +39,11 @@ const fetchCompaniesKyc = async () => {
   }
 };
 
+const handleInfoSubmitted = () => {
+  // Refresh KYC data after info is submitted
+  fetchCompaniesKyc();
+};
+
 onMounted(fetchCompaniesKyc);
 </script>
 <template>
@@ -55,24 +61,24 @@ onMounted(fetchCompaniesKyc);
     <UploadDocumentModal v-model="showModal" />
   </section>
 
-  <!-- ✅ Empty state fallback -->
+  <!-- ✅ Empty state with actual sections -->
   <section
     v-else-if="!loading && !kycData"
-    class="px-8 py-20 flex flex-col items-center justify-center text-center bg-white"
+    class="px-8 py-6 space-y-10 bg-white"
   >
-    <h2 class="text-xl font-semibold text-gray-700 mb-2">No KYC Data Found</h2>
-    <p class="text-gray-500 mb-6">
-      It looks like there’s no KYC record for this organisation yet.
-    </p>
-    <!-- <button
-      @click="showModal = true"
-      class="bg-[#306651] text-white px-6 py-3 rounded-full hover:bg-green-700 text-sm font-medium"
-    >
-      Upload Document
-    </button> -->
+    <div class="space-y-4 border border-[#EDEDED] rounded-lg p-6 bg-white">
+      <h2 class="text-xl font-semibold text-gray-700 mb-2">KYC Verification</h2>
+      <p class="text-gray-500 mb-6">
+        Please complete the KYC verification process by providing your business
+        owner information and uploading required documents.
+      </p>
+    </div>
 
-    <!-- Modal still works here -->
-    <!-- <UploadDocumentModal v-model="showModal" /> -->
+    <BusinessOwnerInfoForm @info-submitted="handleInfoSubmitted" />
+
+    <BusinessDocuments :documents="[]" @open-upload="showModal = true" />
+
+    <UploadDocumentModal v-model="showModal" />
   </section>
 
   <!-- ✅ Optional loading spinner -->
