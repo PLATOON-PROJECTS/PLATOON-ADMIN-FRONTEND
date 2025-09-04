@@ -1,6 +1,6 @@
 import { http } from "../../core/utils/http";
 import axios, { Axios } from "axios";
-import { Get } from "./interface/kyc.interface";
+import { Get, SubmitKycInfoPayload } from "./interface/kyc.interface";
 import authhHeader from "../../core/utils/authh.header";
 
 class Kyc {
@@ -124,6 +124,20 @@ class Kyc {
       .then((res) => res)
       .catch((err) => {
         console.error("Error uploading Document:", err);
+        return Promise.reject(err);
+      });
+  }
+
+  async submitInfo(payload: SubmitKycInfoPayload): Promise<any> {
+    const customRequest = this.createAxiosInstance();
+
+    return await customRequest
+      .post(`Kyc/submit-info`, payload, {
+        headers: authhHeader(),
+      })
+      .then((res) => res)
+      .catch((err) => {
+        console.error("Error submitting KYC info:", err);
         return Promise.reject(err);
       });
   }

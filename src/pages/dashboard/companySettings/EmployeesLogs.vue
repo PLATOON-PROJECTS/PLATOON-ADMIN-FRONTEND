@@ -531,7 +531,7 @@ watch(showDepartment, (newValue, oldValue) => {
                   <td class="py-4 text-left whitespace-nowrap">
                     <div class="font-normal flex flex-col">
                       <span class="text-sm font-semimedium">{{
-                        user.grades.id && user.grades !== null
+                        user.grades && user.grades !== null && user.grades.id
                           ? user.grades.code
                           : "---"
                       }}</span>
