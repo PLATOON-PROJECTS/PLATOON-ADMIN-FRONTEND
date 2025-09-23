@@ -36,6 +36,10 @@ const RegisterEmployee = () => import("../pages/auth/RegisterEmployee.vue");
 // dashboard
 const HomePage = () => import("../pages/dashboard/Home.vue");
 const WalletPage = () => import("../pages/dashboard/Wallet.vue");
+const TransactionHistoryPage = () =>
+  import("../pages/dashboard/TransactionHistory.vue");
+const DataExtractionPage = () =>
+  import("../pages/dashboard/DataExtraction.vue");
 
 //Companies
 const CompaniesPage = () =>
@@ -329,6 +333,22 @@ const routes = [
         component: SettingsPage,
         meta: {
           title: "Settings - Dashboard",
+        },
+      },
+      {
+        path: "transaction-history",
+        name: "dashboard.transaction-history",
+        component: TransactionHistoryPage,
+        meta: {
+          title: "Transaction History - Dashboard",
+        },
+      },
+      {
+        path: "data-extraction",
+        name: "dashboard.data-extraction",
+        component: DataExtractionPage,
+        meta: {
+          title: "Data Extraction - Dashboard",
         },
       },
       // {

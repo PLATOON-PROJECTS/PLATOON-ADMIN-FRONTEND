@@ -464,7 +464,7 @@ fetchEmployees();
             class="flex items-center space-x-2.5 bg-grey-100 dark:bg-grey-dark p-3 rounded-full px-4+1"
           >
             <span class="font-medium text-sm text-[#003b3d]">
-              Manage Comapnies
+              Manage Companies
             </span>
             <span>
               <IArrowRightTail />
