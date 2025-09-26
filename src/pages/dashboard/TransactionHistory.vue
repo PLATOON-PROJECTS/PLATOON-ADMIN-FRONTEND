@@ -11,6 +11,7 @@ import { currency } from "../../core/utils/currencyType";
 import Notification from "../../components/Notification.vue";
 import ProfileAction from "../../components/dropdowns/profileAction.vue";
 import Pagination from "../../components/Pagination.vue";
+import CustomDropdown from "../../components/dropdowns/CustomDropdown.vue";
 import { useUserStore } from "../../store/index";
 import transactionService, {
   TransactionFilters,
@@ -257,21 +258,13 @@ onMounted(() => {
             <label class="block text-sm font-medium text-gray-700 mb-1"
               >Month</label
             >
-            <select
-              placeholder="Month"
+            <CustomDropdown
               v-model="selectedMonth"
+              :options="monthOptions"
+              placeholder="All Months"
+              :default-option="{ value: undefined, label: 'All Months' }"
               @change="applyFilters"
-              class="w-full px-3 py-2 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Months</option>
-              <option
-                v-for="month in monthOptions"
-                :key="month.value"
-                :value="month.value"
-              >
-                {{ month.label }}
-              </option>
-            </select>
+            />
           </div>
 
           <!-- Year Filter -->
@@ -279,17 +272,18 @@ onMounted(() => {
             <label class="block text-sm font-medium text-gray-700 mb-1"
               >Year</label
             >
-            <select
-              placeholder="Year"
+            <CustomDropdown
               v-model="selectedYear"
+              :options="
+                yearOptions.map((year) => ({
+                  value: year,
+                  label: year.toString(),
+                }))
+              "
+              placeholder="All Years"
+              :default-option="{ value: undefined, label: 'All Years' }"
               @change="applyFilters"
-              class="w-full px-3 py-2 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Years</option>
-              <option v-for="year in yearOptions" :key="year" :value="year">
-                {{ year }}
-              </option>
-            </select>
+            />
           </div>
 
           <!-- Amount Filter -->
@@ -311,20 +305,18 @@ onMounted(() => {
             <label class="block text-sm font-medium text-gray-700 mb-1"
               >Status</label
             >
-            <select
-              placeholder="Status"
+            <CustomDropdown
               v-model="statusFilter"
+              :options="
+                statusOptions.map((option) => ({
+                  value: option,
+                  label: option,
+                }))
+              "
+              placeholder="All status"
+              :default-option="{ value: 'All status', label: 'All status' }"
               @change="applyFilters"
-              class="w-full px-3 py-2 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option
-                v-for="option in statusOptions"
-                :key="option"
-                :value="option"
-              >
-                {{ option }}
-              </option>
-            </select>
+            />
           </div>
 
           <!-- Sort Order -->
@@ -332,15 +324,15 @@ onMounted(() => {
             <label class="block text-sm font-medium text-gray-700 mb-1"
               >Sort Order</label
             >
-            <select
-              placeholder="Sort Order"
+            <CustomDropdown
               v-model="isAscending"
+              :options="[
+                { value: true, label: 'Ascending' },
+                { value: false, label: 'Descending' },
+              ]"
+              placeholder="Sort Order"
               @change="applyFilters"
-              class="w-full px-3 py-2 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option :value="true">Ascending</option>
-              <option :value="false">Descending</option>
-            </select>
+            />
           </div>
         </div>
 
