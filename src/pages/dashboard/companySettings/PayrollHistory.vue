@@ -4,10 +4,15 @@ import EmptyState from "../../../components/EmptyState.vue";
 import { IUserThree } from "../../../core/icons";
 import { request } from "../../../composables/request.composable";
 import spinner from "../../../components/timer/Spinner.vue";
-import { useWalletStore, usePayrollStore } from "../../../store/index";
+import {
+  useWalletStore,
+  usePayrollStore,
+  useCompanyStore,
+} from "../../../store/index";
 import html2pdf from "html2pdf.js";
 import { formatNumber, dateFormat } from "../../../core/helpers/actions";
 import { useRoute } from "vue-router";
+import handleSuccess from "../../../composables/handle_success.composable";
 
 // Initialize route
 const route = useRoute();
@@ -15,6 +20,7 @@ const route = useRoute();
 // Initialize store
 const walletStore = useWalletStore();
 const payrollStore = usePayrollStore();
+const companyStore = useCompanyStore();
 
 // Reactive variables
 const totalRevenueData = ref<any>({ data: {}, message: "" });
@@ -34,22 +40,57 @@ const slip = ref({
   netPay: 0,
 });
 const generatingPDF = ref<{ [key: number]: boolean }>({}); // Track loading state for each row
+const userId = ref<number | null>(null);
+
+// Fetch organization data to get userId
+const fetchOrganisationUserId = async () => {
+  try {
+    // Get organization ID from route params
+    const organisationId = Number(route.params.id);
+
+    if (organisationId) {
+      const response = await request(companyStore.companyById(organisationId));
+      const successResponse = handleSuccess(response);
+
+      if (
+        successResponse &&
+        successResponse.data &&
+        successResponse.data.admin
+      ) {
+        userId.value = successResponse.data.admin.id;
+        console.log("Fetched organisation userId:", userId.value);
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching organization data:", error);
+    // Fallback to localStorage if API fails
+    const fallbackUserId = localStorage.getItem("userId");
+    if (fallbackUserId) {
+      userId.value = Number(fallbackUserId);
+    }
+  }
+};
 
 // Fetch data on mounted
-onMounted(() => {
-  fetchTotalRevenue();
-  fetchTotalFundReceived();
-  fetchPendingDisbursement();
-  fetchTotalFundDisbursed();
+onMounted(async () => {
+  await fetchOrganisationUserId();
+  // Only fetch wallet data if we have a userId
+  if (userId.value) {
+    fetchTotalRevenue();
+    fetchTotalFundReceived();
+    fetchPendingDisbursement();
+    fetchTotalFundDisbursed();
+  }
   fetchCompanyPayrollById();
 });
 
 // Fetch total revenue
 const fetchTotalRevenue = async () => {
+  if (!userId.value) return;
+
   loading.value = true;
   try {
-    const userId = Number(localStorage.getItem("userId"));
-    const response = await request(walletStore.getTotalRevenue(userId));
+    const response = await request(walletStore.getTotalRevenue(userId.value));
     if (response?.data) {
       totalRevenueData.value = [response.data.data];
     }
@@ -62,10 +103,13 @@ const fetchTotalRevenue = async () => {
 
 // Fetch total funds received
 const fetchTotalFundReceived = async () => {
+  if (!userId.value) return;
+
   loading.value = true;
   try {
-    const userId = Number(localStorage.getItem("userId"));
-    const response = await request(walletStore.getTotalFundReceived(userId));
+    const response = await request(
+      walletStore.getTotalFundReceived(userId.value)
+    );
     if (response?.data) {
       totalFundReceived.value = [response.data.data];
     }
@@ -78,10 +122,13 @@ const fetchTotalFundReceived = async () => {
 
 // Fetch pending disbursement
 const fetchPendingDisbursement = async () => {
+  if (!userId.value) return;
+
   loading.value = true;
   try {
-    const userId = Number(localStorage.getItem("userId"));
-    const response = await request(walletStore.pendingDisbursement(userId));
+    const response = await request(
+      walletStore.pendingDisbursement(userId.value)
+    );
     if (response?.data) {
       pendingDisbursementData.value = [response.data.data];
     }
@@ -94,10 +141,13 @@ const fetchPendingDisbursement = async () => {
 
 // Fetch total funds disbursed
 const fetchTotalFundDisbursed = async () => {
+  if (!userId.value) return;
+
   loading.value = true;
   try {
-    const userId = Number(localStorage.getItem("userId"));
-    const response = await request(walletStore.getTotalFundDisbursed(userId));
+    const response = await request(
+      walletStore.getTotalFundDisbursed(userId.value)
+    );
     if (response?.data) {
       totalFundDisbursed.value = [response.data.data];
     }

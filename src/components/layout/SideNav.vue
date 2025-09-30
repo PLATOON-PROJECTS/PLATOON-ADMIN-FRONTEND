@@ -18,7 +18,6 @@ import {
   IHome,
   IBuildings,
   IUserGear,
-  IFileClockIcon,
   ISettings,
   ICompanySettings,
   IUserThree,
@@ -26,6 +25,8 @@ import {
   IHealth,
   IUmbrella,
 } from "../../core/icons";
+import IFileClockIcon from "../../components/icons/IFileClockIcon.vue";
+import IDownload from "../../components/icons/IDownload.vue";
 
 import { request } from "../../composables/request.composable";
 import handleError from "../../composables/handle_error.composable";
@@ -463,6 +464,58 @@ defineExpose({
                       : 'text-black-200',
                   ]"
                   >Manage Users</span
+                >
+              </div>
+            </div>
+          </router-link>
+        </li>
+
+        <li>
+          <router-link to="/dashboard/transaction-history">
+            <div class="side-nav-link">
+              <div class="nav-link">
+                <span>
+                  <IFileClockIcon
+                    :color="
+                      isActiveRoute('dashboard.transaction-history')
+                        ? '#003b3d'
+                        : '#626669'
+                    "
+                  />
+                </span>
+                <span
+                  :class="[
+                    isActiveRoute('dashboard.transaction-history')
+                      ? 'text-[#003b3d] font-medium'
+                      : 'text-black-200',
+                  ]"
+                  >Transaction History</span
+                >
+              </div>
+            </div>
+          </router-link>
+        </li>
+
+        <li>
+          <router-link to="/dashboard/data-extraction">
+            <div class="side-nav-link">
+              <div class="nav-link">
+                <span>
+                  <IDownload
+                    :color="
+                      isActiveRoute('dashboard.data-extraction')
+                        ? '#003b3d'
+                        : '#626669'
+                    "
+                  />
+                </span>
+                <span
+                  :class="[
+                    isActiveRoute('dashboard.data-extraction')
+                      ? 'text-[#003b3d] font-medium'
+                      : 'text-black-200',
+                  ]"
+                  >Data Extraction</span
                 >
               </div>
             </div>
