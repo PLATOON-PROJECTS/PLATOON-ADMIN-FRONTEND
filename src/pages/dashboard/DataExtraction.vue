@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import IDownload from "../../components/icons/IDownload.vue";
 import { useDataExtractionStore } from "../../store/modules/dataExtraction";
 
@@ -25,6 +25,16 @@ const extractionTypes = ref([
     id: 3,
     name: "Subscribe (Newsletter)",
     type: "subscriber",
+  },
+  {
+    id: 4,
+    name: "Contact Us",
+    type: "contact-us",
+  },
+  {
+    id: 5,
+    name: "Demo Booking",
+    type: "booking",
   },
 ]);
 
@@ -64,6 +74,11 @@ const downloadCSV = async (type: any) => {
     alert(error.message || "Error downloading CSV file. Please try again.");
   }
 };
+
+// Fetch counts when component mounts
+onMounted(() => {
+  dataExtractionStore.fetchCounts();
+});
 </script>
 
 <template>
@@ -82,7 +97,7 @@ const downloadCSV = async (type: any) => {
           <span class="text-[#3E6DBD] text-xs font-bold">i</span>
         </div>
         <p class="text-[#1F1F1F] text-xs">
-          You are required to select date range to begin
+          Select a date range to download CSV files for specific periods
         </p>
       </div>
 
@@ -98,7 +113,7 @@ const downloadCSV = async (type: any) => {
               <input
                 v-model="startDate"
                 type="date"
-                class="w-40 px-3 py-2 border text-gray-200 border-[#E6E6E6] rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                class="w-40 px-3 py-2 border text-gray-200 text-xs border-[#E6E6E6] rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           </div>
@@ -108,7 +123,7 @@ const downloadCSV = async (type: any) => {
               <input
                 v-model="endDate"
                 type="date"
-                class="w-40 px-3 py-2 text-gray-200 border border-[#E6E6E6] rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                class="w-40 px-3 py-2 text-gray-200 text-xs border border-[#E6E6E6] rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           </div>
@@ -153,7 +168,7 @@ const downloadCSV = async (type: any) => {
       </div>
 
       <!-- Data Extraction Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-3 gap-6">
         <div
           v-for="type in extractionTypes"
           :key="type.id"
@@ -173,11 +188,11 @@ const downloadCSV = async (type: any) => {
                 dataExtractionStore.isLoading ||
                 !dataExtractionStore.isDateRangeSelected
               "
-              class="bg-green-50 text-green-700 px-6 py-2 rounded-lg font-medium hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="bg-green-50 text-xs text-green-700 px-6 py-2 rounded-lg font-medium hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <IDownload :color="'#059669'" />
               <span v-if="dataExtractionStore.isLoading">Downloading...</span>
-              <span v-else>Download</span>
+              <span v-else>Download CSV</span>
             </button>
           </div>
         </div>

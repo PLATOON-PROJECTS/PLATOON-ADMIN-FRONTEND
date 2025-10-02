@@ -7,10 +7,21 @@ import {
 
 export const useDataExtractionStore = defineStore("dataExtraction", {
   state: () => ({
-    // Data storage for each type
+    // Count data from API
+    counts: {
+      newsLetterCount: 0,
+      betaSurveys: 0,
+      contactUs: 0,
+      waitlistcount: 0,
+      bookDemoCount: 0,
+    },
+
+    // Data storage for each type (for CSV downloads)
     subscriberData: [] as any[],
     betaData: [] as any[],
     waitlistData: [] as any[],
+    contactUsData: [] as any[],
+    bookingData: [] as any[],
 
     // UI state
     isLoading: false,
@@ -24,23 +35,36 @@ export const useDataExtractionStore = defineStore("dataExtraction", {
 
   getters: {
     getEntryCount: (state) => (type: string) => {
+      let count = 0;
       switch (type) {
         case "subscriber":
-          return state.subscriberData?.length || 0;
+          count = state.counts.newsLetterCount || 0;
+          break;
         case "beta":
-          return state.betaData?.length || 0;
+          count = state.counts.betaSurveys || 0;
+          break;
         case "waitlist":
-          return state.waitlistData?.length || 0;
+          count = state.counts.waitlistcount || 0;
+          break;
+        case "contact-us":
+          count = state.counts.contactUs || 0;
+          break;
+        case "booking":
+          count = state.counts.bookDemoCount || 0;
+          break;
         default:
-          return 0;
+          count = 0;
       }
+      return count;
     },
 
     hasData: (state) => {
       return (
         state.subscriberData.length > 0 ||
         state.betaData.length > 0 ||
-        state.waitlistData.length > 0
+        state.waitlistData.length > 0 ||
+        state.contactUsData.length > 0 ||
+        state.bookingData.length > 0
       );
     },
 
@@ -50,6 +74,21 @@ export const useDataExtractionStore = defineStore("dataExtraction", {
   },
 
   actions: {
+    async fetchCounts() {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const counts = await dataExtractionService.getCounts();
+        this.counts = counts;
+      } catch (error) {
+        console.error("Error fetching counts:", error);
+        this.error = "Error fetching counts. Please try again.";
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     async fetchAllData(filters: DataExtractionFilters) {
       this.isLoading = true;
       this.error = null;
@@ -59,7 +98,7 @@ export const useDataExtractionStore = defineStore("dataExtraction", {
 
         // Store data based on type
         results.forEach((result) => {
-          if (result.success && result.data) {
+          if (result.success && result.data && Array.isArray(result.data)) {
             switch (result.type) {
               case "subscriber":
                 this.subscriberData = result.data;
@@ -69,6 +108,12 @@ export const useDataExtractionStore = defineStore("dataExtraction", {
                 break;
               case "waitlist":
                 this.waitlistData = result.data;
+                break;
+              case "contact-us":
+                this.contactUsData = result.data;
+                break;
+              case "booking":
+                this.bookingData = result.data;
                 break;
             }
           }
@@ -152,9 +197,18 @@ export const useDataExtractionStore = defineStore("dataExtraction", {
     },
 
     clearData() {
+      this.counts = {
+        newsLetterCount: 0,
+        betaSurveys: 0,
+        contactUs: 0,
+        waitlistcount: 0,
+        bookDemoCount: 0,
+      };
       this.subscriberData = [];
       this.betaData = [];
       this.waitlistData = [];
+      this.contactUsData = [];
+      this.bookingData = [];
       this.selectedDateRange = "";
       this.startDate = "";
       this.endDate = "";

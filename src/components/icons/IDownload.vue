@@ -39,7 +39,7 @@ withDefaults(
   }>(),
   {
     color: "#1F1F1F",
-    size: 24,
+    size: 18,
   }
 );
 </script>
