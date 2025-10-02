@@ -237,7 +237,7 @@ onMounted(() => {
                 v-model="searchQuery"
                 type="text"
                 placeholder="Search transaction ID or description"
-                class="block w-full pl-10 pr-3 py-2 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="block w-full pl-10 pr-3 py-2 rounded-lg bg-white text-gray-900 text-xs placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -296,7 +296,7 @@ onMounted(() => {
               @input="applyFilters"
               type="number"
               placeholder="Enter amount"
-              class="w-full px-3 py-2 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-3 py-2 rounded-lg bg-white text-gray-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 

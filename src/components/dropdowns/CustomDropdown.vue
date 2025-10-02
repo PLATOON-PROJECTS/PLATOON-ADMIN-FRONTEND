@@ -4,7 +4,7 @@
     <button
       @click="toggleDropdown"
       @blur="handleBlur"
-      class="w-full px-3 py-2 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 hover:border-gray-400 transition-colors duration-200 flex items-center justify-between"
+      class="w-full px-3 py-2 rounded-lg bg-white text-gray-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 hover:border-gray-400 transition-colors duration-200 flex items-center justify-between"
       :class="{ 'ring-2 ring-blue-500 border-blue-500': isOpen }"
     >
       <span class="text-left truncate">
@@ -36,7 +36,7 @@
         <button
           v-if="defaultOption"
           @click="selectOption(defaultOption)"
-          class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+          class="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
           :class="{
             'bg-blue-50 text-blue-600':
               selectedOption?.value === defaultOption.value,
@@ -50,7 +50,7 @@
           v-for="option in options"
           :key="option.value"
           @click="selectOption(option)"
-          class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+          class="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
           :class="{
             'bg-blue-50 text-blue-600': selectedOption?.value === option.value,
           }"
